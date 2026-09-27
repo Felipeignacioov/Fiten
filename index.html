@@ -1356,6 +1356,15 @@
     padding:calc(env(safe-area-inset-top, 14px) + 10px) 20px 0 20px;
   }
   .onboarding-step-label{font-family:var(--font-body);font-weight:600;font-size:13px;color:var(--text-tertiary);}
+  /* Transición breve entre preguntas — reutiliza exactamente las mismas
+     keyframes que ya usa el "exercise finished" del entrenamiento activo
+     (wkExerciseFadeOut/In): solo opacidad + 4px de desplazamiento. */
+  #onboardingContent.onboarding-fade-out{ animation:wkExerciseFadeOut 0.1s ease-out forwards; }
+  #onboardingContent.onboarding-fade-in{ animation:wkExerciseFadeIn 0.14s ease-out; }
+  /* Transición sutil al seleccionar una tarjeta — acotada dentro de
+     .auth-gate para no modificar .goal-option en "Objetivo y nivel"
+     (Perfil), que sigue exactamente igual que antes. */
+  .auth-gate .goal-option{transition:transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;}
 </style>
 </head>
 <body>
@@ -2245,10 +2254,12 @@
     </div>
     <div class="auth-scroll">
       <div class="dots-row" id="onboardingDots"></div>
-      <div class="flow-title" id="onboardingQuestion">¿Cuál es tu objetivo principal?</div>
-      <div class="auth-fields" id="onboardingOptions"></div>
-      <div class="auth-error" id="onboardingError" style="display:none;">Selecciona una opción para continuar.</div>
-      <button class="flow-primary-btn auth-cta" onclick="onboardingContinue()">Continuar</button>
+      <div id="onboardingContent">
+        <div class="flow-title" id="onboardingQuestion">¿Cuál es tu objetivo principal?</div>
+        <div class="auth-fields" id="onboardingOptions"></div>
+        <div class="auth-error" id="onboardingError" style="display:none;">Selecciona una opción para continuar.</div>
+      </div>
+      <button class="flow-primary-btn auth-cta" id="onboardingContinueBtn" onclick="onboardingContinue()" disabled>Continuar</button>
     </div>
   </div>
 
@@ -2427,12 +2438,18 @@
     }).join('');
 
     document.getElementById('onboardingError').style.display = 'none';
+    // El CTA solo se activa cuando el paso actual ya tiene una respuesta —
+    // deshabilitado usa el mismo .flow-primary-btn:disabled ya existente
+    // (opacidad reducida, sin sombra, cursor not-allowed), sin CSS nuevo.
+    document.getElementById('onboardingContinueBtn').disabled = !currentValue;
     feather.replace();
   }
 
   function selectOnboardingOption(value){
     const step = ONBOARDING_STEPS[onboardingStepIndex];
     onboardingProfile[step.key] = value;
+    // Solo se actualiza la selección y el estado del CTA — sin transición
+    // de página, porque seguimos en la misma pregunta.
     renderOnboardingStep();
   }
 
@@ -2444,7 +2461,7 @@
     }
     if(onboardingStepIndex < ONBOARDING_STEPS.length - 1){
       onboardingStepIndex++;
-      renderOnboardingStep();
+      transitionToOnboardingStep();
     } else {
       completeOnboarding();
     }
@@ -2453,7 +2470,23 @@
   function onboardingGoBack(){
     if(onboardingStepIndex === 0) return;
     onboardingStepIndex--;
-    renderOnboardingStep();
+    transitionToOnboardingStep();
+  }
+
+  // Transición breve y sutil entre preguntas (~240ms) — misma técnica ya
+  // usada en el entrenamiento activo para el cambio de ejercicio: fade+
+  // shift de solo el contenido de la pregunta (no del CTA ni del indicador
+  // de progreso), así el botón nunca "desaparece" y se siente estable.
+  function transitionToOnboardingStep(){
+    const content = document.getElementById('onboardingContent');
+    content.classList.remove('onboarding-fade-in');
+    content.classList.add('onboarding-fade-out');
+    setTimeout(() => {
+      renderOnboardingStep();
+      content.classList.remove('onboarding-fade-out');
+      void content.offsetWidth; // reinicia la animación de forma limpia cada vez
+      content.classList.add('onboarding-fade-in');
+    }, 100);
   }
 
   function completeOnboarding(){
