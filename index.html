@@ -57,10 +57,6 @@
     flex-direction:column;
     overflow:hidden;
   }
-  /* Subtle ambient glow — a faint red-tinted radial light from the top,
-     purely atmospheric (very low opacity), gives the flat black background
-     a sense of depth instead of feeling like a void. Painted behind all
-     real content automatically since ::before has no z-index of its own. */
   .app::before{
     content:'';
     position:absolute;
@@ -222,8 +218,6 @@
   }
 
   /* ---------- Hero card ---------- */
-  /* Largest surface on Home: stays dark and neutral. Red appears only in
-     the CTA button and the small eyebrow indicator dot. */
   .hero{
     position:relative;
     border-radius:28px;
@@ -279,8 +273,6 @@
   .hero-cta svg{width:17px;height:17px;}
 
   /* ---------- Home empty state: no routine assigned today ---------- */
-  /* Same footprint and depth as the approved hero — dark gradient surface,
-     soft elevation, faint watermark — but red stays only in the CTA. */
   .hero-empty{
     position:relative;
     overflow:hidden;
@@ -301,26 +293,9 @@
     position:absolute;top:0;left:24px;right:24px;height:1px;
     background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,0.08),rgba(255,255,255,0));
   }
-  .hero-empty-watermark{
-    position:absolute;right:-14px;top:-30px;
-    font-size:130px;color:rgba(255,255,255,0.025);
-    pointer-events:none;line-height:1;
-  }
-  .hero-empty-watermark svg{width:150px;height:150px;stroke-width:1;}
-  .hero-empty-eyebrow-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;position:relative;}
+  .hero-empty-eyebrow-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;position:relative;}
   .hero-empty-eyebrow-dot{width:6px;height:6px;border-radius:3px;background:var(--text-tertiary);flex-shrink:0;}
   .hero-empty-eyebrow{font-family:var(--font-body);font-weight:600;font-size:13px;color:var(--text-secondary);position:relative;}
-  .hero-empty-icon{
-    width:48px;height:48px;border-radius:14px;
-    background:var(--accent-soft);border:1px solid var(--accent-soft-border);
-    display:flex;align-items:center;justify-content:center;
-    margin-bottom:16px;position:relative;
-  }
-  .hero-empty-icon svg{width:22px;height:22px;color:var(--accent-bright);}
-  /* Post-workout summary badge — same visual language as .hero-empty-icon
-     (accent-soft fill, accent-soft border), just larger for a close/reward
-     moment. Everything else in that screen reuses existing card/stat/pr
-     classes, so this is the only new rule this feature needs. */
   .ws-icon-badge{
     width:64px;height:64px;border-radius:20px;
     background:var(--accent-soft);border:1px solid var(--accent-soft-border);
@@ -354,14 +329,8 @@
   .hero-empty-secondary svg{width:15px;height:15px;color:var(--text-secondary);}
 
   /* ---------- Progress cards (two-up grid) ---------- */
-  .progress-grid{
-    display:flex;
-    gap:12px;
-  }
-  .progress-card{
-    flex:1;
-    min-width:0;
-  }
+  .progress-grid{display:flex;gap:12px;}
+  .progress-card{flex:1;min-width:0;}
   .progress-name{
     font-family:var(--font-body);font-weight:600;font-size:13px;color:var(--text-secondary);
     margin-bottom:14px;
@@ -374,16 +343,10 @@
   .progress-delta svg{width:11px;height:11px;}
   .delta-up{color:#4ADE80;}
   .delta-flat{color:var(--text-tertiary);}
-  /* Small, honest evolution indicator — a real two-point trend (previous
-     record -> current record), not an invented multi-week sparkline. The
-     dim dot is "before", the bright green dot is "now": readable in under
-     2 seconds without adding any new metric. */
   .progress-trend{width:40px;height:26px;flex-shrink:0;}
   .progress-trend polyline{fill:none;stroke:var(--success);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
   .progress-trend circle{fill:var(--success);}
   .progress-trend .trend-dot-from{fill:var(--track-empty);}
-  /* Shown instead of the trend line when there's no previous record yet to
-     compare against — never fabricates a "before" point that doesn't exist. */
   .progress-trend-new{
     width:26px;height:26px;border-radius:999px;flex-shrink:0;
     background:var(--accent-soft);display:flex;align-items:center;justify-content:center;
@@ -408,9 +371,6 @@
   .v-divider{width:1px;height:34px;background:linear-gradient(180deg, transparent, var(--border-light), transparent);}
   .activity-icon-row{display:flex;align-items:center;gap:6px;}
   .activity-icon-row svg{width:15px;height:15px;color:var(--accent-bright);}
-  /* Compact 7-day strip for "Actividad" — same visual language as the
-     training-history calendar (day label + small dot underneath), scaled
-     down to fit inline in a single Home card row. */
   .activity-week{display:flex;gap:7px;flex-shrink:0;}
   .activity-day{display:flex;flex-direction:column;align-items:center;gap:5px;}
   .activity-day-label{font-family:var(--font-body);font-weight:600;font-size:10px;color:var(--text-tertiary);}
@@ -499,38 +459,23 @@
   }
   .cal-nav-btn svg{width:15px;height:15px;}
   .cal-month-label{font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--text-primary);}
-  .cal-weekdays{
-    display:grid;grid-template-columns:repeat(7,1fr);
-    margin-bottom:4px;
-  }
-  .cal-weekdays span{
-    text-align:center;font-family:var(--font-body);font-weight:600;font-size:11px;color:var(--text-tertiary);
-  }
+  .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px;}
+  .cal-weekdays span{text-align:center;font-family:var(--font-body);font-weight:600;font-size:11px;color:var(--text-tertiary);}
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:2px;}
   .cal-day{
     position:relative;
     aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
     border-radius:12px;cursor:pointer;
-    border:1.5px solid transparent; /* reserved so the "today" ring never shifts layout */
+    border:1.5px solid transparent;
   }
   .cal-day-number{font-family:var(--font-body);font-weight:500;font-size:13px;color:var(--text-secondary);}
   .cal-day.empty{cursor:default;}
-
-  /* Hierarchy: today = ring, trained = dot, both can combine, neither implies the other. */
   .cal-day.today{border-color:var(--border-light);}
   .cal-day.today .cal-day-number{color:var(--text-primary);font-weight:700;}
   .cal-day.trained .cal-day-number{color:var(--text-primary);}
-  .cal-day-dot{
-    width:4px;height:4px;border-radius:3px;background:var(--accent-bright);
-    margin-top:2px;
-  }
-
-  /* Selection: trained days get the red-tinted accent; empty days get a
-     quiet neutral highlight so tapping an untrained day never reads as an
-     action or an error — just acknowledgment that it was tapped. */
+  .cal-day-dot{width:4px;height:4px;border-radius:3px;background:var(--accent-bright);margin-top:2px;}
   .cal-day.selected-trained{background:var(--accent-soft);border-color:var(--accent-soft-border);}
   .cal-day.selected-empty{background:var(--surface-high);}
-
   .cal-day-panel{margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
   .cal-day-panel-hint{font-family:var(--font-body);font-weight:500;font-size:13px;color:var(--text-tertiary);}
   .cal-summary-date{font-family:var(--font-display);font-weight:700;font-size:18px;color:var(--text-primary);margin-bottom:6px;}
@@ -575,14 +520,8 @@
   .logout-row span{font-family:var(--font-body);font-weight:500;font-size:14.5px;}
 
   /* ---------- Workout overlay: active-set focus card ---------- */
-  /* Replaces the old flat "all sets" table. Only the current set is shown
-     large and editable; other sets are represented by small tappable dots
-     (still call toggleSet, so correcting a mistaken tap keeps working). */
   .wk-exercise-meta{font-family:var(--font-body);font-weight:500;font-size:14px;color:var(--text-secondary);margin-top:6px;}
   .wk-serie-row{display:flex;align-items:center;justify-content:space-between;margin:22px 0 14px 0;}
-  /* Pure activity signal for the "in_progress" set state — no percentage,
-     no duration, just a subtle continuous motion. Hidden the rest of the
-     time; toggled purely by display:none/block from renderWorkout(). */
   .wk-activity-bar{
     width:100%;height:3px;border-radius:999px;
     background:var(--track-empty);overflow:hidden;position:relative;
@@ -593,10 +532,7 @@
     background:linear-gradient(90deg, rgba(224,45,72,0), var(--accent-bright), rgba(224,45,72,0));
     animation:wkActivitySlide 1.7s ease-in-out infinite;
   }
-  @keyframes wkActivitySlide{
-    0%{left:-35%;}
-    100%{left:100%;}
-  }
+  @keyframes wkActivitySlide{0%{left:-35%;}100%{left:100%;}}
   .wk-serie-label{font-family:var(--font-body);font-weight:700;font-size:12.5px;color:var(--accent-bright);text-transform:uppercase;letter-spacing:0.4px;}
   .wk-set-dots{display:flex;align-items:center;gap:7px;}
   .wk-set-dot{width:7px;height:7px;border-radius:999px;background:var(--track-empty);border:1.5px solid transparent;cursor:pointer;transition:background 0.15s ease,border-color 0.15s ease;}
@@ -619,27 +555,12 @@
   .wk-field-input:disabled{color:var(--text-secondary);}
   .wk-field-unit{font-family:var(--font-body);font-weight:500;font-size:13px;color:var(--text-tertiary);}
   .wk-field-divider{width:1px;align-self:stretch;background:var(--border);}
-  /* Active-workout demo images (A -> B) — same frame language as the
-     "Ver ejercicio" sheet's images (same radius, same neutral border/bg),
-     just sized to sit under the weight/reps card. No red here on purpose —
-     red stays reserved for the primary action per Strive's identity rule.
-     Container ratio matches RepDB's real image dimensions (512x512, 1:1)
-     — not an arbitrary panoramic box. That's what actually eliminates the
-     crop: with cover, a square photo forced into a wide/short box loses
-     head/feet no matter what. contain is kept as a safety net in case any
-     source image isn't perfectly square, but with matching ratios there's
-     no visible letterboxing in the normal case. */
   .wk-demo-images{
     display:flex;gap:10px;margin-top:18px;overflow:hidden;
     max-height:320px;opacity:1;
     transition:max-height 0.24s ease,opacity 0.18s ease,margin-top 0.24s ease;
   }
-  /* Collapsed during rest — same block, same images/sizing underneath,
-     just visibility + the space it occupies. Reappears exactly as it was
-     the moment restRemaining goes back to null. */
-  .wk-demo-images.wk-demo-hidden{
-    max-height:0;opacity:0;margin-top:0;pointer-events:none;
-  }
+  .wk-demo-images.wk-demo-hidden{max-height:0;opacity:0;margin-top:0;pointer-events:none;}
   .wk-demo-img-wrap{
     flex:1;aspect-ratio:1/1;border-radius:16px;overflow:hidden;
     background:var(--surface-high);border:1px solid var(--border);
@@ -650,25 +571,10 @@
   .wk-last-time svg{width:12px;height:12px;color:var(--text-tertiary);}
   .wk-last-time-label{font-family:var(--font-body);font-weight:600;font-size:12px;color:var(--text-tertiary);}
   .wk-last-time-value{font-family:var(--font-body);font-weight:600;font-size:12.5px;color:var(--text-secondary);}
-
-  /* Micro-transition into the "exercise finished" state — plays only when
-     the last set of an exercise completes automatically, never on a manual
-     "Siguiente ejercicio" press. Opacity + a 4px shift only, no new colors,
-     no bounce, no scale. */
-  #wkExerciseContent.wk-fade-out{
-    animation:wkExerciseFadeOut 0.1s ease-out forwards;
-  }
-  #wkExerciseContent.wk-fade-in{
-    animation:wkExerciseFadeIn 0.14s ease-out;
-  }
-  @keyframes wkExerciseFadeOut{
-    from{opacity:1;transform:translateY(0);}
-    to{opacity:0;transform:translateY(-4px);}
-  }
-  @keyframes wkExerciseFadeIn{
-    from{opacity:0;transform:translateY(4px);}
-    to{opacity:1;transform:translateY(0);}
-  }
+  #wkExerciseContent.wk-fade-out{animation:wkExerciseFadeOut 0.1s ease-out forwards;}
+  #wkExerciseContent.wk-fade-in{animation:wkExerciseFadeIn 0.14s ease-out;}
+  @keyframes wkExerciseFadeOut{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(-4px);}}
+  @keyframes wkExerciseFadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
 
   /* ---------- Workout overlay ---------- */
   .workout-overlay{
@@ -678,8 +584,7 @@
     transition:transform 0.32s cubic-bezier(.32,.72,0,1);
     z-index:100;
     padding:calc(env(safe-area-inset-top, 14px) + 10px) 20px 0 20px;
-    overflow-y:auto; /* safety net: on very small screens the primary button
-      scrolls into view instead of being clipped — never fully hidden */
+    overflow-y:auto;
     min-height:0;
   }
   .workout-overlay.open{transform:translateY(0);}
@@ -701,12 +606,8 @@
   .sets-progress{font-family:var(--font-body);font-size:14.5px;color:var(--text-secondary);margin-top:4px;}
   .table-header{display:flex;align-items:center;padding:16px 4px 8px 4px;}
   .table-header span{font-family:var(--font-body);font-weight:500;font-size:12px;color:var(--text-tertiary);}
-  .set-row{
-    display:flex;align-items:center;padding:14px 4px;border-bottom:1px solid var(--border);
-  }
-  .set-row.active-row{
-    background:var(--accent-soft);border-radius:14px;margin:0 -12px;padding:14px 12px;border-bottom-color:transparent;
-  }
+  .set-row{display:flex;align-items:center;padding:14px 4px;border-bottom:1px solid var(--border);}
+  .set-row.active-row{background:var(--accent-soft);border-radius:14px;margin:0 -12px;padding:14px 12px;border-bottom-color:transparent;}
   .set-row.completed{opacity:0.55;}
   .set-num{font-family:var(--font-body);font-weight:500;font-size:14.5px;color:var(--text-secondary);width:28px;}
   .set-val{flex:1;display:flex;align-items:baseline;gap:4px;}
@@ -718,11 +619,6 @@
   }
   .set-check.done{background:var(--success);border-color:var(--success);}
   .set-check svg{width:15px;height:15px;color:#0B0B0F;}
-  /* ---------- Rest component: independent from the exercise card above it.
-     The countdown lives inside a circular ring — only the border is red,
-     the fill stays the same surface tone as the rest of the component — so
-     it reads as one deliberate, premium object rather than a plain banner.
-     Controls are secondary utility buttons below it. ---------- */
   .rest-banner{
     display:flex;flex-direction:column;align-items:center;text-align:center;
     background:var(--surface);border:1px solid var(--border-light);border-radius:22px;
@@ -755,9 +651,7 @@
     background:linear-gradient(135deg,var(--accent-bright),var(--accent));color:#fff;
     box-shadow:0 8px 18px -6px rgba(185,28,53,0.45);
   }
-  .workout-footer{
-    border-top:1px solid var(--border);padding:16px 0 calc(env(safe-area-inset-bottom, 14px) + 20px) 0;margin-top:auto;
-  }
+  .workout-footer{border-top:1px solid var(--border);padding:16px 0 calc(env(safe-area-inset-bottom, 14px) + 20px) 0;margin-top:auto;}
   .next-row{display:flex;align-items:center;gap:6px;margin-bottom:14px;}
   .next-row svg{width:15px;height:15px;color:var(--text-tertiary);}
   .next-label{font-family:var(--font-body);font-size:12px;color:var(--text-tertiary);}
@@ -772,36 +666,12 @@
   }
   .primary-btn:not(:disabled):active{transform:scale(0.98);}
   .primary-btn svg{width:17px;height:17px;}
-  .primary-btn:disabled{
-    background:var(--surface-high);color:var(--text-tertiary);
-    box-shadow:none;cursor:not-allowed;
-  }
-  /* Brief "set completed" confirmation state — dark surface, white text,
-     only the check itself in Strive red. Reads as a quiet confirmation,
-     not a celebration. Overrides the grey :disabled look above while
-     active, so it's clearly a deliberate state, not a blocked button. */
-  .primary-btn.primary-btn-confirm:disabled{
-    background:var(--surface-high);
-    color:#fff;
-    box-shadow:none;
-    cursor:default;
-  }
-  .wk-check-pop{
-    display:inline-flex;align-items:center;justify-content:center;
-    animation:wkCheckPop 0.32s ease-out;
-  }
+  .primary-btn:disabled{background:var(--surface-high);color:var(--text-tertiary);box-shadow:none;cursor:not-allowed;}
+  .primary-btn.primary-btn-confirm:disabled{background:var(--surface-high);color:#fff;box-shadow:none;cursor:default;}
+  .wk-check-pop{display:inline-flex;align-items:center;justify-content:center;animation:wkCheckPop 0.32s ease-out;}
   .wk-check-pop svg{width:17px;height:17px;color:var(--accent-bright);}
-  @keyframes wkCheckPop{
-    0%{transform:scale(0.4);opacity:0;}
-    60%{transform:scale(1.15);opacity:1;}
-    100%{transform:scale(1);opacity:1;}
-  }
+  @keyframes wkCheckPop{0%{transform:scale(0.4);opacity:0;}60%{transform:scale(1.15);opacity:1;}100%{transform:scale(1);opacity:1;}}
 
-  /* ================================================================
-     Create-routine flow: action sheet + exercise picker + Strive goal picker
-     ================================================================ */
-
-  /* ---------- Backdrop shared by the action sheet ---------- */
   .sheet-backdrop{
     position:absolute;inset:0;background:rgba(0,0,0,0.55);
     opacity:0;pointer-events:none;transition:opacity 0.25s ease;
@@ -809,7 +679,6 @@
   }
   .sheet-backdrop.open{opacity:1;pointer-events:auto;}
 
-  /* ---------- Action sheet: "Crear mi rutina" vs "Crear rutina con Strive" ---------- */
   .action-sheet{
     position:absolute;left:0;right:0;bottom:0;
     background:var(--bg-elevated);
@@ -821,14 +690,8 @@
     z-index:151;
   }
   .action-sheet.open{transform:translateY(0);}
-  .sheet-handle{
-    width:36px;height:4px;border-radius:2px;background:var(--border-light);
-    margin:6px auto 18px auto;
-  }
-  .sheet-title{
-    font-family:var(--font-display);font-weight:600;font-size:18px;
-    color:var(--text-primary);margin-bottom:14px;
-  }
+  .sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--border-light);margin:6px auto 18px auto;}
+  .sheet-title{font-family:var(--font-display);font-weight:600;font-size:18px;color:var(--text-primary);margin-bottom:14px;}
   .sheet-option{
     display:flex;align-items:center;gap:14px;
     background:var(--surface);border:1px solid var(--border);border-radius:20px;
@@ -850,22 +713,14 @@
     font-size:14.5px;cursor:pointer;margin-top:4px;
   }
 
-  /* ---------- "Ver ejercicio" sheet: A -> B demo images ---------- */
   .ex-demo-images{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
-  .ex-demo-img-wrap{
-    flex:1;aspect-ratio:1;border-radius:18px;overflow:hidden;
-    background:var(--surface-high);border:1px solid var(--border);
-  }
+  .ex-demo-img-wrap{flex:1;aspect-ratio:1;border-radius:18px;overflow:hidden;background:var(--surface-high);border:1px solid var(--border);}
   .ex-demo-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
   .ex-demo-arrow{flex-shrink:0;color:var(--text-tertiary);}
   .ex-demo-arrow svg{width:18px;height:18px;}
   .ex-demo-meta{font-family:var(--font-body);font-size:13.5px;color:var(--text-secondary);margin-bottom:18px;}
-  .ex-demo-attribution{
-    font-family:var(--font-body);font-size:11px;color:var(--text-tertiary);
-    text-align:center;margin-bottom:14px;
-  }
+  .ex-demo-attribution{font-family:var(--font-body);font-size:11px;color:var(--text-tertiary);text-align:center;margin-bottom:14px;}
 
-  /* ---------- Shared: full-screen flow overlays ---------- */
   .flow-overlay{
     position:absolute;inset:0;background:var(--bg);
     display:flex;flex-direction:column;
@@ -891,24 +746,16 @@
     background:var(--bg);
   }
 
-  /* ---------- Exercise picker: grouped by muscle group ---------- */
   .muscle-section{margin-bottom:26px;}
-  .muscle-section-title{
-    font-family:var(--font-body);font-weight:700;font-size:12px;letter-spacing:1px;
-    color:var(--text-tertiary);margin-bottom:12px;
-  }
-  .exercise-grid{
-    display:grid;grid-template-columns:1fr 1fr;gap:10px;
-  }
+  .muscle-section-title{font-family:var(--font-body);font-weight:700;font-size:12px;letter-spacing:1px;color:var(--text-tertiary);margin-bottom:12px;}
+  .exercise-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .exercise-card{
     position:relative;
     background:var(--surface);border:1px solid var(--border);border-radius:18px;
     padding:14px;cursor:pointer;transition:border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
   }
   .exercise-card:active{transform:scale(0.97);}
-  .exercise-card.selected{
-    background:var(--accent-soft);border-color:var(--accent-soft-border);
-  }
+  .exercise-card.selected{background:var(--accent-soft);border-color:var(--accent-soft-border);}
   .exercise-card-icon{
     width:38px;height:38px;border-radius:12px;background:var(--surface-high);
     display:flex;align-items:center;justify-content:center;margin-bottom:10px;
@@ -916,8 +763,6 @@
   .exercise-card.selected .exercise-card-icon{background:var(--accent-dim);}
   .exercise-card-icon svg{width:17px;height:17px;color:var(--text-secondary);}
   .exercise-card.selected .exercise-card-icon svg{color:#fff;}
-  /* Real RepDB thumbnail instead of the generic muscle-group icon, same
-     frame/radius — used only when the catalog entry actually has an image. */
   .exercise-card-icon-photo{overflow:hidden;padding:0;}
   .exercise-card-icon-photo img{width:100%;height:100%;object-fit:cover;display:block;}
   .exercise-card-name{font-family:var(--font-body);font-weight:600;font-size:13.5px;color:var(--text-primary);line-height:1.25;}
@@ -929,11 +774,7 @@
   .exercise-card.selected .exercise-check{background:var(--accent-bright);border-color:var(--accent-bright);}
   .exercise-check svg{width:11px;height:11px;color:#fff;}
 
-  /* ---------- Añadir ejercicios: group filter pills ---------- */
-  .ex-filter-scroll{
-    display:flex;gap:8px;overflow-x:auto;margin-bottom:18px;
-    scrollbar-width:none;
-  }
+  .ex-filter-scroll{display:flex;gap:8px;overflow-x:auto;margin-bottom:18px;scrollbar-width:none;}
   .ex-filter-scroll::-webkit-scrollbar{display:none;}
   .ex-filter-pill{
     flex-shrink:0;padding:8px 14px;border-radius:999px;cursor:pointer;
@@ -941,22 +782,12 @@
     font-family:var(--font-body);font-weight:600;font-size:13px;color:var(--text-secondary);
     white-space:nowrap;
   }
-  .ex-filter-pill.selected{
-    background:var(--accent-soft);border-color:var(--accent-soft-border);color:var(--accent-bright);
-  }
+  .ex-filter-pill.selected{background:var(--accent-soft);border-color:var(--accent-soft-border);color:var(--accent-bright);}
 
-  /* ---------- Añadir ejercicios: no results ---------- */
   .ex-empty-state{text-align:center;padding:48px 20px;}
   .ex-empty-title{font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--text-primary);margin-bottom:6px;}
   .ex-empty-sub{font-family:var(--font-body);font-size:13.5px;color:var(--text-secondary);}
 
-  /* ---------- Crear mi rutina: selected-exercises summary ---------- */
-  /* Handle + name + remove — reorder and delete for the routine that's
-     still being drafted. Reuses .routine-ex-handle (same drag affordance
-     as the routine-detail screen) so there's one visual language for
-     "this row can be dragged", not two. */
-  /* One-time hint: shown only until the user successfully reorders once
-     in this routine-creation session (see routineReorderHintDismissed). */
   .routine-reorder-hint{
     display:flex;align-items:center;gap:6px;
     font-family:var(--font-body);font-weight:500;font-size:12.5px;
@@ -964,10 +795,7 @@
   }
   .routine-reorder-hint svg{width:13px;height:13px;}
 
-  .exercise-summary-empty{
-    font-family:var(--font-body);font-size:13.5px;color:var(--text-tertiary);
-    padding:10px 0 18px 0;
-  }
+  .exercise-summary-empty{font-family:var(--font-body);font-size:13.5px;color:var(--text-tertiary);padding:10px 0 18px 0;}
   .exercise-summary-row{
     display:flex;align-items:center;gap:10px;padding:6px 0;
     border-bottom:1px solid var(--border);
@@ -1001,11 +829,7 @@
   }
   .routine-name-input::placeholder{color:var(--text-tertiary);}
 
-  /* ---------- Añadir marca: lightweight form fields ---------- */
-  .form-label{
-    font-family:var(--font-body);font-weight:600;font-size:12.5px;color:var(--text-tertiary);
-    margin-bottom:8px;
-  }
+  .form-label{font-family:var(--font-body);font-weight:600;font-size:12.5px;color:var(--text-tertiary);margin-bottom:8px;}
   .form-input{
     width:100%;height:48px;border-radius:14px;
     background:var(--surface-high);border:1px solid var(--border-light);
@@ -1018,10 +842,7 @@
   .form-row{display:flex;gap:12px;}
   .form-row .form-input{margin-bottom:18px;}
 
-  .flow-footer-meta{
-    font-family:var(--font-body);font-weight:500;font-size:12.5px;color:var(--text-tertiary);
-    margin-bottom:10px;
-  }
+  .flow-footer-meta{font-family:var(--font-body);font-weight:500;font-size:12.5px;color:var(--text-tertiary);margin-bottom:10px;}
   .flow-footer-meta b{color:var(--accent-bright);font-weight:700;}
   .flow-primary-btn{
     width:100%;height:54px;border-radius:16px;border:none;cursor:pointer;
@@ -1032,9 +853,7 @@
     transition:transform 0.15s ease;
   }
   .flow-primary-btn:not(:disabled):active{transform:scale(0.98);}
-  .flow-primary-btn:disabled{
-    opacity:0.4;box-shadow:none;cursor:not-allowed;
-  }
+  .flow-primary-btn:disabled{opacity:0.4;box-shadow:none;cursor:not-allowed;}
   .flow-primary-btn svg{width:16px;height:16px;}
   .flow-secondary-btn{
     width:100%;height:50px;border-radius:16px;margin-top:10px;
@@ -1044,17 +863,11 @@
   }
   .flow-secondary-btn svg{width:15px;height:15px;color:var(--text-secondary);}
 
-  /* ---------- Routine detail: editable "marca actual" per exercise ---------- */
   .routine-ex-demo-btn{
     width:34px;height:34px;border-radius:10px;flex-shrink:0;overflow:hidden;
     border:none;padding:0;cursor:pointer;background:var(--surface-high);
   }
   .routine-ex-demo-btn img{width:100%;height:100%;object-fit:cover;display:block;}
-  /* Drag handle for reordering exercises directly in the routine detail
-     screen. touch-action:none is what actually makes this work on a
-     touchscreen — without it, the browser starts scrolling the list the
-     moment a finger moves, before our own drag logic ever sees the
-     gesture. cursor:grab is a desktop-only affordance; harmless on mobile. */
   .routine-ex-handle{
     width:32px;height:32px;border-radius:9px;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;
@@ -1089,11 +902,6 @@
   }
   .routine-ex-weight-confirm svg{width:13px;height:13px;color:#fff;}
 
-  /* ---------- Configurar ejercicio (sheet): series / reps / descanso / peso ----------
-     Tap area = index + info, wraps the same two children that used to sit directly in
-     .routine-ex-row, with the exact same flex layout — visual result is unchanged, it
-     only adds a tap target that opens the config sheet without touching the demo
-     button, the weight button or the drag handle (all remain separate siblings). */
   .routine-ex-tap-area{display:flex;align-items:center;gap:14px;flex:1;min-width:0;cursor:pointer;}
   .ecfg-row{margin-bottom:20px;}
   .ecfg-row:last-child{margin-bottom:4px;}
@@ -1108,11 +916,7 @@
   .ecfg-stepper-btn svg{width:16px;height:16px;}
   .ecfg-stepper-value{font-family:var(--font-display);font-weight:700;font-size:19px;color:var(--text-primary);}
 
-  /* ---------- Editar rutina ---------- */
-  .edit-ex-row{
-    background:var(--surface);border:1px solid var(--border);border-radius:16px;
-    padding:14px;margin-bottom:10px;
-  }
+  .edit-ex-row{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;}
   .edit-ex-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
   .edit-ex-name{font-family:var(--font-body);font-weight:600;font-size:14.5px;color:var(--text-primary);flex:1;min-width:0;}
   .edit-ex-icon-btn{
@@ -1139,7 +943,6 @@
   .edit-add-toggle svg{width:14px;height:14px;}
   .edit-catalog{margin-bottom:8px;}
 
-  /* ---------- Editar rutina: icon picker ---------- */
   .icon-picker-row{
     width:100%;display:flex;align-items:center;gap:12px;
     background:var(--surface);border:1px solid var(--border);border-radius:16px;
@@ -1148,10 +951,7 @@
   .icon-picker-row .routine-icon{width:36px;height:36px;border-radius:11px;}
   .icon-picker-row .routine-icon svg{width:16px;height:16px;}
   .icon-picker-label{flex:1;text-align:left;font-family:var(--font-body);font-weight:500;font-size:13.5px;color:var(--text-secondary);}
-  .icon-picker-grid{
-    display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
-    margin:-4px 0 16px 0;
-  }
+  .icon-picker-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:-4px 0 16px 0;}
   .icon-option{
     aspect-ratio:1;border-radius:14px;background:var(--surface);border:1px solid var(--border);
     display:flex;align-items:center;justify-content:center;cursor:pointer;
@@ -1160,7 +960,6 @@
   .icon-option.selected{background:var(--accent-soft);border-color:var(--accent-soft-border);}
   .icon-option.selected svg{color:var(--accent-bright);}
 
-  /* ---------- Routine card menu ("⋮") ---------- */
   .routine-kebab-btn{
     width:32px;height:32px;border-radius:999px;background:transparent;border:none;
     display:flex;align-items:center;justify-content:center;cursor:pointer;
@@ -1173,7 +972,6 @@
   .sheet-option-icon-neutral{background:var(--surface-high);border-color:var(--border-light);}
   .sheet-option-icon-neutral svg{color:var(--text-secondary);}
 
-  /* ---------- Confirm dialog (destructive actions) ---------- */
   .confirm-dialog{
     position:absolute;left:24px;right:24px;top:50%;
     background:var(--bg-elevated);border:1px solid var(--border-light);border-radius:22px;
@@ -1195,7 +993,6 @@
     font-family:var(--font-body);font-weight:600;font-size:14px;color:#2A0B0B;
   }
 
-  /* ---------- Strive: goal picker ---------- */
   .goal-option{
     display:flex;align-items:center;gap:14px;
     background:var(--surface);border:1px solid var(--border);border-radius:18px;
@@ -1217,11 +1014,8 @@
     flex-shrink:0;position:relative;
   }
   .goal-option.selected .goal-radio{border-color:var(--accent-bright);}
-  .goal-option.selected .goal-radio::after{
-    content:'';position:absolute;inset:3px;border-radius:999px;background:var(--accent-bright);
-  }
+  .goal-option.selected .goal-radio::after{content:'';position:absolute;inset:3px;border-radius:999px;background:var(--accent-bright);}
 
-  /* ---------- Success toast + new-routine highlight ---------- */
   .toast{
     position:absolute;left:20px;right:20px;
     bottom:calc(env(safe-area-inset-bottom, 10px) + 82px);
@@ -1234,75 +1028,29 @@
     z-index:170;
   }
   .toast.open{transform:translateY(0);opacity:1;}
-  .toast-icon{
-    width:28px;height:28px;border-radius:999px;background:var(--success);
-    display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  }
+  .toast-icon{width:28px;height:28px;border-radius:999px;background:var(--success);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
   .toast-icon svg{width:14px;height:14px;color:#0B0B0F;}
   .toast-text{font-family:var(--font-body);font-weight:600;font-size:13.5px;color:var(--text-primary);}
-  @keyframes newRoutinePulse{
-    0%{box-shadow:0 0 0 0 rgba(224,45,72,0.5);}
-    100%{box-shadow:0 0 0 14px rgba(224,45,72,0);}
-  }
+  @keyframes newRoutinePulse{0%{box-shadow:0 0 0 0 rgba(224,45,72,0.5);}100%{box-shadow:0 0 0 14px rgba(224,45,72,0);}}
   .routine-card.just-created{animation:newRoutinePulse 1s ease-out 2;}
 
-  /* ================================================================
-     AUTH GATE — Splash + Iniciar sesión + Crear cuenta + Recuperar
-     contraseña. Sits above the entire app (highest z-index in use) so
-     Home never flashes before the auth check runs. Reuses the existing
-     .flow-header/.flow-body/.flow-footer/.form-label/.form-input/
-     .flow-primary-btn/.close-btn/.icon-btn system wherever possible —
-     no parallel design system introduced for this.
-     ================================================================ */
-  .auth-gate{
-    position:absolute;inset:0;z-index:200;
-    background:var(--bg);
-    display:flex;flex-direction:column;
-  }
+  .auth-gate{position:absolute;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;}
   .auth-gate.hidden{display:none;}
   .auth-screen{display:none;flex-direction:column;height:100%;}
   .auth-screen.active{display:flex;}
-
-  .splash-content{
-    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
-  }
+  .splash-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
   .splash-mark{width:7px;height:7px;border-radius:999px;background:var(--accent-bright);}
   .splash-wordmark{
     font-family:var(--font-display);font-weight:700;font-size:26px;letter-spacing:3px;
     color:var(--text-primary);
     animation:splashFadeIn 0.5s ease;
   }
-  @keyframes splashFadeIn{ from{opacity:0;} to{opacity:1;} }
-
-  .auth-error{
-    font-family:var(--font-body);font-weight:500;font-size:13px;color:var(--danger);
-    margin:-6px 0 14px 0;
-  }
-  .auth-link{
-    background:none;border:none;padding:0;cursor:pointer;
-    font-family:var(--font-body);font-weight:600;font-size:13.5px;color:var(--text-secondary);
-    margin-top:4px;
-  }
-  .auth-switch{
-    text-align:center;margin-top:16px;
-    font-family:var(--font-body);font-weight:500;font-size:13.5px;color:var(--text-tertiary);
-  }
+  @keyframes splashFadeIn{from{opacity:0;}to{opacity:1;}}
+  .auth-error{font-family:var(--font-body);font-weight:500;font-size:13px;color:var(--danger);margin:-6px 0 14px 0;}
+  .auth-link{background:none;border:none;padding:0;cursor:pointer;font-family:var(--font-body);font-weight:600;font-size:13.5px;color:var(--text-secondary);margin-top:4px;}
+  .auth-switch{text-align:center;margin-top:16px;font-family:var(--font-body);font-weight:500;font-size:13.5px;color:var(--text-tertiary);}
   .auth-link-inline{color:var(--accent-bright);font-weight:600;cursor:pointer;}
-  .auth-confirmation{
-    font-family:var(--font-body);font-size:14px;color:var(--text-secondary);line-height:1.6;
-  }
-
-  /* ---------- Refinamiento de composición (login/crear cuenta/recuperar) ----------
-     Sustituye el uso de .flow-header/.flow-body/.flow-footer SOLO dentro del
-     auth gate. La causa del "espacio vacío" reportado era .flow-body{flex:1}
-     — pensado para listas largas — estirándose de más con un formulario de
-     2-3 campos y empujando el CTA al fondo. Aquí todo el contenido (título,
-     subtítulo, campos, CTA, cambio de pantalla) vive en un único bloque de
-     scroll natural, así que el CTA queda pegado al formulario, no aislado
-     abajo, y en pantallas cortas / con teclado abierto simplemente se puede
-     hacer scroll — sin depender de ninguna posición fija.
-     .flow-title/.flow-subtitle/.form-label/.form-input/.flow-primary-btn/
-     .close-btn no se tocan: se siguen reutilizando tal cual. */
+  .auth-confirmation{font-family:var(--font-body);font-size:14px;color:var(--text-secondary);line-height:1.6;}
   .auth-topbar{
     flex-shrink:0;min-height:40px;
     display:flex;justify-content:flex-end;
@@ -1316,54 +1064,17 @@
   .auth-scroll::-webkit-scrollbar{display:none;}
   .auth-fields{margin-top:28px;}
   .auth-cta{margin-top:28px;}
-  .auth-link{
-    background:none;border:none;padding:0;cursor:pointer;
-    font-family:var(--font-body);font-weight:600;font-size:13.5px;color:var(--text-secondary);
-    margin-top:10px;
-  }
-  .auth-switch{
-    text-align:center;margin-top:20px;
-    font-family:var(--font-body);font-weight:500;font-size:13.5px;color:var(--text-tertiary);
-  }
-  /* Estado de foco: rojo sutil, sin glow — y deliberadamente acotado con el
-     prefijo .auth-gate para que no afecte a .form-input en ninguna otra
-     pantalla de la app (rutinas, marcas, perfil, etc.), que quedan igual. */
-  .auth-gate .form-input:focus{
-    outline:none;
-    border-color:var(--accent);
-    background:var(--surface-pressed);
-  }
-
-  /* Splash: aparición suave ya existente (splashFadeIn) + una salida breve
-     y limpia antes de pasar a autenticación — nada de partículas ni
-     escalados, solo una transición de opacidad. */
+  .auth-gate .form-input:focus{outline:none;border-color:var(--accent);background:var(--surface-pressed);}
   #splashScreen{transition:opacity 0.3s ease;}
   #splashScreen.splash-exit{opacity:0;}
-
-  /* ---------- Onboarding (4 pasos) ----------
-     Reutiliza casi todo lo ya existente: .auth-gate como contenedor
-     (mismo fondo, mismo tratamiento), .dots-row/.dot como indicador de
-     progreso (el mismo componente que ya usa el entrenamiento activo para
-     "ejercicio X de Y"), .goal-option/.goal-icon/.goal-label/.goal-radio
-     como tarjeta de opción única (el mismo componente que ya usa
-     "Objetivo y nivel"), y .auth-scroll/.flow-title/.flow-primary-btn del
-     refinamiento de auth. Solo hace falta una barra superior propia
-     (back + "X / 4") porque .auth-topbar está pensada para un único botón
-     alineado a la derecha, no para dos elementos repartidos. */
   .onboarding-topbar{
     flex-shrink:0;
     display:flex;align-items:center;justify-content:space-between;
     padding:calc(env(safe-area-inset-top, 14px) + 10px) 20px 0 20px;
   }
   .onboarding-step-label{font-family:var(--font-body);font-weight:600;font-size:13px;color:var(--text-tertiary);}
-  /* Transición breve entre preguntas — reutiliza exactamente las mismas
-     keyframes que ya usa el "exercise finished" del entrenamiento activo
-     (wkExerciseFadeOut/In): solo opacidad + 4px de desplazamiento. */
-  #onboardingContent.onboarding-fade-out{ animation:wkExerciseFadeOut 0.1s ease-out forwards; }
-  #onboardingContent.onboarding-fade-in{ animation:wkExerciseFadeIn 0.14s ease-out; }
-  /* Transición sutil al seleccionar una tarjeta — acotada dentro de
-     .auth-gate para no modificar .goal-option en "Objetivo y nivel"
-     (Perfil), que sigue exactamente igual que antes. */
+  #onboardingContent.onboarding-fade-out{animation:wkExerciseFadeOut 0.1s ease-out forwards;}
+  #onboardingContent.onboarding-fade-in{animation:wkExerciseFadeIn 0.14s ease-out;}
   .auth-gate .goal-option{transition:transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;}
 </style>
 </head>
@@ -1402,16 +1113,13 @@
         <button class="hero-cta" onclick="startTodayWorkout()">Iniciar entrenamiento <i data-feather="arrow-right"></i></button>
       </div>
 
-      <!-- Empty state: shown when the user has no routine assigned for today -->
       <div class="hero-empty" id="heroEmptyState" style="display:none">
-        <div class="hero-empty-watermark"><i data-feather="compass"></i></div>
         <div class="hero-empty-eyebrow-row">
           <div class="hero-empty-eyebrow-dot"></div>
           <div class="hero-empty-eyebrow">Sin entrenamiento programado</div>
         </div>
-        <div class="hero-empty-icon"><i data-feather="compass"></i></div>
-        <div class="hero-empty-title">Tú decides cómo entrenar hoy</div>
-        <div class="hero-empty-subtitle">Explora tus rutinas o deja que Strive te arme un plan.</div>
+        <div class="hero-empty-title">Empieza con Strive</div>
+        <div class="hero-empty-subtitle">Crea una rutina adaptada a tu objetivo y a tu forma de entrenar.</div>
         <div class="hero-empty-actions">
           <button class="hero-empty-primary" onclick="showTab('rutinas'); openGoalPicker();">
             Crear con Strive <i data-feather="cpu"></i>
@@ -1654,10 +1362,6 @@
   </div>
 
   <!-- ============ CONFIRMAR SALIDA DEL ENTRENAMIENTO ============ -->
-  <!-- Solo se muestra si hay al menos una serie con completed:true (ver
-       requestCloseWorkout). Reutiliza exactamente el mismo patrón visual
-       que "¿Eliminar rutina?" (.sheet-backdrop + .confirm-dialog) — ningún
-       componente nuevo. closeWorkout() sigue siendo el único cierre real. -->
   <div class="sheet-backdrop" id="workoutExitConfirmBackdrop" onclick="closeWorkoutExitConfirm()"></div>
   <div class="confirm-dialog" id="workoutExitConfirmDialog">
     <div class="confirm-title">¿Salir del entrenamiento?</div>
@@ -1694,9 +1398,6 @@
   </div>
 
   <!-- ============ CREATE MY ROUTINE — STEP 1: CONFIGURE ROUTINE ============ -->
-  <!-- Only routine setup lives here: name, icon, and a summary of whatever
-       exercises are currently selected. The full catalog never appears on
-       this screen — that's "Añadir ejercicios" below, a separate state. -->
   <div class="flow-overlay" id="createRoutineScreen">
     <div class="flow-header">
       <div>
@@ -1740,13 +1441,6 @@
   </div>
 
   <!-- ============ CREATE MY ROUTINE — STEP 2: ADD EXERCISES ============ -->
-  <!-- Opens "on top" of createRoutineScreen (both stay mounted, same
-       pattern as editRoutineScreen over routineDetailScreen) — closing it
-       naturally reveals the (now-refreshed) config screen underneath.
-       Selection lives in the same shared `selectedExerciseIds` the config
-       screen reads from, so nothing needs to be "handed back" on close —
-       it was never a separate copy. Uses the exact same catalog, cards,
-       and image system as before; only search + group filtering is new. -->
   <div class="flow-overlay" id="exercisePickerScreen" style="z-index:145;">
     <div class="flow-header">
       <div>
@@ -1789,8 +1483,6 @@
   </div>
 
   <!-- ============ AÑADIR MARCA: import a historical record ============ -->
-  <!-- Only for weights from before using Strive — not a general "log your
-       weights" section. Normal records always come from finishing a workout. -->
   <div class="flow-overlay" id="addRecordScreen" style="z-index:145;">
     <div class="flow-header">
       <div>
@@ -1826,10 +1518,7 @@
     </div>
   </div>
 
-  <!-- ============ VER TODOS LOS RÉCORDS: listado completo ============ -->
-  <!-- Solo presentación — reutiliza getAllPersonalRecords() (misma fuente de
-       datos, sin cambios en la lógica de cálculo) y el mismo .pr-row que la
-       vista compacta de Progreso. -->
+  <!-- ============ VER TODOS LOS RÉCORDS ============ -->
   <div class="flow-overlay" id="allRecordsScreen">
     <div class="flow-header">
       <div>
@@ -1849,11 +1538,7 @@
     </div>
   </div>
 
-  <!-- ============ ROUTINE PREVIEW: view before train ============ -->
-  <!-- Selecting a routine from "Mis rutinas" always lands here first. This
-       screen only shows the plan — no set-completion state, no checkboxes,
-       no "X de X series". "Iniciar entrenamiento" is the only way through
-       to the active workout screen. -->
+  <!-- ============ ROUTINE PREVIEW ============ -->
   <div class="flow-overlay" id="routineDetailScreen">
     <div class="flow-header">
       <div class="routine-detail-header-left">
@@ -1881,11 +1566,7 @@
     </div>
   </div>
 
-  <!-- ============ EDITAR RUTINA: rename, add/remove/reorder exercises, edit sets/reps/weight ============ -->
-  <!-- Opens "on top" of the routine preview (both stay mounted) so closing
-       it naturally reveals the (now-refreshed) preview underneath. Saving
-       writes straight back into the same `routines` array everything else
-       reads from — no parallel data store. -->
+  <!-- ============ EDITAR RUTINA ============ -->
   <div class="flow-overlay" id="editRoutineScreen">
     <div class="flow-header">
       <div>
@@ -1923,7 +1604,7 @@
     </div>
   </div>
 
-  <!-- ============ ROUTINE CARD MENU: "⋮" -> Editar / Eliminar ============ -->
+  <!-- ============ ROUTINE CARD MENU ============ -->
   <div class="sheet-backdrop" id="routineMenuBackdrop" onclick="closeRoutineMenu()"></div>
   <div class="action-sheet" id="routineMenuSheet">
     <div class="sheet-handle"></div>
@@ -1948,9 +1629,7 @@
     <button class="sheet-cancel" onclick="closeRoutineMenu()">Cancelar</button>
   </div>
 
-  <!-- ============ VER EJERCICIO: demo A -> B (RepDB) ============ -->
-  <!-- Reached only from the routine preview, before training — never during
-       an active set, per the "no interrumpir el registro" requirement. -->
+  <!-- ============ VER EJERCICIO ============ -->
   <div class="sheet-backdrop" id="exerciseDemoBackdrop" onclick="closeExerciseDemo()"></div>
   <div class="action-sheet" id="exerciseDemoSheet">
     <div class="sheet-handle"></div>
@@ -1963,10 +1642,7 @@
     <button class="sheet-cancel" onclick="closeExerciseDemo()">Cerrar</button>
   </div>
 
-  <!-- ============ CONFIGURAR EJERCICIO: series / reps / descanso / peso de referencia ============ -->
-  <!-- Opens from tapping an exercise row in the routine preview (routine-ex-tap-area).
-       Only ever writes into routine.exercises[index] on Guardar — never touches
-       `workout` or `workoutLogs`. Same action-sheet pattern as "Ver ejercicio" above. -->
+  <!-- ============ CONFIGURAR EJERCICIO ============ -->
   <div class="sheet-backdrop" id="exerciseConfigBackdrop" onclick="closeExerciseConfig()"></div>
   <div class="action-sheet" id="exerciseConfigSheet">
     <div class="sheet-handle"></div>
@@ -2017,9 +1693,7 @@
     </div>
   </div>
 
-  <!-- ============ WORKOUT DETAIL: read-only view of a logged session ============ -->
-  <!-- Reached only from the calendar day panel ("Ver entrenamiento"). Shows
-       exactly what's in that day's workoutLogs entry — nothing invented. -->
+  <!-- ============ WORKOUT DETAIL ============ -->
   <div class="flow-overlay" id="workoutDetailScreen">
     <div class="flow-header">
       <div>
@@ -2033,10 +1707,6 @@
   </div>
 
   <!-- ============ PERFIL: INFORMACIÓN PERSONAL ============ -->
-  <!-- Single source of truth for the user's identity data. Saving here
-       re-renders every place the name/avatar initial already appears
-       (Home greeting, Home avatar, Perfil avatar and name) instead of
-       leaving those as separate hardcoded strings. -->
   <div class="flow-overlay" id="personalInfoScreen">
     <div class="flow-header">
       <div>
@@ -2076,11 +1746,6 @@
   </div>
 
   <!-- ============ PERFIL: OBJETIVO Y NIVEL ============ -->
-  <!-- Reuses the exact same goal-option component as "Crear rutina con
-       Strive" — one visual pattern for choosing from a list of options.
-       Writes into the same `userPreferences` object that routine
-       generation already reads from (see GOAL_ROUTINE_TEMPLATES), so
-       there's one place this data lives, not a second copy. -->
   <div class="flow-overlay" id="goalLevelScreen">
     <div class="flow-header">
       <div>
@@ -2106,13 +1771,7 @@
     </div>
   </div>
 
-  <!-- ============ WORKOUT SUMMARY: real close/reward moment ============ -->
-  <!-- Shown only when finishing the last exercise of a workout, right
-       before returning to Home. Reuses .card/.summary-row/.stat and the
-       exact .pr-row component from Récords personales — no new visual
-       language, only a badge is new (see .ws-icon-badge). z-index sits
-       above both the workout overlay and other flow overlays so it always
-       lands on top regardless of what's still open underneath. -->
+  <!-- ============ WORKOUT SUMMARY ============ -->
   <div class="flow-overlay" id="workoutSummaryScreen" style="z-index:165;">
     <div class="flow-body" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:56px;">
       <div class="ws-icon-badge"><i data-feather="award"></i></div>
@@ -2156,14 +1815,9 @@
     <div class="toast-text" id="successToastText">Rutina creada</div>
   </div>
 
-  <!-- ============ AUTH GATE: Splash + Iniciar sesión + Crear cuenta + Recuperar contraseña ============ -->
-  <!-- Covers the whole app until the (currently in-memory, later Supabase)
-       auth check resolves. Home renders normally underneath from the very
-       first paint — it's just visually covered, never actually skipped —
-       so there's nothing to "wait for" once this gate hides. -->
+  <!-- ============ AUTH GATE ============ -->
   <div class="auth-gate" id="authGate">
 
-    <!-- ---------- Splash ---------- -->
     <div class="auth-screen active" id="splashScreen">
       <div class="splash-content">
         <div class="splash-mark"></div>
@@ -2171,7 +1825,6 @@
       </div>
     </div>
 
-    <!-- ---------- Iniciar sesión ---------- -->
     <div class="auth-screen" id="loginScreen">
       <div class="auth-topbar"></div>
       <div class="auth-scroll">
@@ -2192,7 +1845,6 @@
       </div>
     </div>
 
-    <!-- ---------- Crear cuenta ---------- -->
     <div class="auth-screen" id="signupScreen">
       <div class="auth-topbar">
         <button class="close-btn" onclick="showAuthScreen('login')"><i data-feather="x"></i></button>
@@ -2216,7 +1868,6 @@
       </div>
     </div>
 
-    <!-- ---------- Recuperar contraseña ---------- -->
     <div class="auth-screen" id="forgotPasswordScreen">
       <div class="auth-topbar">
         <button class="close-btn" onclick="showAuthScreen('login')"><i data-feather="x"></i></button>
@@ -2240,13 +1891,7 @@
 
   </div>
 
-  <!-- ============ ONBOARDING: 4 pasos ============ -->
-  <!-- Un único contenedor dinámico (no 4 pantallas estáticas) — cada paso
-       se re-renderiza desde ONBOARDING_STEPS + onboardingProfile. Reutiliza
-       .auth-gate como fondo/estructura, .dots-row/.dot como indicador de
-       progreso (mismo componente que ya usa el entrenamiento activo) y
-       .goal-option/.goal-icon/.goal-label/.goal-radio como tarjeta de
-       opción única (mismo componente que ya usa "Objetivo y nivel"). -->
+  <!-- ============ ONBOARDING ============ -->
   <div class="auth-gate hidden" id="onboardingGate">
     <div class="onboarding-topbar">
       <button class="icon-btn" id="onboardingBackBtn" onclick="onboardingGoBack()"><i data-feather="chevron-left"></i></button>
@@ -2266,11 +1911,6 @@
 </div>
 
 <script>
-  // ================================================================
-  // PERFIL — single source of truth for identity data. Every place the
-  // user's name/initial appears (Home greeting, Home avatar, Perfil avatar
-  // and name) reads from here instead of holding its own copy.
-  // ================================================================
   let userProfile = {
     name: 'Felipe',
     email: 'felipe@correo.com',
@@ -2291,33 +1931,19 @@
     document.getElementById('profileNameDisplay').textContent = name;
   }
 
-  // ================================================================
-  // AUTH — in-memory only for now, no Supabase yet. This is the single
-  // gate that decides whether Home is reachable. When Supabase is
-  // connected, only the bodies of checkAuthAndRoute()/handleLogin()/
-  // handleSignup()/handleForgotPassword() need to change — the screens,
-  // the routing shape, and enterApp() stay the same.
-  // ================================================================
   let authState = {
     isAuthenticated: false,
-    onboardingCompleted: false, // reserved for the next stage (onboarding) — not used yet
-    user: null, // { name, email }
+    onboardingCompleted: false,
+    user: null,
   };
 
-  // Same simple show/hide convention as showTab() below — one active
-  // .auth-screen at a time within #authGate.
   function showAuthScreen(name){
     document.querySelectorAll('.auth-screen').forEach(el => el.classList.remove('active'));
     document.getElementById(name + 'Screen').classList.add('active');
     feather.replace();
   }
 
-  // Placeholder for a real session check (e.g. supabase.auth.getSession()).
-  // Today it only reads the in-memory authState set during this page load.
   function checkAuthAndRoute(){
-    // Fundido de salida sutil (solo opacidad, ver #splashScreen.splash-exit)
-    // antes de revelar la pantalla siguiente — transición limpia, sin
-    // escalados ni efectos adicionales.
     document.getElementById('splashScreen').classList.add('splash-exit');
     setTimeout(() => {
       if(authState.isAuthenticated){
@@ -2329,9 +1955,6 @@
   }
 
   function runSplash(){
-    // Brief, fixed pause — no real async work yet since there's no backend
-    // session to await. Once Supabase is connected this is where the
-    // actual session check happens before routing.
     setTimeout(checkAuthAndRoute, 900);
   }
 
@@ -2340,20 +1963,8 @@
     if(!authState.onboardingCompleted){
       startOnboarding();
     }
-    // Si onboardingCompleted ya es true, Home queda revelado tal cual —
-    // no hace falta nada más aquí.
   }
 
-  // ================================================================
-  // ONBOARDING — 4 preguntas, un único contenedor dinámico. Guarda
-  // valores estructurados (no el texto visible) en onboardingProfile,
-  // pensado para pertenecer más adelante a un perfil de usuario real:
-  //   user.profile = { goal, experience, trainingDays, trainingLocation, onboarding_completed }
-  // Por ahora vive solo en memoria — igual que authState, sin Supabase.
-  // No se integra todavía con userPreferences/GOALS (el sistema que ya usa
-  // "Crear rutina con Strive"): son conceptos separados a propósito hasta
-  // que se decida esa conexión en un paso posterior.
-  // ================================================================
   const ONBOARDING_STEPS = [
     {
       key: 'goal',
@@ -2411,8 +2022,6 @@
     const total = ONBOARDING_STEPS.length;
 
     document.getElementById('onboardingProgressLabel').textContent = (onboardingStepIndex + 1) + ' / ' + total;
-    // visibility, not display — reserva el espacio para que el label de
-    // progreso nunca cambie de posición entre pasos.
     document.getElementById('onboardingBackBtn').style.visibility = onboardingStepIndex === 0 ? 'hidden' : 'visible';
 
     document.getElementById('onboardingDots').innerHTML = ONBOARDING_STEPS.map((s, i) => {
@@ -2422,9 +2031,6 @@
 
     document.getElementById('onboardingQuestion').textContent = step.question;
 
-    // El estado ya seleccionado (si el usuario vuelve atrás) se refleja
-    // directamente desde onboardingProfile — no hay una copia aparte que
-    // pueda desincronizarse.
     const currentValue = onboardingProfile[step.key];
     document.getElementById('onboardingOptions').innerHTML = step.options.map(opt => {
       const isSelected = currentValue === opt.value;
@@ -2438,9 +2044,6 @@
     }).join('');
 
     document.getElementById('onboardingError').style.display = 'none';
-    // El CTA solo se activa cuando el paso actual ya tiene una respuesta —
-    // deshabilitado usa el mismo .flow-primary-btn:disabled ya existente
-    // (opacidad reducida, sin sombra, cursor not-allowed), sin CSS nuevo.
     document.getElementById('onboardingContinueBtn').disabled = !currentValue;
     feather.replace();
   }
@@ -2448,8 +2051,6 @@
   function selectOnboardingOption(value){
     const step = ONBOARDING_STEPS[onboardingStepIndex];
     onboardingProfile[step.key] = value;
-    // Solo se actualiza la selección y el estado del CTA — sin transición
-    // de página, porque seguimos en la misma pregunta.
     renderOnboardingStep();
   }
 
@@ -2473,10 +2074,6 @@
     transitionToOnboardingStep();
   }
 
-  // Transición breve y sutil entre preguntas (~240ms) — misma técnica ya
-  // usada en el entrenamiento activo para el cambio de ejercicio: fade+
-  // shift de solo el contenido de la pregunta (no del CTA ni del indicador
-  // de progreso), así el botón nunca "desaparece" y se siente estable.
   function transitionToOnboardingStep(){
     const content = document.getElementById('onboardingContent');
     content.classList.remove('onboarding-fade-in');
@@ -2484,19 +2081,14 @@
     setTimeout(() => {
       renderOnboardingStep();
       content.classList.remove('onboarding-fade-out');
-      void content.offsetWidth; // reinicia la animación de forma limpia cada vez
+      void content.offsetWidth;
       content.classList.add('onboarding-fade-in');
     }, 100);
   }
 
   function completeOnboarding(){
-    // TODO(supabase): persistir onboardingProfile en el perfil real del
-    // usuario (user.profile.goal/experience/training_days/training_location)
-    // y escribir onboarding_completed=true en el backend.
     authState.onboardingCompleted = true;
     document.getElementById('onboardingGate').classList.add('hidden');
-    // Home ya está renderizado debajo desde el arranque — no hace falta
-    // ninguna pantalla intermedia ni de "¡Felicidades!".
   }
 
   function isValidEmail(value){
@@ -2520,7 +2112,6 @@
     }
     errorEl.style.display = 'none';
 
-    // TODO(supabase): sustituir por supabase.auth.signInWithPassword({ email, password })
     authState.isAuthenticated = true;
     authState.user = { email };
     enterApp();
@@ -2545,13 +2136,9 @@
     }
     errorEl.style.display = 'none';
 
-    // TODO(supabase): sustituir por supabase.auth.signUp({ email, password })
-    // y guardar el nombre en el perfil real una vez exista backend.
     authState.isAuthenticated = true;
     authState.user = { name, email };
 
-    // Reutiliza el perfil y el render ya existentes — no se duplica lógica
-    // de identidad solo porque ahora viene de "crear cuenta".
     userProfile.name = name;
     renderProfileIdentity();
 
@@ -2573,13 +2160,11 @@
     }
     errorEl.style.display = 'none';
 
-    // TODO(supabase): sustituir por supabase.auth.resetPasswordForEmail(email)
     document.getElementById('forgotPasswordForm').style.display = 'none';
     document.getElementById('forgotSubmitBtn').style.display = 'none';
     document.getElementById('forgotPasswordConfirmation').style.display = 'block';
   }
 
-  // ---------- Tab switching ----------
   function showTab(name){
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -2588,15 +2173,7 @@
     document.getElementById('tabContent').scrollTop = 0;
   }
 
-  // ---------- Workout mode state ----------
   const REST_SECONDS = 120;
-  // This is the default/demo state used when Home's hero card starts today's
-  // workout directly. When a routine is started from its preview screen
-  // (startWorkoutFromRoutine), this gets rebuilt from that routine's own
-  // exercises instead — each routine drives its own workout content.
-  // repsRange values here match routines[0] ("push") exactly — same source
-  // of truth, just inlined since this demo entry point (Home hero) doesn't
-  // go through startWorkoutFromRoutine.
   let workout = [
     { name:'Press banca', repsRange:'6-10', sets:[
       {weight:70, reps:8, started:true, completed:true},
@@ -2640,18 +2217,10 @@
     restPaused = false;
   }
 
-  // ---------- Confirmar salida del entrenamiento (botón X) ----------
-  // Detecta progreso real preguntando directamente a set.completed — la
-  // misma fuente de verdad que ya usa logCompletedWorkout() para decidir qué
-  // se guarda. No se crea un segundo sistema de estado ni se toca ese, ni
-  // exIndex, ni si hay un descanso activo.
   function hasAnyCompletedSet(){
     return workout.some(ex => ex.sets.some(s => s.completed));
   }
 
-  // Único punto de entrada del botón X. closeWorkout() sigue siendo la única
-  // función que realmente cierra el overlay — esto solo decide si hace falta
-  // preguntar antes de llamarla.
   function requestCloseWorkout(){
     if(hasAnyCompletedSet()){
       document.getElementById('workoutExitConfirmBackdrop').classList.add('open');
@@ -2661,29 +2230,18 @@
     }
   }
 
-  // "Seguir entrenando" y el backdrop: solo ocultan el diálogo. No tocan
-  // workout, exIndex, el descanso activo ni ningún otro estado.
   function closeWorkoutExitConfirm(){
     document.getElementById('workoutExitConfirmBackdrop').classList.remove('open');
     document.getElementById('workoutExitConfirmDialog').classList.remove('open');
   }
 
-  // "Salir": mismo camino de cierre real de siempre. No llama a
-  // logCompletedWorkout(), no toca workoutLogs, récords ni historial.
   function confirmWorkoutExit(){
     closeWorkoutExitConfirm();
     closeWorkout();
   }
 
-  // ---------- Post-workout summary: the session's actual close/reward moment ----------
-  // Shown only when a real session was logged (summary !== null). Reads
-  // exclusively from what logCompletedWorkout() just computed — no separate
-  // data path, nothing invented if there were no PRs this session.
   function showWorkoutSummary(summary){
     if(!summary){
-      // Defensive: nothing was actually completed (shouldn't happen from the
-      // normal flow, since the button is only reachable after finishing a
-      // set) — don't show a summary with fabricated numbers, just go home.
       closeWorkout();
       showTab('home');
       return;
@@ -2725,9 +2283,6 @@
     return ex.sets.findIndex(s => !s.completed);
   }
 
-  // Real state machine for the active set — not just a visual toggle.
-  // not_started -> in_progress -> completed, then the next set starts over
-  // at not_started (its default when created, nothing extra needed there).
   function getSetStatus(set){
     if(set.completed) return 'completed';
     if(set.started) return 'in_progress';
@@ -2747,7 +2302,6 @@
     document.getElementById('wkExerciseMeta').textContent =
       totalSets + ' series' + (ex.repsRange ? ' · ' + ex.repsRange + ' reps' : '');
 
-    // dots (exercise progress, top of screen)
     const dots = document.getElementById('wkDots');
     dots.innerHTML = '';
     workout.forEach((_, i) => {
@@ -2756,13 +2310,11 @@
       dots.appendChild(d);
     });
 
-    // "Serie X de X" + per-set dots (tappable, keeps the old toggle-a-set capability)
     const activeStatus = allDone ? null : getSetStatus(ex.sets[aIdx]);
     document.getElementById('wkSerieLabel').textContent = allDone
       ? 'Serie ' + totalSets + ' de ' + totalSets + ' · completada'
       : 'Serie ' + (aIdx + 1) + ' de ' + totalSets + (activeStatus === 'in_progress' ? ' · en curso' : '');
 
-    // Pure activity signal — visible only while the active set is in_progress.
     document.getElementById('wkActivityBar').style.display =
       (!allDone && activeStatus === 'in_progress') ? 'block' : 'none';
 
@@ -2775,8 +2327,6 @@
       setDots.appendChild(d);
     });
 
-    // Current set: the one about to be done, editable. Once the exercise is
-    // fully done, show the last logged set as a read-only reference.
     const focusIdx = allDone ? totalSets - 1 : aIdx;
     const focusSet = ex.sets[focusIdx];
     const weightInput = document.getElementById('wkWeightInput');
@@ -2788,14 +2338,6 @@
     weightInput.dataset.setIndex = focusIdx;
     repsInput.dataset.setIndex = focusIdx;
 
-    // Demo images (A -> B) for the exercise currently on screen. Visible
-    // before starting a set and while the set is in progress; collapsed
-    // (not just shrunk) during rest so the rest block gets the vertical
-    // space and rises up — then reappears exactly as-is once rest ends.
-    // The src attributes are updated regardless of visibility so that when
-    // the block reappears (or a new exercise loads while still resting,
-    // e.g. via the "Siguiente ejercicio" auto-transition) it's already
-    // showing the correct images, never a stale frame.
     const demo = getDemoImagesForExerciseName(ex.name);
     const demoEl = document.getElementById('wkDemoImages');
     if(demo){
@@ -2808,7 +2350,6 @@
       demoEl.classList.add('wk-demo-hidden');
     }
 
-    // "Última vez": real last logged session for this exercise, from workoutLogs.
     const last = getLastPerformanceForExercise(ex.name);
     const lastTimeEl = document.getElementById('wkLastTime');
     if(last){
@@ -2818,7 +2359,6 @@
       lastTimeEl.style.display = 'none';
     }
 
-    // next row
     const nextRow = document.getElementById('wkNextRow');
     if(next){
       nextRow.style.display = 'flex';
@@ -2827,9 +2367,6 @@
       nextRow.style.display = 'none';
     }
 
-    // primary button — resting always wins first: whatever the button would
-    // otherwise say (Iniciar serie, Siguiente ejercicio, Finalizar
-    // entrenamiento), it stays blocked and shows "Descansando…" until rest ends.
     const btn = document.getElementById('wkPrimaryBtn');
     if(restRemaining !== null){
       btn.disabled = true;
@@ -2852,17 +2389,10 @@
     const ex = workout[exIndex];
     const set = ex.sets[i];
     set.completed = !set.completed;
-    // Keep the state machine consistent even via this manual correction path:
-    // a completed set must have been started; un-completing sends it back to
-    // not_started rather than leaving it stuck in_progress.
     set.started = set.completed;
     renderWorkout();
   }
 
-  // Real "last time" for the active-set card: most recent logged session
-  // (any source) that contains this exercise, using its heaviest set that
-  // day. Reuses the same workoutLogs the PRs and calendar already read from
-  // — no separate data path, and nothing is shown if there's no history.
   function getLastPerformanceForExercise(exerciseName){
     const logsWithExercise = workoutLogs
       .filter(log => log.entries.some(e => e.exerciseName === exerciseName))
@@ -2874,9 +2404,6 @@
     return { date: mostRecentLog.date, weightKg: best.weightKg, reps: best.reps };
   }
 
-  // Bound once — editing weight/reps writes straight into the same
-  // workout[exIndex].sets[i] object that onPrimaryAction() reads from when
-  // "Completar serie" is pressed, so no change was needed to that logic.
   document.getElementById('wkWeightInput').addEventListener('input', function(){
     const i = parseInt(this.dataset.setIndex, 10);
     const val = parseFloat(this.value);
@@ -2892,7 +2419,6 @@
     const ex = workout[exIndex];
     const aIdx = activeSetIndex(ex);
     if(aIdx === -1){
-      // move to next exercise or finish
       clearInterval(restInterval);
       restRemaining = null;
       restPaused = false;
@@ -2909,25 +2435,15 @@
 
     const currentSet = ex.sets[aIdx];
     if(getSetStatus(currentSet) === 'not_started'){
-      // not_started -> in_progress. "Completar serie" only becomes available
-      // after this — the CTA itself enforces the order, nothing else needed.
       currentSet.started = true;
       renderWorkout();
       return;
     }
 
-    // in_progress -> completed
     currentSet.completed = true;
     showSetCompletedFeedback();
   }
 
-  // Brief, self-contained micro-feedback: confirm the set was registered
-  // before the screen advances. No intermediate screen — just the primary
-  // button itself, for ~400ms, then the correct next step runs: rest only
-  // if another set of this same exercise remains; otherwise a brief
-  // transition into the "exercise finished" state (see
-  // playExerciseFinishedTransition), where the user presses
-  // "Siguiente ejercicio"/"Finalizar entrenamiento" themselves.
   function showSetCompletedFeedback(){
     const btn = document.getElementById('wkPrimaryBtn');
     btn.disabled = true;
@@ -2940,29 +2456,16 @@
     }, 400);
   }
 
-  // Decides what happens right after the "Serie completada" confirmation.
-  // Rest only makes sense when there's another set of the SAME exercise
-  // still ahead — an exercise or a whole workout ending never needs it.
   function advanceAfterSetCompleted(){
     const ex = workout[exIndex];
     if(activeSetIndex(ex) !== -1){
-      // another set of this exercise is still pending — rest as usual
       startRest();
       renderWorkout();
       return;
     }
-    // This exercise is fully done — no rest, but the "exercise finished"
-    // state (Siguiente ejercicio / Finalizar entrenamiento, same allDone
-    // branch renderWorkout() already renders) gets a brief, subtle
-    // transition on arrival. Advancing exIndex or finishing the workout
-    // still only happens when that button is pressed — untouched below.
     playExerciseFinishedTransition();
   }
 
-  // ~240ms total: fade+shift the current exercise content out, swap to the
-  // finished-state render, fade+shift it back in. Purely visual — never
-  // triggered by pressing "Siguiente ejercicio"/"Finalizar entrenamiento"
-  // themselves, only by arriving here automatically after the last set.
   function playExerciseFinishedTransition(){
     const content = document.getElementById('wkExerciseContent');
     content.classList.remove('wk-fade-in');
@@ -2970,15 +2473,11 @@
     setTimeout(() => {
       renderWorkout();
       content.classList.remove('wk-fade-out');
-      void content.offsetWidth; // restart the fade-in animation cleanly every time
+      void content.offsetWidth;
       content.classList.add('wk-fade-in');
     }, 100);
   }
 
-  // ---------- Rest component: independent state, driven for real ----------
-  // Uses the routine's own rest time if one exists (ex.restSeconds), falling
-  // back to REST_SECONDS. No settings UI is introduced — just a check for a
-  // value that may already be there or added later per exercise/routine.
   function startRest(){
     clearInterval(restInterval);
     const ex = workout[exIndex];
@@ -2989,9 +2488,6 @@
     runRestInterval();
   }
 
-  // Interval only exists while actively counting down — pausing clears it
-  // outright rather than tracking a "paused" flag inside the tick, so there's
-  // no wasted work and resuming restarts cleanly from the exact remaining time.
   function runRestInterval(){
     clearInterval(restInterval);
     restInterval = setInterval(() => {
@@ -3042,10 +2538,6 @@
     return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
   }
 
-  // Re-renders the countdown, the "Pausado" status line, and the control
-  // row. The row always keeps its 3 slots (toggle / +30s / Saltar) — only
-  // the first button's label and action swap between Pausar and Reanudar,
-  // so pausing never resizes or reshapes the component.
   function renderRestBanner(){
     if(restRemaining === null) return;
     document.getElementById('restTime').textContent = formatRestTime(restRemaining);
@@ -3064,7 +2556,6 @@
     feather.replace();
   }
 
-  // ---------- Weekly activity chart: tap a bar to see that day's detail ----------
   function showDayDetail(colEl, dayName, count){
     const chart = colEl.parentElement;
     chart.querySelectorAll('.bar').forEach(b => b.classList.remove('selected'));
@@ -3074,23 +2565,7 @@
     document.getElementById('chartDayDetail').textContent = dayName + ' · ' + count + ' series';
   }
 
-  // ================================================================
-  // RUTINAS: data model + create-routine flows (Crear mi rutina / Strive)
-  // ================================================================
-
-  // Routine icon library — 12 custom icons, hand-drawn to the exact same
-  // spec Feather icons use everywhere else in Strive (24x24 viewBox, no
-  // fill, currentColor stroke, 2px stroke, round caps/joins). Feather's own
-  // set has no gym equipment glyphs (no dumbbell, barbell, kettlebell, leg,
-  // push/pull, flexed-arm shapes), so those are drawn here; a couple of
-  // concepts that Feather already renders clearly (heart, lightning bolt,
-  // bullseye) reuse Feather's exact paths so the whole set stays one family.
   const ROUTINE_ICON_SHAPES = {
-    // Push / Pull share one visual language: a barbell (bar + end plates)
-    // paired with a chevron showing the direction of force — pushing the
-    // bar away from the body (up) vs. pulling it toward the body (down).
-    // Equipment + direction reads clearly at 20px, where the previous
-    // illustrated stick-figures lost their detail and looked noisy.
     push:
       '<line x1="5" y1="7" x2="19" y2="7"/>' +
       '<rect x="2" y="4" width="3" height="6" rx="1.2"/><rect x="19" y="4" width="3" height="6" rx="1.2"/>' +
@@ -3099,56 +2574,31 @@
       '<path d="M8 6l4 4 4-4"/>' +
       '<line x1="5" y1="17" x2="19" y2="17"/>' +
       '<rect x="2" y="14" width="3" height="6" rx="1.2"/><rect x="19" y="14" width="3" height="6" rx="1.2"/>',
-    // Legs: two bent-knee lines in a squat stance (hips implied at the top,
-    // knees bowing outward, feet flat) — a simple geometric squat silhouette
-    // instead of the previous single organic leg-blob, which read ambiguously
-    // at small sizes.
     legs:
       '<path d="M9 3 L7 12 L8 21"/>' +
       '<path d="M15 3 L17 12 L16 21"/>' +
       '<line x1="5" y1="21" x2="10" y2="21"/><line x1="14" y1="21" x2="19" y2="21"/>',
-    // Dumbbell: bar + two end blocks. Already clear and iconic — kept the
-    // concept, only tightened the corner radius (1.2) to match the rest of
-    // the equipment family (Barbell, Push, Pull).
     dumbbell:
       '<line x1="7" y1="12" x2="17" y2="12"/>' +
       '<rect x="3" y="8" width="4" height="8" rx="1.2"/><rect x="17" y="8" width="4" height="8" rx="1.2"/>',
-    // Barbell: long thin bar + end plates, differentiated from Dumbbell by
-    // length alone. Grip marks simplified from 4 lines to 2 — same idea,
-    // less visual noise at small size.
     barbell:
       '<line x1="4" y1="12" x2="20" y2="12"/>' +
       '<rect x="1.5" y="9" width="2.5" height="6" rx="1.2"/><rect x="20" y="9" width="2.5" height="6" rx="1.2"/>' +
       '<line x1="8" y1="9" x2="8" y2="15"/><line x1="16" y1="9" x2="16" y2="15"/>',
-    // Kettlebell: handle arc + round body. Already clean and iconic — kept as is.
     kettlebell:
       '<path d="M9 7 C9 4.5 10.5 3 12 3 C13.5 3 15 4.5 15 7"/>' +
       '<line x1="9" y1="7" x2="9" y2="9"/><line x1="15" y1="7" x2="15" y2="9"/>' +
       '<circle cx="12" cy="15" r="6"/>',
-    // Bodyweight: a plank/push-up silhouette (head, body line at floor
-    // incline, supporting arm) — no equipment, no bar. Previously this was
-    // nearly identical to Pull (same hanging-from-a-bar pose, differing only
-    // in one leg), which made the two hard to tell apart. This gives
-    // Bodyweight its own, unambiguous concept: training with just your body.
     bodyweight:
       '<circle cx="5" cy="6" r="2"/>' +
       '<line x1="7" y1="7" x2="20" y2="16"/>' +
       '<line x1="8" y1="8" x2="9" y2="16"/>',
-    // Strength: flexed bicep — fist, forearm, muscle curve. Already a clear,
-    // recognizable symbol — kept the concept, tidied the coordinates.
     strength:
       '<circle cx="15.5" cy="5" r="1.8"/>' +
       '<path d="M14 6.5 L11.7 9.5 A5.3 5.3 0 0 0 12.4 17 L14 18.8"/>' +
       '<path d="M9 13 C11.7 12.5 13.8 13.8 16.8 13"/>',
-    // Cardio: heartbeat/pulse line — already a universal, instantly-clear
-    // symbol. Kept as is.
     cardio:
       '<polyline points="2,13 7,13 9,7 13,19 15,13 22,13"/>',
-    // Heart, Lightning and Target reuse Feather's own canonical shapes on
-    // purpose: these three are universal symbols (not equipment/motion
-    // metaphors), already outline-based and already optimally legible —
-    // redesigning them for the sake of being "different" would only hurt
-    // recognizability, so they're left untouched.
     heart:
       '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
     lightning:
@@ -3163,21 +2613,6 @@
       'stroke-linecap="round" stroke-linejoin="round">' + shape + '</svg>';
   }
 
-  // Custom PR (personal record) medal — the single visual source for PR
-  // across the app (Récords personales, "Nuevos récords" en el resumen de
-  // entrenamiento, y el badge de primer registro en "Tu progreso"). Same
-  // construction convention as routineIconSvg() (24x24, no fill,
-  // currentColor stroke, 2px, round caps/joins).
-  //
-  // Hierarchy: small ribbon loop -> single connector -> medal disc -> one
-  // discreet center mark. Deliberately built around a SINGLE connecting
-  // element (one centered line, not two lateral strokes) — this is what
-  // structurally rules out the "rabbit ears" misread from the previous
-  // version: there is only one thing bridging the loop and the disc, so it
-  // can't be parsed as two symmetric prongs. The earlier two-parallel-line
-  // version and the version before that (single chevron fused into the
-  // circle, read as a flame/drop) are both avoided by this same choice —
-  // one small closed loop at top, connected by one stroke, into one disc.
   function prMedalSvg(){
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
       'stroke-linecap="round" stroke-linejoin="round">' +
@@ -3204,10 +2639,6 @@
   ];
   const DEFAULT_ROUTINE_ICON = 'target';
 
-  // ---------- Routines list (real state — pushing here re-renders the list) ----------
-  // Every routine carries its own `exercises` list now — this is what the
-  // preview screen reads, and what seeds the active workout when the user
-  // actually starts it. Selecting a routine never starts a workout by itself.
   let routines = [
     {
       id:'push', name:'Push', exerciseCount:4, estimatedMinutes:50, lastPerformed:'Hace 2 días', icon:'push',
@@ -3245,10 +2676,6 @@
     container.innerHTML = '';
 
     if(routines.length === 0){
-      // Estado vacío real: routines.length === 0. No se recrean rutinas por
-      // defecto aquí — solo se informa y se reutiliza el flujo de creación que
-      // ya existe (openCreateSheet -> Crear mi rutina / Crear rutina con Strive).
-      // Reutiliza el patrón .ex-empty-state ya usado en "Añadir ejercicios".
       container.innerHTML =
         '<div class="ex-empty-state" style="padding-top:64px;">' +
           '<div class="ex-empty-title">No tienes rutinas todavía</div>' +
@@ -3270,7 +2697,6 @@
           '</div>' +
           '<button class="routine-kebab-btn" data-role="kebab"><i data-feather="more-vertical"></i></button>' +
           '<i data-feather="chevron-right" class="chev"></i>';
-        // Every routine opens its preview first — never straight into a workout.
         el.addEventListener('click', () => openRoutineDetail(r.id));
         el.querySelector('[data-role="kebab"]').addEventListener('click', (e) => {
           e.stopPropagation();
@@ -3283,19 +2709,10 @@
     const n = routines.length;
     document.getElementById('rutinasCountLabel').textContent = n + (n === 1 ? ' rutina activa' : ' rutinas activas');
 
-    // Home's "Tu entrenamiento de hoy" only makes sense with at least one
-    // routine — re-synced here so every flow that already calls
-    // renderRoutinesList() (crear, eliminar, editar, generar con Strive)
-    // keeps Home correct too, without needing a separate call site each time.
     updateHomeHeroState();
     feather.replace();
   }
 
-  // Toggles between the two Home hero cards that already exist in the markup
-  // (#heroWithRoutine / #heroEmptyState) based on the real routines state —
-  // no new card, no new logic beyond this visibility switch. Now also fills
-  // the hero's text from routines[0] (the MVP "today" candidate) whenever
-  // there's at least one routine, so Home stops showing hardcoded "Push".
   function updateHomeHeroState(){
     const hasRoutines = routines.length > 0;
     document.getElementById('heroWithRoutine').style.display = hasRoutines ? 'block' : 'none';
@@ -3310,21 +2727,12 @@
     }
   }
 
-  // Minimal wrapper so the hero's CTA doesn't hardcode routines[0].id inline
-  // in the HTML. Same "routines[0] = today" MVP criterion as the hero's own
-  // content above — no new selection/planning logic, just reads and delegates
-  // to the exact same startWorkoutFromRoutine() "Mis rutinas" already uses.
   function startTodayWorkout(){
     if(routines.length === 0) return;
     const routine = routines[0];
     startWorkoutFromRoutine(routine.id);
   }
 
-  // ---------- Exercise catalog, grouped by muscle group ----------
-  // Six exercises per group. Adding more later is just another object in
-  // the array — the picker screen re-renders from this list, so nothing
-  // about the layout needs to change. Existing ids (b1, c1, l1...) are
-  // untouched so GOAL_ROUTINE_TEMPLATES references below keep working.
   const MUSCLE_GROUPS = [
     { key:'espalda', label:'ESPALDA', icon:'chevrons-up', exercises:[
       { id:'b1', name:'Dominadas' },
@@ -3376,22 +2784,9 @@
     ]},
   ];
 
-  // Shared lookups derived from the catalog above — used by both create-routine
-  // flows and by the routine preview screen, so there's one source of truth.
   const EXERCISE_NAME_BY_ID = {};
   MUSCLE_GROUPS.forEach(group => group.exercises.forEach(ex => { EXERCISE_NAME_BY_ID[ex.id] = ex.name; }));
 
-  // ================================================================
-  // Exercise Library (RepDB import) — additive, never overwrites the
-  // 36 hand-curated exercises above. See import_repdb.py for why: RepDB's
-  // naming is always variant-specific ("Sentadilla con Peso Corporal" vs.
-  // "Sentadilla Búlgara"), so auto-matching them to the generic legacy
-  // names ("Sentadilla") would risk silently mislabeling an exercise a
-  // user already has PRs logged against. Instead the ~601 imported
-  // exercises live as new catalog entries (ids prefixed "rdb-"), and
-  // CATALOG_GROUPS below is the single merged view every picker reads
-  // from — MUSCLE_GROUPS itself, and everything already keyed off it
-  // (EXERCISE_NAME_BY_ID, GOAL_ROUTINE_TEMPLATES' refs), is untouched.
   const LIBRARY_GROUP_META = {
     core: { label:'CORE', icon:'crosshair' },
     antebrazos: { label:'ANTEBRAZOS', icon:'move' },
@@ -3433,18 +2828,12 @@
 
   const CATALOG_GROUPS = buildCatalogGroups();
 
-  // id -> full catalog entry (name, images, equipment, group label/icon).
-  // The single lookup the routine-detail "Ver ejercicio" sheet and the
-  // picker card thumbnails both read from.
   const EXERCISE_DETAILS_BY_ID = {};
   CATALOG_GROUPS.forEach(group => group.exercises.forEach(ex => {
     EXERCISE_DETAILS_BY_ID[ex.id] = ex;
-    EXERCISE_NAME_BY_ID[ex.id] = ex.name; // extends the legacy lookup so library ids resolve too
+    EXERCISE_NAME_BY_ID[ex.id] = ex.name;
   }));
 
-  // Resolves a routine's exercise entry to its catalog details: by
-  // exerciseId when present (every exercise added from now on gets one),
-  // falling back to a name match for routines created before this existed.
   function findCatalogExerciseFor(routineExercise){
     if(routineExercise.exerciseId && EXERCISE_DETAILS_BY_ID[routineExercise.exerciseId]){
       return EXERCISE_DETAILS_BY_ID[routineExercise.exerciseId];
@@ -3458,17 +2847,6 @@
     return group.label.charAt(0) + group.label.slice(1).toLowerCase();
   }
 
-  // ================================================================
-  // Active-workout demo images (A -> B) — curated correspondence between
-  // Strive's own exercise names and RepDB's *own id* (not a name guess).
-  // Strive is NOT importing the 601-exercise library into its catalog for
-  // this — it only borrows the images for exercises Strive already uses in
-  // its current routines, via the exact same EXERCISE_DETAILS_BY_ID lookup
-  // the "Ver ejercicio" sheet already reads from. One image system, two
-  // places that read it.
-  //
-  // Add more entries here as more Strive exercises get a confirmed RepDB
-  // correspondence — this table is the only thing that needs to grow.
   const LEGACY_EXERCISE_IMAGE_MAP = {
     'Press banca': 'bench-press',
     'Press inclinado mancuerna': 'incline-db-press',
@@ -3486,9 +2864,6 @@
     'Elevación de talones': 'standing-calf-raise',
   };
 
-  // Requires BOTH images — a lopsided single-image A/B block would look
-  // broken, so an exercise without a confirmed start+end pair simply gets
-  // no demo block at all (see "no rompas la interfaz" requirement).
   function getDemoImagesForExerciseName(exerciseName){
     const rdbSourceId = LEGACY_EXERCISE_IMAGE_MAP[exerciseName];
     if(!rdbSourceId) return null;
@@ -3497,21 +2872,12 @@
     return details;
   }
 
-  // Verifiable build marker — open the browser console on the deployed
-  // site and confirm this line actually prints. If it doesn't appear, the
-  // browser/host is serving an older build, not the one in this file, and
-  // no code change here will fix that until the deploy/cache is refreshed.
   console.log('[Strive] workout demo-images build loaded — mapped exercises:', Object.keys(LEGACY_EXERCISE_IMAGE_MAP).length);
 
-  // ---------- Routine preview: "Ver rutina" ≠ "Entrenar rutina" ----------
-  // Tapping any routine in "Mis rutinas" opens this first. It only ever
-  // reads the routine's own `exercises` — nothing here touches the active
-  // workout state. The active workout only gets built if/when the user
-  // explicitly taps "Iniciar entrenamiento" below.
   let currentPreviewRoutineId = null;
-  let editingWeightIndex = null; // which exercise row (in the open preview) is mid-edit, if any
-  let exerciseConfigTargetIndex = null; // which exercise row the config sheet is open for, if any
-  let exerciseConfigDraft = null; // { sets, restSeconds } — stepper-driven fields only; repsRange/weight are read live from their inputs on save
+  let editingWeightIndex = null;
+  let exerciseConfigTargetIndex = null;
+  let exerciseConfigDraft = null;
 
   function openRoutineDetail(routineId){
     const routine = routines.find(r => r.id === routineId);
@@ -3535,8 +2901,6 @@
     feather.replace();
   }
 
-  // Re-render only the exercise list — used both on open and after a weight
-  // edit is confirmed/cancelled, so we never have to rebuild the whole screen.
   function renderRoutineDetailBody(){
     const routine = routines.find(r => r.id === currentPreviewRoutineId);
     if(!routine) return;
@@ -3544,8 +2908,6 @@
     const body = document.getElementById('routineDetailBody');
     body.innerHTML = (routine.exercises || []).map((ex, i) => {
       const hasWeight = ex.weight !== undefined && ex.weight !== null;
-      // Mismo fallback de 120s que ya usa el resto de la app (startRest, openExerciseConfig)
-      // para ejercicios sin restSeconds configurado todavía — no es un valor nuevo.
       const restSecondsValue = (ex.restSeconds !== undefined && ex.restSeconds !== null) ? ex.restSeconds : 120;
       const metaHtml =
         '<div class="routine-ex-info">' +
@@ -3567,25 +2929,13 @@
           : '<button class="routine-ex-weight-btn unset" onclick="startEditWeight(' + i + ')">+ Añadir peso</button>';
       }
 
-      // "Ver ejercicio" — only shown when the catalog actually has an image
-      // for this exercise (legacy hand-typed exercises without a match
-      // simply don't get the button, never a broken/empty demo).
       const catalogEx = findCatalogExerciseFor(ex);
       const demoHtml = (catalogEx && catalogEx.imageStart)
         ? '<button class="routine-ex-demo-btn" onclick="openExerciseDemo(\'' + catalogEx.id + '\')" title="Ver ejercicio"><img src="' + catalogEx.imageStart + '" alt="" loading="lazy" /></button>'
         : '';
 
-      // Drag handle — the only part of the row that starts a reorder, so
-      // tapping the demo thumbnail or the weight button never triggers one.
-      // touch-action:none on the handle is what stops the browser's own
-      // scroll gesture from hijacking the touch before our drag can start.
       const handleHtml = '<div class="routine-ex-handle" onpointerdown="startRoutineDetailDrag(event,' + i + ')" title="Arrastra para reordenar"><i data-feather="move"></i></div>';
 
-      // Tap area = index + info only. Mirrors the exact flex layout those two elements
-      // already had directly inside .routine-ex-row (see .routine-ex-tap-area CSS), so
-      // wrapping them changes nothing visually — it only adds a tap target for opening
-      // "Configurar ejercicio". The demo button, weight button and drag handle stay as
-      // separate siblings, exactly as before, so none of their behavior changes.
       const tapAreaHtml =
         '<div class="routine-ex-tap-area" onclick="openExerciseConfig(' + i + ')">' +
           '<div class="routine-ex-index">' + (i + 1) + '</div>' +
@@ -3607,10 +2957,6 @@
     renderRoutineDetailBody();
   }
 
-  // This is the "marca actual" — a reference weight the user maintains
-  // themselves. It's a plain field on the routine's own exercise data, and
-  // is completely separate from the Récords personales / PR system, which
-  // is always derived from workoutLogs and is never editable here.
   function confirmWeightEdit(index){
     const routine = routines.find(r => r.id === currentPreviewRoutineId);
     if(!routine) return;
@@ -3628,16 +2974,6 @@
     document.getElementById('routineDetailScreen').classList.remove('open');
   }
 
-  // ================================================================
-  // CONFIGURAR EJERCICIO — series / rango de reps / descanso / peso de referencia,
-  // por ejercicio dentro de la rutina que se está previsualizando. Opens from tapping
-  // a row in routineDetailBody (see routine-ex-tap-area above). Only ever reads/writes
-  // routine.exercises[exerciseConfigTargetIndex] — no toca `workout` ni `workoutLogs`.
-  //
-  // sets/restSeconds viven en exerciseConfigDraft (steppers, sin input de texto).
-  // repsRange/weight se leen directo de sus <input> al guardar — mismo patrón que
-  // el resto de formularios de Strive (ej. confirmWeightEdit, saveManualRecord).
-  // ================================================================
   function openExerciseConfig(index){
     const routine = routines.find(r => r.id === currentPreviewRoutineId);
     if(!routine || !routine.exercises || !routine.exercises[index]) return;
@@ -3646,8 +2982,6 @@
     exerciseConfigTargetIndex = index;
     exerciseConfigDraft = {
       sets: (ex.sets && ex.sets >= 1) ? ex.sets : 1,
-      // restSeconds no existe todavía en la mayoría de rutinas — 120s por defecto,
-      // tal como pide la spec, sin migrar nada más de la rutina.
       restSeconds: (ex.restSeconds !== undefined && ex.restSeconds !== null) ? ex.restSeconds : 120,
     };
 
@@ -3664,8 +2998,6 @@
   function renderExerciseConfigSheet(){
     if(!exerciseConfigDraft) return;
     document.getElementById('exerciseConfigSetsValue').textContent = exerciseConfigDraft.sets;
-    // Reuses the same mm:ss formatter the active rest banner already uses — one
-    // "what does a rest duration look like" convention across the app, not two.
     document.getElementById('exerciseConfigRestValue').textContent = formatRestTime(exerciseConfigDraft.restSeconds);
     updateExerciseConfigSaveState();
   }
@@ -3682,9 +3014,6 @@
     renderExerciseConfigSheet();
   }
 
-  // Same validation rules the spec asks for: series >= 1 (also enforced by the
-  // stepper's own clamp), descanso >= 0 (idem), repsRange no vacío, peso opcional
-  // pero nunca negativo. Kept local to this sheet — no new global error-message system.
   function isValidExerciseConfigForm(){
     if(!exerciseConfigDraft) return false;
     if(exerciseConfigDraft.sets < 1) return false;
@@ -3712,9 +3041,6 @@
     exerciseConfigDraft = null;
   }
 
-  // Writes straight into the same `routines` array everything else reads from —
-  // no parallel draft store, no new persistence. Preserves exerciseId/name/whatever
-  // else is already on the object; only sets/repsRange/restSeconds/weight are touched.
   function saveExerciseConfig(){
     if(exerciseConfigTargetIndex === null || !exerciseConfigDraft) return;
     if(!isValidExerciseConfigForm()) return;
@@ -3737,24 +3063,6 @@
     showSuccessToast('Ejercicio actualizado');
   }
 
-  // ================================================================
-  // Reorder exercises — drag handle in the routine detail screen.
-  //
-  // moveRoutineExercise() is the one function that actually mutates the
-  // order and is fully independent of touch/pointer mechanics: it's what
-  // gets called once a drag ends (or could equally be called from any
-  // other UI later). It writes straight into the same `routines` array
-  // everything else already reads from — no new storage, no parallel
-  // "draft order" to keep in sync. startWorkoutFromRoutine() already maps
-  // routine.exercises in array order, so reordering here is automatically
-  // what the workout starts with — nothing there needed to change.
-  //
-  // The drag mechanics themselves (startDragReorder/onDragReorderMove/
-  // onDragReorderEnd) are container-agnostic on purpose: "Crear mi rutina"
-  // reuses the exact same pointer-event logic below for reordering the
-  // in-progress selection, via startSelectionDrag — one drag engine, two
-  // call sites, so the touch-handling code isn't duplicated.
-  // ================================================================
   let dragReorderState = null;
 
   function moveRoutineExercise(routineId, fromIndex, toIndex){
@@ -3765,21 +3073,10 @@
     if(fromIndex === toIndex) return;
     const [moved] = routine.exercises.splice(fromIndex, 1);
     routine.exercises.splice(toIndex, 0, moved);
-    editingWeightIndex = null; // stale row index after a reorder — never leave the wrong row mid-edit
+    editingWeightIndex = null;
     renderRoutineDetailBody();
   }
 
-  // Picked up only from the handle (never the row itself), so tapping the
-  // demo thumbnail, weight button, or delete "x" is never mistaken for a
-  // drag. touch-action:none on the handle (see CSS) is what stops the page
-  // from scrolling underneath the gesture on a real touchscreen.
-  //
-  // containerSelector: which rows to treat as the reorderable list (queried
-  // fresh on every drag start, so it always matches whatever's on screen).
-  // onReorder(fromIndex, toIndex): called once, on drop, with the final
-  // indices — each screen supplies its own (see startRoutineDetailDrag /
-  // startSelectionDrag below), so this function itself never needs to know
-  // which data it's reordering.
   function startDragReorder(evt, index, containerSelector, onReorder){
     evt.preventDefault();
     const rows = Array.from(document.querySelectorAll(containerSelector));
@@ -3812,8 +3109,6 @@
     if(newIndex === s.currentIndex) return;
     s.currentIndex = newIndex;
 
-    // Visually preview the reorder by shifting the *other* rows out of the
-    // dragged row's way — the actual data isn't touched until drop.
     s.rows.forEach((r, i) => {
       if(i === s.fromIndex) return;
       if(i > s.fromIndex && i <= newIndex) r.style.transform = 'translateY(-' + s.rowHeight + 'px)';
@@ -3839,15 +3134,11 @@
     }
   }
 
-  // Thin, named wrapper so the inline onpointerdown attribute in the
-  // routine-detail row markup stays simple — this is the only place that
-  // knows the drag there means "reorder the saved routine's exercises".
   function startRoutineDetailDrag(evt, index){
     startDragReorder(evt, index, '#routineDetailBody .routine-ex-row',
       (from, to) => moveRoutineExercise(currentPreviewRoutineId, from, to));
   }
 
-  // "6-10" -> 10, "8" -> 8. Falls back to a reasonable default if unparsable.
   function parseTargetReps(repsRange){
     const match = String(repsRange || '').match(/(\d+)(?:\D+(\d+))?/);
     if(!match) return 10;
@@ -3863,11 +3154,6 @@
     return sets;
   }
 
-  // The only path into the active workout screen. Builds a fresh session
-  // from this specific routine's exercises — Routine A and Routine B never
-  // share or leak state, since `workout` is fully rebuilt here every time.
-  // Reads routine.exercises[i].weight directly, so any "marca actual" edit
-  // made just above is already reflected when the workout starts.
   function startWorkoutFromRoutine(routineId){
     const routine = routines.find(r => r.id === routineId);
     if(!routine || !routine.exercises || routine.exercises.length === 0) return;
@@ -3883,12 +3169,6 @@
     openWorkout();
   }
 
-  // ================================================================
-  // EDITAR RUTINA — rename, add/remove/reorder exercises, edit sets/reps/weight.
-  // Works on a scratch copy (`editingRoutineExercises`) and only writes back
-  // into the shared `routines` array on "Guardar cambios", so cancelling
-  // (closing the screen) never mutates anything.
-  // ================================================================
   let editingRoutineId = null;
   let editingRoutineExercises = [];
   let editingRoutineIcon = DEFAULT_ROUTINE_ICON;
@@ -3918,7 +3198,6 @@
     document.getElementById('editRoutineScreen').classList.remove('open');
   }
 
-  // ---------- Icon picker: 12 fixed Feather icons, no custom uploads ----------
   function toggleIconPicker(){
     iconPickerOpen = !iconPickerOpen;
     const el = document.getElementById('iconPickerGrid');
@@ -4001,7 +3280,7 @@
   function removeEditExercise(index){
     editingRoutineExercises.splice(index, 1);
     renderEditRoutineExercises();
-    renderEditRoutineCatalog(); // an exercise removed from the routine becomes available to re-add
+    renderEditRoutineCatalog();
   }
 
   function toggleEditCatalog(){
@@ -4011,9 +3290,6 @@
     if(editCatalogOpen) renderEditRoutineCatalog();
   }
 
-  // Shared by every exercise-card grid (Crear mi rutina, Editar rutina):
-  // shows the real RepDB start-pose thumbnail when the catalog entry has
-  // one, falls back to the group's generic icon otherwise — same frame.
   function exerciseCardIconHtml(ex, groupIcon){
     if(ex.imageStart){
       return '<div class="exercise-card-icon exercise-card-icon-photo"><img src="' + ex.imageStart + '" alt="' + ex.name + '" loading="lazy"></div>';
@@ -4021,9 +3297,6 @@
     return '<div class="exercise-card-icon"><i data-feather="' + groupIcon + '"></i></div>';
   }
 
-  // Reuses the exact same catalog grid as "Crear mi rutina". A card shows as
-  // selected when its exercise is already in the routine; tapping toggles
-  // it in or out — one interaction model for adding, everywhere in the app.
   function renderEditRoutineCatalog(){
     const container = document.getElementById('editRoutineCatalog');
     const currentNames = editingRoutineExercises.map(ex => ex.name);
@@ -4072,9 +3345,6 @@
     showSuccessToast('Rutina actualizada');
   }
 
-  // ================================================================
-  // ROUTINE CARD MENU ("⋮") — edit or delete a routine straight from the list
-  // ================================================================
   let routineMenuTargetId = null;
 
   function openRoutineMenu(routineId){
@@ -4091,10 +3361,6 @@
     document.getElementById('routineMenuSheet').classList.remove('open');
   }
 
-  // ---------- "Ver ejercicio": A -> B demo, only reachable from the routine
-  // preview (never mid-set). Attribution to RepDB shows only inside this
-  // sheet, never persistently during training — per the license's "no
-  // constant attribution during use" spirit and the product requirement.
   function openExerciseDemo(exerciseId){
     const ex = EXERCISE_DETAILS_BY_ID[exerciseId];
     if(!ex || !ex.imageStart) return;
@@ -4136,7 +3402,6 @@
     openDeleteConfirm(id);
   }
 
-  // ---------- Delete routine (with confirmation) ----------
   let deleteConfirmTargetId = null;
 
   function openDeleteConfirm(routineId){
@@ -4162,7 +3427,6 @@
     showSuccessToast('Rutina eliminada');
   }
 
-  // ---------- Action sheet ----------
   function openCreateSheet(){
     document.getElementById('sheetBackdrop').classList.add('open');
     document.getElementById('createSheet').classList.add('open');
@@ -4172,31 +3436,13 @@
     document.getElementById('createSheet').classList.remove('open');
   }
 
-  // ================================================================
-  // "Crear mi rutina" — now two separate states sharing one draft:
-  //   1) createRoutineScreen: name, icon, and a summary of the selection.
-  //   2) exercisePickerScreen ("Añadir ejercicios"): search + filter +
-  //      the catalog grid, opened on top of (1).
-  // selectedExerciseIds is the single source of truth for the selection —
-  // screen 2 mutates it directly and screen 1 just reads it, so nothing
-  // has to be "handed back" when the user returns; it was never copied.
-  //
-  // This is an ORDERED ARRAY, not a Set: the order the user arranges here
-  // is real routine state (it becomes routine.exercises' initial order in
-  // saveCustomRoutine), not just a visual list. Membership checks use
-  // indexOf/includes instead of .has(), which also naturally prevents
-  // duplicates — pushing only happens when an id isn't already present.
-  // ================================================================
   let selectedExerciseIds = [];
   let customRoutineIcon = DEFAULT_ROUTINE_ICON;
   let createIconPickerOpen = false;
   let exerciseSearchQuery = '';
   let exerciseFilterGroup = 'all';
-  // One-time reorder hint — dismissed for the rest of this routine-creation
-  // session the first time the user actually reorders (see moveSelectedExercise).
   let routineReorderHintDismissed = false;
 
-  // ---------- Screen 1: configure the routine ----------
   function openCreateRoutineScreen(){
     closeCreateSheet();
     selectedExerciseIds = [];
@@ -4214,10 +3460,6 @@
     document.getElementById('createRoutineScreen').classList.remove('open');
   }
 
-  // Paints the "Ejercicios" section on screen 1: count label + the actual
-  // manageable list — drag handle, name, remove "x" per row. Called on
-  // open, after adding/removing/reordering, and every time the user comes
-  // back from "Añadir ejercicios".
   function renderRoutineConfigSummary(){
     const count = selectedExerciseIds.length;
     document.getElementById('routineConfigCountLabel').textContent =
@@ -4247,9 +3489,6 @@
     feather.replace();
   }
 
-  // Same 2–40 char (post-trim) rule everywhere this needs checking — name
-  // validity and "has at least one exercise" both gate the same button,
-  // using its existing disabled visual state (no new UI, no error text).
   function isValidRoutineName(name){
     const trimmed = name.trim();
     return trimmed.length >= 2 && trimmed.length <= 40;
@@ -4261,9 +3500,6 @@
     document.getElementById('createRoutineBtn').disabled = !(nameValid && hasExercises);
   }
 
-  // Reuses the same generic drag engine as the routine-detail screen (see
-  // startDragReorder above) — just points it at this screen's rows and its
-  // own reorder callback.
   function startSelectionDrag(evt, index){
     startDragReorder(evt, index, '#routineConfigExerciseSummary .exercise-summary-row', moveSelectedExercise);
   }
@@ -4274,21 +3510,15 @@
     if(fromIndex === toIndex) return;
     const [moved] = selectedExerciseIds.splice(fromIndex, 1);
     selectedExerciseIds.splice(toIndex, 0, moved);
-    routineReorderHintDismissed = true; // only reached on a real reorder — dismiss for the rest of this session
+    routineReorderHintDismissed = true;
     renderRoutineConfigSummary();
   }
 
-  // Instant, no confirmation dialog — matches the "sencilla y rápida"
-  // requirement. Only touches the draft selection array; the exercise
-  // itself is untouched in the catalog and in any other routine.
   function removeSelectedExercise(index){
     selectedExerciseIds.splice(index, 1);
     renderRoutineConfigSummary();
   }
 
-  // Same 12-icon set and same interaction as "Editar rutina" — one picker
-  // component, two entry points, so there's no second icon system to keep
-  // in sync if icons ever change.
   function toggleCreateIconPicker(){
     createIconPickerOpen = !createIconPickerOpen;
     const el = document.getElementById('createIconPickerGrid');
@@ -4313,7 +3543,6 @@
     feather.replace();
   }
 
-  // ---------- Screen 2: "Añadir ejercicios" — search + filter + select ----------
   function openAddExercisesScreen(){
     exerciseSearchQuery = '';
     exerciseFilterGroup = 'all';
@@ -4324,22 +3553,15 @@
     feather.replace();
   }
 
-  // Closing always refreshes screen 1's summary underneath — the only
-  // path back to it being visible, so this is the one place that needs to.
   function closeAddExercisesScreen(){
     document.getElementById('exercisePickerScreen').classList.remove('open');
     renderRoutineConfigSummary();
   }
 
-  // The footer CTA and the header "x" do the exact same thing here: the
-  // selection already lives in the shared set the moment a card is
-  // tapped, so there's nothing to "confirm" beyond going back.
   function confirmAddExercises(){
     closeAddExercisesScreen();
   }
 
-  // Case-and-accent-insensitive: "press banca" and "PRESS BANCA" and
-  // "còrê" (typo-tolerant only for accents) all normalize the same way.
   function normalizeSearchText(s){
     return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   }
@@ -4407,10 +3629,6 @@
     feather.replace();
   }
 
-  // Appends only if not already present — this is what actually prevents
-  // duplicates (an id can never end up twice in the array), and a newly
-  // selected exercise joins at the end of the current order, which is
-  // then further adjustable via drag on the config screen.
   function toggleExercise(id){
     const idx = selectedExerciseIds.indexOf(id);
     if(idx !== -1) selectedExerciseIds.splice(idx, 1);
@@ -4428,11 +3646,6 @@
   function saveCustomRoutine(){
     const name = document.getElementById('routineNameInput').value.trim();
     if(selectedExerciseIds.length === 0 || !isValidRoutineName(name)) return;
-    // Default sets/reps for manually picked exercises — the user hasn't
-    // configured these yet, so a sensible general-purpose default is used.
-    // Order here is exactly the order arranged in "Crear mi rutina" —
-    // becomes the routine's real exercise order, not just how it looked
-    // on screen a moment ago.
     const exercises = selectedExerciseIds.map(id => ({
       name: EXERCISE_NAME_BY_ID[id],
       exerciseId: id,
@@ -4440,7 +3653,6 @@
       repsRange: '8-12',
     }));
     const exerciseCount = exercises.length;
-    // Simple duration estimate for now: ~9 min per exercise (warm-up + sets + rest).
     const estimatedMinutes = Math.max(20, Math.round(exerciseCount * 9));
     const id = 'custom-' + Date.now();
 
@@ -4452,7 +3664,6 @@
     showSuccessToast('Rutina "' + name + '" creada');
   }
 
-  // ---------- Flow 2: "Crear rutina con Strive" — goal-based generation ----------
   const GOALS = [
     { key:'muscle',    label:'Ganar músculo',            icon:'trending-up' },
     { key:'strength',  label:'Ganar fuerza',              icon:'zap' },
@@ -4491,12 +3702,6 @@
     renderGoalPicker();
   }
 
-  // User-facing personalization today is goal + level. The object and the
-  // function signature below are shaped so days available, session
-  // duration, equipment, experience and priority muscle groups can be added
-  // later as extra inputs without reworking how a routine gets built.
-  // Starts with the same goal/level the profile already displayed, now
-  // formalized as real data instead of two hardcoded strings.
   const userPreferences = {
     goal: 'strength',
     level: 'intermediate',
@@ -4511,59 +3716,57 @@
     muscle: {
       name:'Hipertrofia Strive', estimatedMinutes:55, icon:'dumbbell',
       exercises:[
-        { ref:'c1',  sets:4, repsRange:'8-12' },  // Press banca
-        { ref:'b2',  sets:4, repsRange:'8-12' },  // Remo con barra
-        { ref:'l1',  sets:4, repsRange:'8-12' },  // Sentadilla
-        { ref:'s2',  sets:3, repsRange:'10-12' }, // Elevaciones laterales
-        { ref:'bi1', sets:3, repsRange:'10-12' }, // Curl de bíceps
+        { ref:'c1',  sets:4, repsRange:'8-12' },
+        { ref:'b2',  sets:4, repsRange:'8-12' },
+        { ref:'l1',  sets:4, repsRange:'8-12' },
+        { ref:'s2',  sets:3, repsRange:'10-12' },
+        { ref:'bi1', sets:3, repsRange:'10-12' },
       ],
     },
     strength: {
       name:'Fuerza Strive', estimatedMinutes:60, icon:'strength',
       exercises:[
-        { ref:'l1', sets:5, repsRange:'3-5' }, // Sentadilla
-        { ref:'c1', sets:5, repsRange:'3-5' }, // Press banca
-        { ref:'b2', sets:4, repsRange:'5-6' }, // Remo con barra
-        { ref:'l2', sets:4, repsRange:'5-6' }, // Peso muerto rumano
+        { ref:'l1', sets:5, repsRange:'3-5' },
+        { ref:'c1', sets:5, repsRange:'3-5' },
+        { ref:'b2', sets:4, repsRange:'5-6' },
+        { ref:'l2', sets:4, repsRange:'5-6' },
       ],
     },
     endurance: {
       name:'Resistencia Strive', estimatedMinutes:45, icon:'cardio',
       exercises:[
-        { ref:'l3',  sets:3, repsRange:'15-20' }, // Prensa
-        { ref:'b3',  sets:3, repsRange:'15-20' }, // Jalón al pecho
-        { ref:'s2',  sets:3, repsRange:'15-20' }, // Elevaciones laterales
-        { ref:'t2',  sets:3, repsRange:'15-20' }, // Fondos en banco
-        { ref:'bi2', sets:3, repsRange:'15-20' }, // Curl martillo
-        { ref:'c3',  sets:3, repsRange:'15-20' }, // Aperturas con mancuerna
+        { ref:'l3',  sets:3, repsRange:'15-20' },
+        { ref:'b3',  sets:3, repsRange:'15-20' },
+        { ref:'s2',  sets:3, repsRange:'15-20' },
+        { ref:'t2',  sets:3, repsRange:'15-20' },
+        { ref:'bi2', sets:3, repsRange:'15-20' },
+        { ref:'c3',  sets:3, repsRange:'15-20' },
       ],
     },
     fatloss: {
       name:'Quema Strive', estimatedMinutes:40, icon:'lightning',
       exercises:[
-        { ref:'l1', sets:3, repsRange:'12-15' }, // Sentadilla
-        { ref:'b2', sets:3, repsRange:'12-15' }, // Remo con barra
-        { ref:'c1', sets:3, repsRange:'12-15' }, // Press banca
-        { ref:'s2', sets:3, repsRange:'12-15' }, // Elevaciones laterales
-        { ref:'l3', sets:3, repsRange:'12-15' }, // Prensa
-        { ref:'t1', sets:3, repsRange:'12-15' }, // Extensión de tríceps
+        { ref:'l1', sets:3, repsRange:'12-15' },
+        { ref:'b2', sets:3, repsRange:'12-15' },
+        { ref:'c1', sets:3, repsRange:'12-15' },
+        { ref:'s2', sets:3, repsRange:'12-15' },
+        { ref:'l3', sets:3, repsRange:'12-15' },
+        { ref:'t1', sets:3, repsRange:'12-15' },
       ],
     },
     fitness: {
       name:'Full Body Strive', estimatedMinutes:45, icon:'heart',
       exercises:[
-        { ref:'l1',  sets:3, repsRange:'10-12' }, // Sentadilla
-        { ref:'c1',  sets:3, repsRange:'10-12' }, // Press banca
-        { ref:'b2',  sets:3, repsRange:'10-12' }, // Remo con barra
-        { ref:'s1',  sets:3, repsRange:'10-12' }, // Press militar
-        { ref:'bi1', sets:2, repsRange:'10-12' }, // Curl de bíceps
+        { ref:'l1',  sets:3, repsRange:'10-12' },
+        { ref:'c1',  sets:3, repsRange:'10-12' },
+        { ref:'b2',  sets:3, repsRange:'10-12' },
+        { ref:'s1',  sets:3, repsRange:'10-12' },
+        { ref:'bi1', sets:2, repsRange:'10-12' },
       ],
     },
   };
 
   function generateRoutineForGoal(goalKey, preferences){
-    // `preferences` is accepted but unused beyond `goal` for now — reserved
-    // for the future personalization variables listed above.
     const template = GOAL_ROUTINE_TEMPLATES[goalKey] || GOAL_ROUTINE_TEMPLATES.fitness;
     const exercises = template.exercises.map(t => ({
       name: EXERCISE_NAME_BY_ID[t.ref],
@@ -4594,7 +3797,6 @@
     showSuccessToast('Strive creó "' + routine.name + '"');
   }
 
-  // ---------- Success toast ----------
   let toastTimeout;
   function showSuccessToast(text){
     const toast = document.getElementById('successToast');
@@ -4604,27 +3806,6 @@
     toastTimeout = setTimeout(() => toast.classList.remove('open'), 2600);
   }
 
-  // ================================================================
-  // PROGRESO: Récords personales — derived from the training log, never
-  // entered by hand.
-  //
-  // `workoutLogs` is the single source of truth: one entry per completed
-  // workout, each with the sets actually logged (exercise, weight, reps).
-  // A personal record is NOT a stored field anywhere — it's recomputed
-  // from this log every time it's needed. That means:
-  //   - a heavier set automatically becomes the new record
-  //   - a lighter set never changes it
-  //   - editing or deleting a logged workout and recomputing gives the
-  //     correct record again, because nothing is cached
-  // This mirrors how it would work against a real backend: the log is the
-  // data; the record is a query over it.
-  // ================================================================
-
-  // NOTE: these seven entries predate the workout-history calendar and were
-  // seeded only to demonstrate Récords personales — each is a single lift,
-  // not a full logged session (no routine, no duration). They're tagged
-  // 'legacy-seed' so the calendar (which needs a real session) correctly
-  // leaves them out instead of showing misleading "training days".
   let workoutLogs = [
     { date:'2026-07-20', source:'legacy-seed', entries:[ { exerciseName:'Press banca',   weightKg:70,   reps:8 } ] },
     { date:'2026-07-25', source:'legacy-seed', entries:[ { exerciseName:'Press militar', weightKg:40,   reps:8 } ] },
@@ -4640,15 +3821,6 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
-  // This is the real entry point for new records AND for the workout-history
-  // calendar: whatever the user actually completed in the workout screen
-  // gets appended here as a full session (routine, duration, sets). Neither
-  // "Récords personales" nor "Historial de entrenamientos" store anything of
-  // their own — they both just re-read this log.
-  //
-  // Also returns a plain summary object for the post-workout close screen
-  // (see showWorkoutSummary) — computed from this same real data, nothing
-  // separate to keep in sync.
   function logCompletedWorkout(){
     const entries = [];
     workout.forEach(ex => {
@@ -4660,10 +3832,6 @@
     });
     if(entries.length === 0) return null;
 
-    // PR detection happens BEFORE this session is added to the log, so
-    // "previous best" genuinely means "before today". A first-ever entry
-    // for an exercise (previousBest === null) is not counted as a record
-    // broken — there's nothing to compare it against yet.
     const exerciseNames = Array.from(new Set(entries.map(e => e.exerciseName)));
     const prBreaks = [];
     exerciseNames.forEach(name => {
@@ -4697,10 +3865,6 @@
     };
   }
 
-  // Same "before today" comparison the PR list itself relies on — scans
-  // every log for this exercise (workout + manual-import only — legacy-seed
-  // is demo data and must never influence real PR detection) and returns
-  // the heaviest weight found, or null if it's never been logged before.
   function computePreviousBestForExercise(exerciseName){
     let best = null;
     workoutLogs.forEach(log => {
@@ -4715,7 +3879,6 @@
   }
 
   function formatWeightEs(kg){
-    // 72.5 -> "72,5" — matches the comma-decimal formatting used elsewhere in the app.
     return String(kg).replace('.', ',');
   }
 
@@ -4727,10 +3890,6 @@
     return day + ' ' + month;
   }
 
-  // Walks a single exercise's sessions in chronological order and tracks
-  // the running max. Whenever a session beats it, that becomes the new
-  // current record and the prior running max becomes "previous" — which is
-  // exactly "récord actual - récord anterior" once we diff the two.
   function computeExerciseRecordProgression(exerciseName, chronologicalLogs){
     let currentRecord = null;
     let previousRecord = null;
@@ -4748,12 +3907,6 @@
     return { currentRecord, previousRecord };
   }
 
-  // Only exercises that actually appear in the log are shown — never an
-  // invented record for something the user hasn't logged yet. Sorted by
-  // how recently the record was set, most recent first. legacy-seed
-  // (demo data) is excluded here — only source:'workout' (real sessions)
-  // and source:'manual-import' (weights the user imported themselves)
-  // count toward a personal record.
   function getAllPersonalRecords(){
     const chronologicalLogs = [...workoutLogs]
       .filter(log => log.source !== 'legacy-seed')
@@ -4766,22 +3919,17 @@
         const { currentRecord, previousRecord } = computeExerciseRecordProgression(name, chronologicalLogs);
         return { exerciseName: name, currentRecord, previousRecord };
       })
-      .filter(r => r.currentRecord); // defensive — always true here, but never show a record with nothing behind it
+      .filter(r => r.currentRecord);
 
     records.sort((a, b) => b.currentRecord.date.localeCompare(a.currentRecord.date));
     return records;
   }
 
-  // Same row markup used by both the compact Progreso view (top 3) and the
-  // full "Ver todos" list — one visual component, two render call sites,
-  // instead of duplicating this HTML. Pure presentation, no PR calculation
-  // logic lives here.
   function buildPersonalRecordRowHtml(r){
     const delta = r.previousRecord ? Math.round((r.currentRecord.weight - r.previousRecord.weight) * 100) / 100 : null;
 
     let deltaHtml;
     if(delta === null){
-      // No prior record to compare against yet — show the record alone, per spec.
       deltaHtml = '';
     } else if(delta > 0){
       deltaHtml = '<div class="pr-delta pr-delta-up"><i data-feather="trending-up"></i> +' + formatWeightEs(delta) + ' kg</div>';
@@ -4801,10 +3949,6 @@
     );
   }
 
-  // Progreso solo muestra los 3 récords más recientes (por fecha de
-  // consecución) para no alargar la pantalla — getAllPersonalRecords() ya
-  // devuelve el orden correcto (más reciente primero), así que limitar es
-  // solo un .slice() sobre su resultado, sin tocar esa función.
   const PERSONAL_RECORDS_PREVIEW_LIMIT = 3;
 
   function renderPersonalRecords(){
@@ -4814,15 +3958,6 @@
     feather.replace();
   }
 
-  // ---------- Home: "Tu progreso" ----------
-  // Mismo dato que "Récords personales" (getAllPersonalRecords, sin tocar),
-  // mismo criterio de orden (más reciente primero) — solo cambia el límite
-  // (2 en vez de 3) y la presentación, pensada para comunicar "estás
-  // mejorando" en 1-2 segundos: nombre, marca actual, delta real, y un
-  // indicador honesto de 2 puntos (anterior -> actual) en vez de una
-  // gráfica de 4 barras inventada. Nunca dibuja una tendencia con datos
-  // que no existen: sin récord anterior, muestra un badge de "primer
-  // registro" en su lugar.
   const HOME_PROGRESS_LIMIT = 2;
 
   function renderHomeProgress(){
@@ -4840,9 +3975,6 @@
         ? '<div class="progress-delta delta-up"><i data-feather="trending-up"></i> +' + formatWeightEs(delta) + ' kg</div>'
         : '<div class="progress-delta delta-flat">Nuevo registro</div>';
 
-      // Real two-point trend (previous record -> current record) when there
-      // is something real to compare against; a plain "first record" badge
-      // otherwise — never a fabricated multi-point history.
       const trendHtml = r.previousRecord
         ? '<svg viewBox="0 0 40 26" class="progress-trend"><polyline points="3,20 37,6"/>' +
             '<circle class="trend-dot-from" cx="3" cy="20" r="2.5"/>' +
@@ -4867,18 +3999,9 @@
     feather.replace();
   }
 
-  // ---------- Home: "Actividad" — días entrenados esta semana (real) ----------
-  // Semana de lunes a domingo: misma convención "Monday-first" que ya usa
-  // renderTrainingCalendar() ((getDay()+6)%7). Cuenta días DISTINTOS con al
-  // menos una sesión real — mismo filtro source==='workout' que ya usa
-  // getTrainedDatesInMonth() para el calendario (excluye legacy-seed y
-  // manual-import: "días entrenados" son sesiones reales, no marcas
-  // importadas). El Set elimina duplicados por construcción: dos
-  // entrenamientos el mismo día siguen contando como un solo día. Reutiliza
-  // isoDate()/todayIso() ya existentes — sin duplicar formateo de fechas.
   function getCurrentWeekDates(){
     const today = new Date();
-    const mondayOffset = (today.getDay() + 6) % 7; // 0 = Monday
+    const mondayOffset = (today.getDay() + 6) % 7;
     const monday = new Date(today);
     monday.setDate(today.getDate() - mondayOffset);
     const dates = [];
@@ -4899,7 +4022,7 @@
     return trained;
   }
 
-  const HOME_ACTIVITY_DAY_LABELS = ['L','M','X','J','V','S','D']; // mismas iniciales que .cal-weekdays
+  const HOME_ACTIVITY_DAY_LABELS = ['L','M','X','J','V','S','D'];
 
   function renderHomeActivity(){
     const weekDates = getCurrentWeekDates();
@@ -4921,7 +4044,6 @@
     }).join('');
   }
 
-  // sobre el mismo resultado.
   function renderAllPersonalRecords(){
     const container = document.getElementById('allRecordsList');
     const records = getAllPersonalRecords();
@@ -4940,27 +4062,16 @@
     document.getElementById('allRecordsScreen').classList.remove('open');
   }
 
-  // ================================================================
-  // PROGRESO: Historial de entrenamientos — a calendar over the same
-  // workoutLogs used by Récords personales. Only `source:'workout'` entries
-  // (real completed sessions, see logCompletedWorkout) mark a day — legacy
-  // PR-history seeds and manual "Añadir marca" imports are not full
-  // sessions, so they intentionally don't appear here.
-  // ================================================================
-
   const MONTH_NAMES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
   let calendarViewYear = new Date().getFullYear();
-  let calendarViewMonth = new Date().getMonth(); // 0-11
+  let calendarViewMonth = new Date().getMonth();
   let selectedCalendarDate = null;
 
   function isoDate(year, monthIndex, day){
     return year + '-' + String(monthIndex + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
   }
 
-  // One workout session for a given date, built fresh from workoutLogs every
-  // time — if a logged workout were ever edited or removed, this simply
-  // reflects that on next render, same principle as the records above.
   function getWorkoutSessionForDate(dateStr){
     const logsForDay = workoutLogs.filter(log => log.date === dateStr && log.source === 'workout');
     if(logsForDay.length === 0) return null;
@@ -4997,7 +4108,7 @@
     const todayStr = todayIso();
 
     const firstOfMonth = new Date(calendarViewYear, calendarViewMonth, 1);
-    const mondayFirstIndex = (firstOfMonth.getDay() + 6) % 7; // 0 = Monday
+    const mondayFirstIndex = (firstOfMonth.getDay() + 6) % 7;
     const daysInMonth = new Date(calendarViewYear, calendarViewMonth + 1, 0).getDate();
 
     let cellsHtml = '';
@@ -5069,7 +4180,6 @@
     return day + ' ' + month;
   }
 
-  // ---------- Workout detail: read-only view of a specific logged session ----------
   function openWorkoutDetailScreen(dateStr){
     const session = getWorkoutSessionForDate(dateStr);
     if(!session) return;
@@ -5102,12 +4212,7 @@
     document.getElementById('workoutDetailScreen').classList.remove('open');
   }
 
-  // ---------- "Añadir marca": import a record from before using Strive ----------
-  // This does not create a parallel place to manage weights — it only ever
-  // appends one more entry to the same workoutLogs array that real workouts
-  // write to, so it flows through the exact same record calculation above.
   function getAllCatalogExercises(){
-    // Reuses the same merged catalog as "Crear mi rutina" — one list, everywhere.
     return CATALOG_GROUPS.flatMap(group => group.exercises.map(ex => ({ name: ex.name, group: group.label })));
   }
 
@@ -5172,11 +4277,6 @@
     document.getElementById(id).addEventListener('input', updateExerciseConfigSaveState);
   });
 
-  // ================================================================
-  // PERFIL: Información personal — reads from and writes to the same
-  // `userProfile` object renderProfileIdentity() reads from, so nothing
-  // is duplicated between this screen and where the name/avatar show up.
-  // ================================================================
   function openPersonalInfoScreen(){
     document.getElementById('piNameInput').value = userProfile.name || '';
     document.getElementById('piEmailInput').value = userProfile.email || '';
@@ -5197,9 +4297,6 @@
     const typedHeight = parseFloat(document.getElementById('piHeightInput').value);
     const typedWeight = parseFloat(document.getElementById('piWeightInput').value);
 
-    // Name is the one field everything else on screen depends on visually —
-    // never let it be blanked out. Everything else is optional: keep the
-    // previous value if what was typed isn't usable.
     userProfile.name = typedName || userProfile.name;
     userProfile.email = typedEmail;
     userProfile.birthDate = typedBirthDate || userProfile.birthDate;
@@ -5211,13 +4308,6 @@
     showSuccessToast('Perfil actualizado');
   }
 
-  // ================================================================
-  // PERFIL: Objetivo y nivel — edits the same `userPreferences.goal` /
-  // `.level` that "Crear rutina con Strive" already reads when generating
-  // a routine. Works on draft variables so cancelling never mutates
-  // userPreferences, then writes back and re-renders the profile pill +
-  // "Nivel" stat on save.
-  // ================================================================
   const LEVELS = [
     { key:'beginner',     label:'Principiante', icon:'sunrise' },
     { key:'intermediate', label:'Intermedio',   icon:'activity' },
@@ -5277,12 +4367,6 @@
     return 'Interm.';
   }
 
-  // Paints the profile's goal pill + "Nivel" stat from userPreferences —
-  // the same source GOAL_ROUTINE_TEMPLATES uses when Strive builds a routine.
-  // Rebuilds the pill's inner markup (icon + label together) rather than
-  // mutating an already-rendered feather <svg> in place, since feather
-  // replaces <i data-feather> with a real <svg> on first render — the same
-  // pattern already used everywhere else icons need to change dynamically.
   function renderProfileGoalLevel(){
     const goal = GOALS.find(g => g.key === userPreferences.goal);
     const level = LEVELS.find(l => l.key === userPreferences.level);
