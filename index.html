@@ -1124,7 +1124,7 @@
           <button class="hero-empty-primary" onclick="showTab('rutinas'); openGoalPicker();">
             Crear con Strive <i data-feather="cpu"></i>
           </button>
-          <button class="hero-empty-secondary" onclick="showTab('rutinas')">
+          <button class="hero-empty-secondary" onclick="openExploreRoutinesScreen()">
             <i data-feather="arrow-right"></i> Explorar rutinas
           </button>
         </div>
@@ -1162,7 +1162,9 @@
         <button class="add-btn" onclick="openCreateSheet()"><i data-feather="plus"></i></button>
       </div>
 
-      <div style="height:24px"></div>
+      <div class="section-action" style="margin-top:16px;cursor:pointer;" onclick="openExploreRoutinesScreen()">Explorar rutinas <i data-feather="chevron-right"></i></div>
+
+      <div style="height:20px"></div>
 
       <div id="rutinasListContainer"></div>
 
@@ -1538,6 +1540,25 @@
     </div>
   </div>
 
+  <!-- ============ EXPLORAR RUTINAS: biblioteca de Strive ============ -->
+  <!-- Plantillas globales (LIBRARY_ROUTINES) — nunca pertenecen al usuario
+       hasta que pulsa "Añadir a mis rutinas" dentro de la preview (ver
+       openLibraryRoutineDetail / addLibraryRoutineToMine). Sin kebab, sin
+       "última vez": no son datos del usuario. -->
+  <div class="flow-overlay" id="exploreRoutinesScreen">
+    <div class="flow-header">
+      <div>
+        <div class="flow-title">Explorar rutinas</div>
+        <div class="flow-subtitle">Rutinas de Strive listas para añadir a tu plan.</div>
+      </div>
+      <button class="close-btn" onclick="closeExploreRoutinesScreen()"><i data-feather="x"></i></button>
+    </div>
+
+    <div class="flow-body" style="padding-bottom:24px;">
+      <div id="exploreRoutinesList"></div>
+    </div>
+  </div>
+
   <!-- ============ ROUTINE PREVIEW ============ -->
   <div class="flow-overlay" id="routineDetailScreen">
     <div class="flow-header">
@@ -1556,14 +1577,7 @@
       <div class="card" id="routineDetailBody" style="padding:0"></div>
     </div>
 
-    <div class="flow-footer">
-      <button class="flow-primary-btn" onclick="startWorkoutFromRoutine(currentPreviewRoutineId)">
-        Iniciar entrenamiento <i data-feather="arrow-right"></i>
-      </button>
-      <button class="flow-secondary-btn" onclick="openEditRoutineScreen(currentPreviewRoutineId)">
-        <i data-feather="edit-3"></i> Editar rutina
-      </button>
-    </div>
+    <div class="flow-footer" id="routineDetailFooter"></div>
   </div>
 
   <!-- ============ EDITAR RUTINA ============ -->
@@ -2639,9 +2653,18 @@
   ];
   const DEFAULT_ROUTINE_ICON = 'target';
 
-  let routines = [
+  // ================================================================
+  // BIBLIOTECA DE STRIVE — plantillas globales ("Explorar rutinas").
+  // Exactamente las mismas 3 rutinas que antes poblaban `routines`
+  // directamente; solo cambia CUÁNDO entran a formar parte del usuario.
+  // Nunca se mutan in-place (la preview de biblioteca es de solo lectura,
+  // ver renderLibraryPreviewBody) — así ningún usuario puede corromper la
+  // plantilla que ven los demás. `lastPerformed` no aplica aquí: es una
+  // plantilla, no un historial de nadie.
+  // ================================================================
+  const LIBRARY_ROUTINES = [
     {
-      id:'push', name:'Push', exerciseCount:4, estimatedMinutes:50, lastPerformed:'Hace 2 días', icon:'push',
+      id:'push', name:'Push', exerciseCount:4, estimatedMinutes:50, lastPerformed:null, icon:'push',
       exercises:[
         { name:'Press banca', sets:4, repsRange:'6-10', weight:72.5 },
         { name:'Press inclinado mancuerna', sets:3, repsRange:'8-12', weight:26 },
@@ -2650,7 +2673,7 @@
       ],
     },
     {
-      id:'pull', name:'Pull', exerciseCount:5, estimatedMinutes:55, lastPerformed:'Hace 4 días', icon:'pull',
+      id:'pull', name:'Pull', exerciseCount:5, estimatedMinutes:55, lastPerformed:null, icon:'pull',
       exercises:[
         { name:'Dominadas', sets:4, repsRange:'6-10' },
         { name:'Remo con barra', sets:4, repsRange:'8-10', weight:60 },
@@ -2660,7 +2683,7 @@
       ],
     },
     {
-      id:'legs', name:'Legs', exerciseCount:5, estimatedMinutes:60, lastPerformed:'Hace 6 días', icon:'legs',
+      id:'legs', name:'Legs', exerciseCount:5, estimatedMinutes:60, lastPerformed:null, icon:'legs',
       exercises:[
         { name:'Sentadilla', sets:4, repsRange:'5-8', weight:95 },
         { name:'Peso muerto rumano', sets:3, repsRange:'8-10', weight:80 },
@@ -2671,6 +2694,11 @@
     },
   ];
 
+  // MIS RUTINAS — rutinas que pertenecen al usuario (creadas a mano,
+  // generadas con Strive, o añadidas desde la biblioteca). Un usuario
+  // nuevo empieza en 0: nada se copia automáticamente desde la biblioteca.
+  let routines = [];
+
   function renderRoutinesList(highlightId){
     const container = document.getElementById('rutinasListContainer');
     container.innerHTML = '';
@@ -2678,10 +2706,13 @@
     if(routines.length === 0){
       container.innerHTML =
         '<div class="ex-empty-state" style="padding-top:64px;">' +
-          '<div class="ex-empty-title">No tienes rutinas todavía</div>' +
-          '<div class="ex-empty-sub">Crea tu primera rutina para empezar a entrenar.</div>' +
+          '<div class="ex-empty-title">Aún no tienes rutinas</div>' +
+          '<div class="ex-empty-sub">Crea tu primera rutina o explora la biblioteca de Strive.</div>' +
           '<button class="flow-primary-btn" style="margin-top:24px;" onclick="openCreateSheet()">' +
             '<i data-feather="plus"></i> Crear rutina' +
+          '</button>' +
+          '<button class="flow-secondary-btn" onclick="openExploreRoutinesScreen()">' +
+            '<i data-feather="arrow-right"></i> Explorar rutinas' +
           '</button>' +
         '</div>';
     } else {
@@ -2875,6 +2906,7 @@
   console.log('[Strive] workout demo-images build loaded — mapped exercises:', Object.keys(LEGACY_EXERCISE_IMAGE_MAP).length);
 
   let currentPreviewRoutineId = null;
+  let currentPreviewSource = 'mine'; // 'mine' | 'library' — qué footer/cuerpo renderizar
   let editingWeightIndex = null;
   let exerciseConfigTargetIndex = null;
   let exerciseConfigDraft = null;
@@ -2883,8 +2915,19 @@
     const routine = routines.find(r => r.id === routineId);
     if(!routine) return;
     currentPreviewRoutineId = routineId;
+    currentPreviewSource = 'mine';
     editingWeightIndex = null;
 
+    renderRoutineDetailHeader(routine);
+    renderRoutineDetailBody();
+    renderRoutineDetailFooter();
+    document.getElementById('routineDetailScreen').classList.add('open');
+    feather.replace();
+  }
+
+  // Cabecera (icono/nombre/subtítulo) del preview — idéntica para una
+  // rutina propia o de biblioteca, así que se comparte entre ambas.
+  function renderRoutineDetailHeader(routine){
     document.getElementById('routineDetailName').textContent = routine.name;
     document.getElementById('routineDetailIcon').innerHTML = routineIconSvg(routine.icon || DEFAULT_ROUTINE_ICON);
 
@@ -2895,9 +2938,30 @@
     });
     document.getElementById('routineDetailSubtitle').textContent =
       groups.length ? groups.join(' · ') : (routine.exerciseCount + ' ejercicios');
+  }
 
-    renderRoutineDetailBody();
-    document.getElementById('routineDetailScreen').classList.add('open');
+  // Footer del preview — cambia según de dónde viene la rutina:
+  //   'mine'    -> Iniciar entrenamiento / Editar rutina (comportamiento
+  //                de siempre, sin cambios).
+  //   'library' -> un único CTA: Añadir a mis rutinas. Nunca se ofrece
+  //                "Iniciar entrenamiento" ni "Editar" sobre una plantilla:
+  //                primero tiene que pasar a ser una rutina del usuario.
+  function renderRoutineDetailFooter(){
+    const footer = document.getElementById('routineDetailFooter');
+    if(currentPreviewSource === 'library'){
+      footer.innerHTML =
+        '<button class="flow-primary-btn" onclick="addLibraryRoutineToMine(currentPreviewRoutineId)">' +
+          'Añadir a mis rutinas <i data-feather="plus"></i>' +
+        '</button>';
+    } else {
+      footer.innerHTML =
+        '<button class="flow-primary-btn" onclick="startWorkoutFromRoutine(currentPreviewRoutineId)">' +
+          'Iniciar entrenamiento <i data-feather="arrow-right"></i>' +
+        '</button>' +
+        '<button class="flow-secondary-btn" onclick="openEditRoutineScreen(currentPreviewRoutineId)">' +
+          '<i data-feather="edit-3"></i> Editar rutina' +
+        '</button>';
+    }
     feather.replace();
   }
 
@@ -2972,6 +3036,118 @@
 
   function closeRoutineDetail(){
     document.getElementById('routineDetailScreen').classList.remove('open');
+  }
+
+  // ================================================================
+  // EXPLORAR RUTINAS — biblioteca de Strive (LIBRARY_ROUTINES).
+  // Solo lectura: aquí nunca se editan series/reps/peso/descanso ni se
+  // reordena, precisamente porque esos datos son una plantilla global,
+  // no algo del usuario — mutarlos in-place afectaría a todo el mundo.
+  // La única acción posible es "Añadir a mis rutinas".
+  // ================================================================
+  function renderExploreRoutinesList(){
+    const container = document.getElementById('exploreRoutinesList');
+    container.innerHTML = LIBRARY_ROUTINES.map(r => (
+      '<div class="routine-card" onclick="openLibraryRoutineDetail(\'' + r.id + '\')">' +
+        '<div class="routine-icon">' + routineIconSvg(r.icon || DEFAULT_ROUTINE_ICON) + '</div>' +
+        '<div class="routine-info">' +
+          '<div class="routine-name">' + r.name + '</div>' +
+          '<div class="routine-meta">' + r.exerciseCount + ' ejercicios · ~' + r.estimatedMinutes + ' min</div>' +
+        '</div>' +
+        '<i data-feather="chevron-right" class="chev"></i>' +
+      '</div>'
+    )).join('');
+    feather.replace();
+  }
+
+  function openExploreRoutinesScreen(){
+    renderExploreRoutinesList();
+    document.getElementById('exploreRoutinesScreen').classList.add('open');
+    feather.replace();
+  }
+
+  function closeExploreRoutinesScreen(){
+    document.getElementById('exploreRoutinesScreen').classList.remove('open');
+  }
+
+  // Abre el mismo overlay de preview que openRoutineDetail(), pero leyendo
+  // de LIBRARY_ROUTINES y marcando currentPreviewSource='library' — eso es
+  // lo único que decide que el cuerpo sea de solo lectura (ver
+  // renderLibraryPreviewBody) y que el footer ofrezca "Añadir a mis
+  // rutinas" en vez de "Iniciar entrenamiento"/"Editar rutina".
+  function openLibraryRoutineDetail(libraryId){
+    const routine = LIBRARY_ROUTINES.find(r => r.id === libraryId);
+    if(!routine) return;
+    currentPreviewRoutineId = libraryId;
+    currentPreviewSource = 'library';
+
+    renderRoutineDetailHeader(routine);
+    renderLibraryPreviewBody(routine);
+    renderRoutineDetailFooter();
+    document.getElementById('routineDetailScreen').classList.add('open');
+    feather.replace();
+  }
+
+  // Misma información que renderRoutineDetailBody() (índice, nombre,
+  // series/reps/descanso, demo, peso sugerido) pero sin ningún control
+  // interactivo que pueda mutar la plantilla: sin tap-to-configure, sin
+  // drag handle, sin editar peso. "Ver ejercicio" se mantiene porque es
+  // de solo lectura (no escribe nada).
+  function renderLibraryPreviewBody(routine){
+    const body = document.getElementById('routineDetailBody');
+    body.innerHTML = (routine.exercises || []).map((ex, i) => {
+      const hasWeight = ex.weight !== undefined && ex.weight !== null;
+      const restSecondsValue = (ex.restSeconds !== undefined && ex.restSeconds !== null) ? ex.restSeconds : 120;
+
+      const catalogEx = findCatalogExerciseFor(ex);
+      const demoHtml = (catalogEx && catalogEx.imageStart)
+        ? '<button class="routine-ex-demo-btn" onclick="openExerciseDemo(\'' + catalogEx.id + '\')" title="Ver ejercicio"><img src="' + catalogEx.imageStart + '" alt="" loading="lazy" /></button>'
+        : '';
+      const weightHtml = hasWeight
+        ? '<div class="routine-ex-weight-btn" style="cursor:default;">' + formatWeightEs(ex.weight) + ' kg</div>'
+        : '';
+
+      return (
+        '<div class="routine-ex-row">' +
+          '<div class="routine-ex-index">' + (i + 1) + '</div>' +
+          '<div class="routine-ex-info">' +
+            '<div class="routine-ex-name">' + ex.name + '</div>' +
+            '<div class="routine-ex-meta">' + ex.sets + ' series' + (ex.repsRange ? ' · ' + ex.repsRange + ' reps' : '') + '</div>' +
+            '<div class="routine-ex-meta-rest">' + formatRestTime(restSecondsValue) + ' descanso</div>' +
+          '</div>' +
+          demoHtml + weightHtml +
+        '</div>'
+      );
+    }).join('');
+    feather.replace();
+  }
+
+  // La única forma en que una plantilla de biblioteca pasa a "Mis
+  // rutinas": se clona en un objeto nuevo con id propio — la plantilla en
+  // LIBRARY_ROUTINES nunca se toca ni se reutiliza por referencia, así que
+  // editar/entrenar esta copia después nunca afecta a lo que ven otros
+  // usuarios que exploren la biblioteca.
+  function addLibraryRoutineToMine(libraryId){
+    const template = LIBRARY_ROUTINES.find(r => r.id === libraryId);
+    if(!template) return;
+
+    const newRoutine = {
+      id: 'mine-' + Date.now(),
+      name: template.name,
+      exerciseCount: template.exerciseCount,
+      estimatedMinutes: template.estimatedMinutes,
+      lastPerformed: null,
+      icon: template.icon,
+      libraryId: template.id, // referencia informativa; nada más depende de esto hoy
+      exercises: template.exercises.map(ex => ({ ...ex })),
+    };
+    routines.push(newRoutine);
+
+    closeRoutineDetail();
+    closeExploreRoutinesScreen();
+    showTab('rutinas');
+    renderRoutinesList(newRoutine.id);
+    showSuccessToast('"' + newRoutine.name + '" añadida a tus rutinas');
   }
 
   function openExerciseConfig(index){
