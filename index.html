@@ -1134,7 +1134,7 @@
 
       <div class="section-header">
         <span class="section-title">Tu progreso</span>
-        <span class="section-action" onclick="showTab('progreso')">Ver todo <i data-feather="chevron-right"></i></span>
+        <span class="section-action" id="homeProgressViewAll" onclick="showTab('progreso')">Ver todo <i data-feather="chevron-right"></i></span>
       </div>
       <div class="progress-grid" id="homeProgressGrid"></div>
 
@@ -4139,6 +4139,11 @@
   function renderHomeProgress(){
     const container = document.getElementById('homeProgressGrid');
     const records = getAllPersonalRecords().slice(0, HOME_PROGRESS_LIMIT);
+
+    // "Ver todo" solo tiene sentido si hay algo que ver — se oculta junto
+    // con las tarjetas de progreso y reaparece solo cuando exista al menos
+    // un récord real, gobernado por el mismo dato (nunca queda desincronizado).
+    document.getElementById('homeProgressViewAll').style.display = records.length === 0 ? 'none' : 'flex';
 
     if(records.length === 0){
       container.innerHTML = '<div class="progress-empty">Completa un entrenamiento para empezar a ver tu progreso aquí.</div>';
