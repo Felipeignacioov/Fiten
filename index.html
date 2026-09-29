@@ -1180,28 +1180,20 @@
 
       <div class="card">
         <div class="summary-row">
-          <div class="stat"><span class="v">18</span><span class="l">entrenamientos</span></div>
+          <div class="stat"><span class="v" id="progresoTotalWorkouts">0</span><span class="l">entrenamientos</span></div>
           <div class="v-divider"></div>
-          <div class="stat"><span class="v">4 días</span><span class="l">esta semana</span></div>
+          <div class="stat"><span class="v" id="progresoWeekDays">0 días</span><span class="l">esta semana</span></div>
           <div class="v-divider"></div>
-          <div class="stat"><span class="v">6 días</span><span class="l">racha actual</span></div>
+          <div class="stat"><span class="v" id="progresoStreak">0 días</span><span class="l">racha actual</span></div>
         </div>
       </div>
 
       <div style="height:28px"></div>
       <div class="section-header"><span class="section-title">Actividad semanal</span></div>
       <div class="card">
-        <div class="chart">
-          <div class="bar-col" onclick="showDayDetail(this,'Lunes',12)"><div class="bar-track"><div class="bar" style="height:55%"></div></div><span class="day-label">L</span></div>
-          <div class="bar-col" onclick="showDayDetail(this,'Martes',0)"><div class="bar-track"><div class="bar" style="height:3px"></div></div><span class="day-label">M</span></div>
-          <div class="bar-col" onclick="showDayDetail(this,'Miércoles',18)"><div class="bar-track"><div class="bar" style="height:82%"></div></div><span class="day-label">X</span></div>
-          <div class="bar-col" onclick="showDayDetail(this,'Jueves',15)"><div class="bar-track"><div class="bar" style="height:68%"></div></div><span class="day-label">J</span></div>
-          <div class="bar-col" onclick="showDayDetail(this,'Viernes',0)"><div class="bar-track"><div class="bar today" style="height:3px"></div></div><span class="day-label today">V</span></div>
-          <div class="bar-col" onclick="showDayDetail(this,'Sábado',22)"><div class="bar-track"><div class="bar" style="height:100%"></div></div><span class="day-label">S</span></div>
-          <div class="bar-col" onclick="showDayDetail(this,'Domingo',0)"><div class="bar-track"><div class="bar" style="height:3px"></div></div><span class="day-label">D</span></div>
-        </div>
+        <div class="chart" id="weeklyActivityChart"></div>
         <div class="chart-footer">
-          <span class="week-total">68 series esta semana</span>
+          <span class="week-total" id="weeklyActivityTotal">0 series esta semana</span>
           <span class="day-detail" id="chartDayDetail"></span>
         </div>
       </div>
@@ -1252,11 +1244,11 @@
 
       <div class="card">
         <div class="summary-row">
-          <div class="stat" style="align-items:center"><span class="v">18</span><span class="l">Entrenamientos</span></div>
+          <div class="stat" style="align-items:center"><span class="v" id="profileWorkoutsCount">0</span><span class="l">Entrenamientos</span></div>
           <div class="v-divider"></div>
           <div class="stat" style="align-items:center"><span class="v" id="profileLevelValue">Interm.</span><span class="l">Nivel</span></div>
           <div class="v-divider"></div>
-          <div class="stat" style="align-items:center"><span class="v">6</span><span class="l">Racha</span></div>
+          <div class="stat" style="align-items:center"><span class="v" id="profileStreakValue">0</span><span class="l">Racha</span></div>
         </div>
       </div>
 
@@ -2409,7 +2401,7 @@
 
   function getLastPerformanceForExercise(exerciseName){
     const logsWithExercise = workoutLogs
-      .filter(log => log.entries.some(e => e.exerciseName === exerciseName))
+      .filter(log => log.source !== 'legacy-seed' && log.entries.some(e => e.exerciseName === exerciseName))
       .sort((a, b) => b.date.localeCompare(a.date));
     if(logsWithExercise.length === 0) return null;
     const mostRecentLog = logsWithExercise[0];
@@ -3982,15 +3974,13 @@
     toastTimeout = setTimeout(() => toast.classList.remove('open'), 2600);
   }
 
-  let workoutLogs = [
-    { date:'2026-07-20', source:'legacy-seed', entries:[ { exerciseName:'Press banca',   weightKg:70,   reps:8 } ] },
-    { date:'2026-07-25', source:'legacy-seed', entries:[ { exerciseName:'Press militar', weightKg:40,   reps:8 } ] },
-    { date:'2026-08-10', source:'legacy-seed', entries:[ { exerciseName:'Sentadilla',    weightKg:90,   reps:6 }, { exerciseName:'Press militar', weightKg:42.5, reps:6 } ] },
-    { date:'2026-08-15', source:'legacy-seed', entries:[ { exerciseName:'Peso muerto',   weightKg:110,  reps:5 } ] },
-    { date:'2026-08-20', source:'legacy-seed', entries:[ { exerciseName:'Press banca',   weightKg:72.5, reps:8 } ] },
-    { date:'2026-08-28', source:'legacy-seed', entries:[ { exerciseName:'Sentadilla',    weightKg:95,   reps:6 } ] },
-    { date:'2026-09-03', source:'legacy-seed', entries:[ { exerciseName:'Press banca',   weightKg:75,   reps:6 } ] },
-  ];
+  // Un usuario nuevo empieza con 0 entrenamientos reales — nada de dataset
+  // de demostración pre-cargado. (Antes había 7 sesiones "legacy-seed" aquí;
+  // ya estaban excluidas de Récords personales y del calendario, pero SÍ se
+  // colaban en "Última vez" dentro del entrenamiento activo — ver el fix en
+  // getLastPerformanceForExercise más abajo. Quitarlas de raíz es la forma
+  // más simple de que ningún usuario nuevo vea un historial que no es suyo.)
+  let workoutLogs = [];
 
   function todayIso(){
     const d = new Date();
@@ -4031,6 +4021,9 @@
     renderHomeProgress();
     renderHomeActivity();
     renderTrainingCalendar();
+    renderProgresoSummary();
+    renderWeeklyActivityChart();
+    renderProfileStats();
 
     return {
       routineName: activeRoutineName,
@@ -4223,6 +4216,84 @@
         '</div>'
       );
     }).join('');
+  }
+
+  // ================================================================
+  // PROGRESO — resumen, gráfica semanal y estadísticas de Perfil, ahora
+  // calculados desde workoutLogs real (antes eran números fijos en el
+  // HTML, por eso un usuario nuevo veía "18 entrenamientos" el primer
+  // día). Reutiliza getCurrentWeekDates/getTrainedDatesThisWeek — mismo
+  // criterio de semana que ya usa la tarjeta "Actividad" de Home.
+  // ================================================================
+
+  // Racha actual: días consecutivos entrenados terminando hoy. Si hoy
+  // todavía no se ha entrenado, no rompe la racha — el día de hoy "aún
+  // puede pasar", así que se cuenta hacia atrás desde ayer.
+  function computeCurrentStreak(){
+    const trainedDates = new Set(workoutLogs.filter(l => l.source === 'workout').map(l => l.date));
+    let streak = 0;
+    let cursor = new Date();
+    if(!trainedDates.has(todayIso())){
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    while(trainedDates.has(isoDate(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()))){
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
+  }
+
+  function renderProgresoSummary(){
+    const totalWorkouts = workoutLogs.filter(l => l.source === 'workout').length;
+    const trainedThisWeek = getTrainedDatesThisWeek(getCurrentWeekDates()).size;
+    const streak = computeCurrentStreak();
+
+    document.getElementById('progresoTotalWorkouts').textContent = totalWorkouts;
+    document.getElementById('progresoWeekDays').textContent = trainedThisWeek + (trainedThisWeek === 1 ? ' día' : ' días');
+    document.getElementById('progresoStreak').textContent = streak + (streak === 1 ? ' día' : ' días');
+  }
+
+  const WEEKLY_CHART_DAY_LABELS = ['L','M','X','J','V','S','D'];
+  const WEEKLY_CHART_DAY_NAMES = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+
+  // Series (sets) realmente registradas ese día — misma definición que ya
+  // usa getWorkoutSessionForDate (entries.length de sesiones source:'workout').
+  function getSetCountForDate(dateStr){
+    return workoutLogs
+      .filter(log => log.source === 'workout' && log.date === dateStr)
+      .reduce((sum, log) => sum + log.entries.length, 0);
+  }
+
+  // Sustituye las 7 barras fijas por unas calculadas sobre datos reales.
+  // showDayDetail() no cambia: sigue leyendo el conteo del propio elemento
+  // que se pulsa, ahora con el número real en vez de uno hardcodeado.
+  function renderWeeklyActivityChart(){
+    const weekDates = getCurrentWeekDates();
+    const counts = weekDates.map(getSetCountForDate);
+    const maxCount = Math.max(...counts, 0);
+    const todayStr = todayIso();
+
+    document.getElementById('weeklyActivityChart').innerHTML = weekDates.map((dateStr, i) => {
+      const count = counts[i];
+      const isToday = dateStr === todayStr;
+      const heightStyle = count === 0 ? '3px' : Math.max(8, Math.round((count / maxCount) * 100)) + '%';
+      return (
+        '<div class="bar-col" onclick="showDayDetail(this,\'' + WEEKLY_CHART_DAY_NAMES[i] + '\',' + count + ')">' +
+          '<div class="bar-track"><div class="bar' + (isToday ? ' today' : '') + '" style="height:' + heightStyle + '"></div></div>' +
+          '<span class="day-label' + (isToday ? ' today' : '') + '">' + WEEKLY_CHART_DAY_LABELS[i] + '</span>' +
+        '</div>'
+      );
+    }).join('');
+
+    const totalSeries = counts.reduce((a, b) => a + b, 0);
+    document.getElementById('weeklyActivityTotal').textContent = totalSeries + ' series esta semana';
+  }
+
+  // Perfil: "Entrenamientos" y "Racha" — mismas fuentes que renderProgresoSummary,
+  // "Nivel" ya era dinámico vía renderProfileGoalLevel() y no se toca aquí.
+  function renderProfileStats(){
+    document.getElementById('profileWorkoutsCount').textContent = workoutLogs.filter(l => l.source === 'workout').length;
+    document.getElementById('profileStreakValue').textContent = computeCurrentStreak();
   }
 
   function renderAllPersonalRecords(){
@@ -4564,6 +4635,9 @@
   renderHomeProgress();
   renderHomeActivity();
   renderTrainingCalendar();
+  renderProgresoSummary();
+  renderWeeklyActivityChart();
+  renderProfileStats();
   feather.replace();
   runSplash();
 </script>
