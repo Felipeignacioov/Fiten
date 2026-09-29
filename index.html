@@ -2092,7 +2092,41 @@
     }, 100);
   }
 
+  // Traduce las 4 respuestas del onboarding a userPreferences. Los valores
+  // de "objetivo" del onboarding no son literalmente los mismos que las
+  // claves de GOALS (por ejemplo 'muscle_gain' vs 'muscle'), así que hace
+  // falta una tabla de equivalencia; "experiencia" sí coincide 1:1 con las
+  // claves de LEVELS (beginner/intermediate/advanced), así que se copia
+  // directo. "maintenance" no tiene un objetivo exacto en GOALS — se
+  // mapea a 'fitness' ("Mejorar condición física"), el más cercano a
+  // "mantenerme".
+  const ONBOARDING_GOAL_TO_PREFERENCE = {
+    muscle_gain: 'muscle',
+    strength: 'strength',
+    fat_loss: 'fatloss',
+    maintenance: 'fitness',
+  };
+
+  function applyOnboardingProfileToPreferences(){
+    if(onboardingProfile.goal){
+      userPreferences.goal = ONBOARDING_GOAL_TO_PREFERENCE[onboardingProfile.goal] || userPreferences.goal;
+    }
+    if(onboardingProfile.experience){
+      userPreferences.level = onboardingProfile.experience;
+    }
+    if(onboardingProfile.trainingDays){
+      userPreferences.daysAvailable = onboardingProfile.trainingDays;
+    }
+    if(onboardingProfile.trainingLocation){
+      userPreferences.trainingLocation = onboardingProfile.trainingLocation;
+    }
+    // Refleja el cambio de inmediato en Perfil (pill de objetivo + "Nivel"),
+    // igual que ya hace saveGoalLevel() cuando el usuario los edita a mano.
+    renderProfileGoalLevel();
+  }
+
   function completeOnboarding(){
+    applyOnboardingProfileToPreferences();
     authState.onboardingCompleted = true;
     document.getElementById('onboardingGate').classList.add('hidden');
   }
@@ -3878,6 +3912,7 @@
     equipment: null,
     experience: null,
     priorityMuscleGroups: null,
+    trainingLocation: null,
   };
 
   const GOAL_ROUTINE_TEMPLATES = {
