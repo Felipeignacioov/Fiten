@@ -2662,13 +2662,16 @@
       'stroke-linecap="round" stroke-linejoin="round">' + shape + '</svg>';
   }
 
+  // Medalla/PR — se reutiliza el propio icono "award" de Feather (círculo +
+  // cinta en V), el mismo que ya usa esta app en el badge del resumen de
+  // entrenamiento y en "Avanzado" (Objetivo y nivel / onboarding). Al ser
+  // un glifo ya probado y reconocible como medalla, en vez de una forma
+  // nueva, evita cualquier lectura ambigua (reloj, candado, etc.).
   function prMedalSvg(){
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
       'stroke-linecap="round" stroke-linejoin="round">' +
-      '<rect x="9" y="2" width="6" height="4" rx="1.5"/>' +
-      '<line x1="12" y1="6" x2="12" y2="9"/>' +
-      '<circle cx="12" cy="15.5" r="6"/>' +
-      '<circle cx="12" cy="15.5" r="1.3" fill="currentColor" stroke="none"/>' +
+      '<circle cx="12" cy="8" r="7"/>' +
+      '<polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>' +
       '</svg>';
   }
 
