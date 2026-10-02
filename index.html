@@ -455,11 +455,12 @@
 
   /* ---------- Historial de entrenamientos: month calendar ---------- */
   .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-  .cal-nav-btn{
+  .cal-nav-btn{position:relative;
     width:32px;height:32px;border-radius:999px;background:var(--surface-high);
     border:1px solid var(--border-light);display:flex;align-items:center;justify-content:center;
     color:var(--text-secondary);cursor:pointer;
   }
+  .cal-nav-btn::after{content:'';position:absolute;inset:-6px;}
   .cal-nav-btn svg{width:15px;height:15px;}
   .cal-month-label{font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--text-primary);}
   .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:4px;}
@@ -536,27 +537,54 @@
   }
   @keyframes wkActivitySlide{0%{left:-35%;}100%{left:100%;}}
   .wk-serie-label{font-family:var(--font-body);font-weight:700;font-size:12.5px;color:var(--accent-bright);text-transform:uppercase;letter-spacing:0.4px;}
-  .wk-set-dots{display:flex;align-items:center;gap:7px;}
-  .wk-set-dot{width:7px;height:7px;border-radius:999px;background:var(--track-empty);border:1.5px solid transparent;cursor:pointer;transition:background 0.15s ease,border-color 0.15s ease;}
+  .wk-set-dots{display:flex;align-items:center;gap:10px;}
+  .wk-set-dot{position:relative;width:8px;height:8px;border-radius:999px;background:var(--track-empty);border:1.5px solid transparent;cursor:pointer;transition:background 0.15s ease,border-color 0.15s ease,transform 0.15s ease;}
+  /* Área de toque ampliada e invisible: 18x40px, sin solaparse con el punto vecino (paso de 18px). */
+  .wk-set-dot::after{content:'';position:absolute;top:-16px;bottom:-16px;left:-5px;right:-5px;}
+  .wk-set-dot:active{transform:scale(1.25);}
   .wk-set-dot.done{background:var(--accent-bright);}
-  .wk-set-dot.active{width:9px;height:9px;border-color:var(--accent-bright);}
+  .wk-set-dot.active{width:10px;height:10px;border-color:var(--accent-bright);}
   .wk-current-set-card{
-    display:flex;align-items:stretch;
+    display:flex;align-items:stretch;gap:10px;
     background:var(--surface);border:1px solid var(--border);border-radius:24px;
-    padding:22px 12px;
+    padding:14px;
+    box-shadow:var(--shadow-card), var(--shadow-inset-top);
   }
-  .wk-field{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
-  .wk-field-label{font-family:var(--font-body);font-weight:600;font-size:11.5px;letter-spacing:0.4px;color:var(--text-tertiary);text-transform:uppercase;}
-  .wk-field-value{display:flex;align-items:baseline;gap:5px;}
+  .wk-field{flex:1;min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:9px;}
+  .wk-field-label{
+    text-align:center;
+    font-family:var(--font-body);font-weight:600;font-size:11.5px;letter-spacing:0.4px;
+    color:var(--text-tertiary);text-transform:uppercase;
+    transition:color 0.18s ease;
+  }
+  /* Cada valor es una "caja" editable (label => tocar en cualquier punto
+     enfoca el input). Mismo lenguaje que .form-input: surface-high + borde
+     suave; al enfocar, borde rojo + halo. Así el dato más importante de la
+     app se reconoce como editable a primera vista. */
+  .wk-field-value{
+    display:flex;align-items:center;justify-content:center;gap:5px;
+    height:68px;padding:0 14px;border-radius:18px;cursor:text;
+    background:var(--surface-high);border:1px solid var(--border-light);
+    box-shadow:var(--shadow-inset-top);
+    transition:border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+  }
+  .wk-field:focus-within .wk-field-value{
+    background:var(--surface-pressed);border-color:var(--accent-bright);
+    box-shadow:0 0 0 4px rgba(224,45,72,0.14), var(--shadow-inset-top);
+  }
+  .wk-field:focus-within .wk-field-label{color:var(--accent-bright);}
+  .wk-field-value:has(.wk-field-input:disabled){
+    background:transparent;border-color:var(--border);box-shadow:none;cursor:default;opacity:0.6;
+  }
   .wk-field-input{
-    width:82px;background:transparent;border:none;outline:none;text-align:center;padding:0;
+    flex:1;min-width:0;width:auto;background:transparent;border:none;outline:none;text-align:center;padding:0;
     font-family:var(--font-display);font-weight:700;font-size:36px;color:var(--text-primary);
     -moz-appearance:textfield;
   }
   .wk-field-input::-webkit-outer-spin-button,.wk-field-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
   .wk-field-input:disabled{color:var(--text-secondary);}
-  .wk-field-unit{font-family:var(--font-body);font-weight:500;font-size:13px;color:var(--text-tertiary);}
-  .wk-field-divider{width:1px;align-self:stretch;background:var(--border);}
+  .wk-field-unit{flex-shrink:0;font-family:var(--font-body);font-weight:600;font-size:13px;color:var(--text-secondary);}
+  .wk-field-divider{display:none;}
   .wk-demo-images{
     display:flex;gap:10px;margin-top:18px;overflow:hidden;
     max-height:320px;opacity:1;
@@ -593,11 +621,12 @@
   .workout-header{display:flex;align-items:flex-start;justify-content:space-between;}
   .workout-routine{font-family:var(--font-body);font-weight:600;font-size:13px;color:var(--accent-bright);margin-bottom:4px;}
   .workout-progress-label{font-family:var(--font-body);font-weight:500;font-size:12px;color:var(--text-tertiary);}
-  .close-btn{
+  .close-btn{position:relative;
     width:36px;height:36px;border-radius:999px;background:var(--surface);
     border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-primary);
     transition:transform 0.15s ease;
   }
+  .close-btn::after{content:'';position:absolute;inset:-4px;}
   .close-btn:active{transform:scale(0.92);}
   .close-btn svg{width:18px;height:18px;}
   .dots-row{display:flex;gap:6px;margin:20px 0 26px 0;}
@@ -815,11 +844,12 @@
     font-size:14.5px;color:var(--text-primary);
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
-  .exercise-summary-remove{
+  .exercise-summary-remove{position:relative;
     width:30px;height:30px;border-radius:9px;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;
     background:transparent;border:none;cursor:pointer;color:var(--text-tertiary);
   }
+  .exercise-summary-remove::after{content:'';position:absolute;inset:-7px;}
   .exercise-summary-remove svg{width:15px;height:15px;}
   .exercise-summary-remove:active{color:var(--danger);}
 
@@ -876,11 +906,12 @@
     border:none;padding:0;cursor:pointer;background:var(--surface-high);
   }
   .routine-ex-demo-btn img{width:100%;height:100%;object-fit:cover;display:block;}
-  .routine-ex-handle{
+  .routine-ex-handle{position:relative;
     width:32px;height:32px;border-radius:9px;flex-shrink:0;
     display:flex;align-items:center;justify-content:center;
     color:var(--text-tertiary);cursor:grab;touch-action:none;
   }
+  .routine-ex-handle::after{content:'';position:absolute;inset:-6px -4px;}
   .routine-ex-handle svg{width:16px;height:16px;}
   .routine-ex-row{transition:transform 0.15s ease;}
   .routine-ex-row.dragging{
@@ -889,11 +920,12 @@
     box-shadow:0 14px 28px -10px rgba(0,0,0,0.55);
     opacity:0.97;
   }
-  .routine-ex-weight-btn{
+  .routine-ex-weight-btn{position:relative;
     font-family:var(--font-display);font-weight:600;font-size:14px;color:var(--text-primary);
     background:var(--surface-high);padding:5px 10px;border-radius:9px;flex-shrink:0;
     border:1px solid transparent;cursor:pointer;
   }
+  .routine-ex-weight-btn::after{content:'';position:absolute;inset:-8px -4px;}
   .routine-ex-weight-btn.unset{
     font-family:var(--font-body);font-weight:600;font-size:12px;color:var(--accent-bright);
     background:var(--accent-soft);border:1px dashed var(--accent-soft-border);
@@ -904,10 +936,11 @@
     background:var(--surface-high);border:1px solid var(--accent-soft-border);
     color:var(--text-primary);font-family:var(--font-display);font-weight:600;font-size:13.5px;outline:none;
   }
-  .routine-ex-weight-confirm{
+  .routine-ex-weight-confirm{position:relative;
     width:28px;height:28px;border-radius:8px;background:var(--accent);border:none;
     display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;
   }
+  .routine-ex-weight-confirm::after{content:'';position:absolute;inset:-6px;}
   .routine-ex-weight-confirm svg{width:13px;height:13px;color:#fff;}
 
   .routine-ex-tap-area{display:flex;align-items:center;gap:14px;flex:1;min-width:0;cursor:pointer;}
@@ -927,10 +960,11 @@
   .edit-ex-row{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;}
   .edit-ex-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
   .edit-ex-name{font-family:var(--font-body);font-weight:600;font-size:14.5px;color:var(--text-primary);flex:1;min-width:0;}
-  .edit-ex-icon-btn{
+  .edit-ex-icon-btn{position:relative;
     width:28px;height:28px;border-radius:8px;background:var(--surface-high);border:none;
     display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:var(--text-secondary);
   }
+  .edit-ex-icon-btn::after{content:'';position:absolute;inset:-5px;}
   .edit-ex-icon-btn:disabled{opacity:0.3;cursor:not-allowed;}
   .edit-ex-icon-btn svg{width:13px;height:13px;}
   .edit-ex-icon-btn.danger{color:var(--danger);}
@@ -968,11 +1002,12 @@
   .icon-option.selected{background:var(--accent-soft);border-color:var(--accent-soft-border);}
   .icon-option.selected svg{color:var(--accent-bright);}
 
-  .routine-kebab-btn{
+  .routine-kebab-btn{position:relative;
     width:32px;height:32px;border-radius:999px;background:transparent;border:none;
     display:flex;align-items:center;justify-content:center;cursor:pointer;
     color:var(--text-tertiary);flex-shrink:0;margin-right:2px;
   }
+  .routine-kebab-btn::after{content:'';position:absolute;inset:-6px;}
   .routine-kebab-btn svg{width:17px;height:17px;}
   .sheet-option-danger .sheet-option-title{color:var(--danger);}
   .sheet-option-icon-danger{background:rgba(248,113,113,0.12);border-color:rgba(248,113,113,0.28);}
@@ -1302,18 +1337,18 @@
       <div class="wk-current-set-card">
         <div class="wk-field">
           <div class="wk-field-label">Peso</div>
-          <div class="wk-field-value">
+          <label class="wk-field-value">
             <input type="number" inputmode="decimal" step="0.5" min="0" class="wk-field-input" id="wkWeightInput" />
             <span class="wk-field-unit">kg</span>
-          </div>
+          </label>
         </div>
         <div class="wk-field-divider"></div>
         <div class="wk-field">
           <div class="wk-field-label">Repeticiones</div>
-          <div class="wk-field-value">
+          <label class="wk-field-value">
             <input type="number" inputmode="numeric" min="0" class="wk-field-input" id="wkRepsInput" />
             <span class="wk-field-unit">reps</span>
-          </div>
+          </label>
         </div>
       </div>
 
@@ -2292,7 +2327,7 @@
         '<div class="pr-row">' +
           '<div class="pr-icon">' + prMedalSvg() + '</div>' +
           '<div>' +
-            '<div class="pr-name">' + pr.exerciseName + '</div>' +
+            '<div class="pr-name">' + escapeHtml(pr.exerciseName) + '</div>' +
             '<div class="pr-date">Antes: ' + formatWeightEs(pr.previous) + ' kg</div>' +
           '</div>' +
           '<div class="pr-delta pr-delta-up"><i data-feather="trending-up"></i> ' + formatWeightEs(pr.weight) + ' kg</div>' +
@@ -2436,6 +2471,12 @@
     const best = matchingEntries.reduce((max, e) => (e.weightKg > max.weightKg ? e : max), matchingEntries[0]);
     return { date: mostRecentLog.date, weightKg: best.weightKg, reps: best.reps };
   }
+
+  ['wkWeightInput', 'wkRepsInput'].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('focus', () => { setTimeout(() => { try { el.select(); } catch(e){} }, 0); });
+    el.addEventListener('keydown', e => { if(e.key === 'Enter') el.blur(); });
+  });
 
   document.getElementById('wkWeightInput').addEventListener('input', function(){
     const i = parseInt(this.dataset.setIndex, 10);
@@ -2756,7 +2797,7 @@
         el.innerHTML =
           '<div class="routine-icon">' + routineIconSvg(r.icon || DEFAULT_ROUTINE_ICON) + '</div>' +
           '<div class="routine-info">' +
-            '<div class="routine-name">' + r.name + '</div>' +
+            '<div class="routine-name">' + escapeHtml(r.name) + '</div>' +
             '<div class="routine-meta">' + r.exerciseCount + ' ejercicios · ~' + r.estimatedMinutes + ' min</div>' +
             '<div class="routine-last">' + (r.lastPerformed ? 'Última vez: ' + r.lastPerformed : 'Recién creada') + '</div>' +
           '</div>' +
@@ -3009,8 +3050,8 @@
       const restSecondsValue = (ex.restSeconds !== undefined && ex.restSeconds !== null) ? ex.restSeconds : 120;
       const metaHtml =
         '<div class="routine-ex-info">' +
-          '<div class="routine-ex-name">' + ex.name + '</div>' +
-          '<div class="routine-ex-meta">' + ex.sets + ' series' + (ex.repsRange ? ' · ' + ex.repsRange + ' reps' : '') + '</div>' +
+          '<div class="routine-ex-name">' + escapeHtml(ex.name) + '</div>' +
+          '<div class="routine-ex-meta">' + ex.sets + ' series' + (ex.repsRange ? ' · ' + escapeHtml(ex.repsRange) + ' reps' : '') + '</div>' +
           '<div class="routine-ex-meta-rest">' + formatRestTime(restSecondsValue) + ' descanso</div>' +
         '</div>';
 
@@ -3085,7 +3126,7 @@
       '<div class="routine-card" onclick="openLibraryRoutineDetail(\'' + r.id + '\')">' +
         '<div class="routine-icon">' + routineIconSvg(r.icon || DEFAULT_ROUTINE_ICON) + '</div>' +
         '<div class="routine-info">' +
-          '<div class="routine-name">' + r.name + '</div>' +
+          '<div class="routine-name">' + escapeHtml(r.name) + '</div>' +
           '<div class="routine-meta">' + r.exerciseCount + ' ejercicios · ~' + r.estimatedMinutes + ' min</div>' +
         '</div>' +
         '<i data-feather="chevron-right" class="chev"></i>' +
@@ -3145,8 +3186,8 @@
         '<div class="routine-ex-row">' +
           '<div class="routine-ex-index">' + (i + 1) + '</div>' +
           '<div class="routine-ex-info">' +
-            '<div class="routine-ex-name">' + ex.name + '</div>' +
-            '<div class="routine-ex-meta">' + ex.sets + ' series' + (ex.repsRange ? ' · ' + ex.repsRange + ' reps' : '') + '</div>' +
+            '<div class="routine-ex-name">' + escapeHtml(ex.name) + '</div>' +
+            '<div class="routine-ex-meta">' + ex.sets + ' series' + (ex.repsRange ? ' · ' + escapeHtml(ex.repsRange) + ' reps' : '') + '</div>' +
             '<div class="routine-ex-meta-rest">' + formatRestTime(restSecondsValue) + ' descanso</div>' +
           '</div>' +
           demoHtml + weightHtml +
@@ -3440,7 +3481,7 @@
       return (
         '<div class="edit-ex-row">' +
           '<div class="edit-ex-top">' +
-            '<div class="edit-ex-name">' + ex.name + '</div>' +
+            '<div class="edit-ex-name">' + escapeHtml(ex.name) + '</div>' +
             '<button class="edit-ex-icon-btn" onclick="moveEditExercise(' + i + ',-1)" ' + (isFirst ? 'disabled' : '') + '><i data-feather="chevron-up"></i></button>' +
             '<button class="edit-ex-icon-btn" onclick="moveEditExercise(' + i + ',1)" ' + (isLast ? 'disabled' : '') + '><i data-feather="chevron-down"></i></button>' +
             '<button class="edit-ex-icon-btn danger" onclick="removeEditExercise(' + i + ')"><i data-feather="trash-2"></i></button>' +
@@ -3452,7 +3493,7 @@
             '</div>' +
             '<div class="edit-ex-field">' +
               '<div class="edit-ex-field-label">REPS</div>' +
-              '<input type="text" value="' + (ex.repsRange || '') + '" placeholder="8-12" onchange="updateEditExerciseField(' + i + ',\'repsRange\',this.value)" />' +
+              '<input type="text" value="' + escapeHtml(ex.repsRange || '') + '" placeholder="8-12" onchange="updateEditExerciseField(' + i + ',\'repsRange\',this.value)" />' +
             '</div>' +
             '<div class="edit-ex-field">' +
               '<div class="edit-ex-field-label">PESO (KG)</div>' +
@@ -3502,7 +3543,7 @@
 
   function exerciseCardIconHtml(ex, groupIcon){
     if(ex.imageStart){
-      return '<div class="exercise-card-icon exercise-card-icon-photo"><img src="' + ex.imageStart + '" alt="' + ex.name + '" loading="lazy"></div>';
+      return '<div class="exercise-card-icon exercise-card-icon-photo"><img src="' + ex.imageStart + '" alt="' + escapeHtml(ex.name) + '" loading="lazy"></div>';
     }
     return '<div class="exercise-card-icon"><i data-feather="' + groupIcon + '"></i></div>';
   }
@@ -3516,7 +3557,7 @@
         return (
           '<div class="exercise-card' + (isSelected ? ' selected' : '') + '" onclick="toggleEditCatalogExercise(\'' + ex.id + '\')">' +
             exerciseCardIconHtml(ex, group.icon) +
-            '<div class="exercise-card-name">' + ex.name + '</div>' +
+            '<div class="exercise-card-name">' + escapeHtml(ex.name) + '</div>' +
             '<div class="exercise-check">' + (isSelected ? '<i data-feather="check"></i>' : '') + '</div>' +
           '</div>'
         );
@@ -3577,10 +3618,10 @@
 
     document.getElementById('exerciseDemoName').textContent = ex.name;
 
-    const imagesHtml = ['<div class="ex-demo-img-wrap"><img src="' + ex.imageStart + '" alt="' + ex.name + ' — posición inicial" /></div>'];
+    const imagesHtml = ['<div class="ex-demo-img-wrap"><img src="' + ex.imageStart + '" alt="' + escapeHtml(ex.name) + ' — posición inicial" /></div>'];
     if(ex.imageEnd){
       imagesHtml.push('<div class="ex-demo-arrow"><i data-feather="arrow-right"></i></div>');
-      imagesHtml.push('<div class="ex-demo-img-wrap"><img src="' + ex.imageEnd + '" alt="' + ex.name + ' — posición final" /></div>');
+      imagesHtml.push('<div class="ex-demo-img-wrap"><img src="' + ex.imageEnd + '" alt="' + escapeHtml(ex.name) + ' — posición final" /></div>');
     }
     document.getElementById('exerciseDemoImages').innerHTML = imagesHtml.join('');
 
@@ -3689,7 +3730,7 @@
         return (
           '<div class="exercise-summary-row">' +
             '<div class="routine-ex-handle" onpointerdown="startSelectionDrag(event,' + i + ')" title="Arrastra para reordenar"><i data-feather="move"></i></div>' +
-            '<span class="exercise-summary-name">' + ex.name + '</span>' +
+            '<span class="exercise-summary-name">' + escapeHtml(ex.name) + '</span>' +
             '<button class="exercise-summary-remove" onclick="removeSelectedExercise(' + i + ')" title="Quitar ejercicio"><i data-feather="x"></i></button>' +
           '</div>'
         );
@@ -3822,7 +3863,7 @@
           return (
             '<div class="exercise-card' + (isSelected ? ' selected' : '') + '" onclick="toggleExercise(\'' + ex.id + '\')">' +
               exerciseCardIconHtml(ex, group.icon) +
-              '<div class="exercise-card-name">' + ex.name + '</div>' +
+              '<div class="exercise-card-name">' + escapeHtml(ex.name) + '</div>' +
               '<div class="exercise-check">' + (isSelected ? '<i data-feather="check"></i>' : '') + '</div>' +
             '</div>'
           );
@@ -4089,6 +4130,19 @@
     return best;
   }
 
+  // Escapa texto antes de insertarlo en un string HTML (innerHTML o atributos).
+  // Se aplica solo donde se pinta contenido escrito por el usuario (nombres
+  // de rutina, rango de reps) o que podría contener comillas/&/< (nombres
+  // de ejercicio). Los textos que se asignan con textContent no lo necesitan.
+  function escapeHtml(value){
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function formatWeightEs(kg){
     return String(kg).replace('.', ',');
   }
@@ -4152,7 +4206,7 @@
       '<div class="pr-row">' +
         '<div class="pr-icon">' + prMedalSvg() + '</div>' +
         '<div>' +
-          '<div class="pr-name">' + r.exerciseName + '</div>' +
+          '<div class="pr-name">' + escapeHtml(r.exerciseName) + '</div>' +
           '<div class="pr-date">' + formatDateEs(r.currentRecord.date) + ' · ' + formatWeightEs(r.currentRecord.weight) + ' kg</div>' +
         '</div>' +
         deltaHtml +
@@ -4200,7 +4254,7 @@
 
       return (
         '<div class="card progress-card">' +
-          '<div class="progress-name">' + r.exerciseName + '</div>' +
+          '<div class="progress-name">' + escapeHtml(r.exerciseName) + '</div>' +
           '<div class="progress-bottom">' +
             '<div>' +
               '<div class="progress-value"><span class="num">' + formatWeightEs(r.currentRecord.weight) + '</span><span class="unit">kg</span></div>' +
@@ -4454,7 +4508,7 @@
 
     panel.innerHTML =
       '<div class="cal-summary-date">' + formatDateEsFull(session.date) + '</div>' +
-      (session.routineName ? '<div class="cal-summary-meta">' + session.routineName + ' · ' + session.durationMinutes + ' min</div>' : '') +
+      (session.routineName ? '<div class="cal-summary-meta">' + escapeHtml(session.routineName) + ' · ' + session.durationMinutes + ' min</div>' : '') +
       '<div class="cal-summary-meta">' + session.exerciseCount + ' ejercicios · ' + session.setCount + ' series</div>' +
       '<button class="cal-summary-cta" onclick="openWorkoutDetailScreen(\'' + session.date + '\')">Ver entrenamiento <i data-feather="arrow-right"></i></button>';
     feather.replace();
@@ -4488,7 +4542,7 @@
           '<span class="wd-set-value">' + formatWeightEs(s.weightKg) + ' kg × ' + s.reps + '</span>' +
         '</div>'
       )).join('');
-      return '<div class="wd-exercise-group"><div class="wd-exercise-name">' + name + '</div>' + setsHtml + '</div>';
+      return '<div class="wd-exercise-group"><div class="wd-exercise-name">' + escapeHtml(name) + '</div>' + setsHtml + '</div>';
     }).join('');
 
     document.getElementById('workoutDetailScreen').classList.add('open');
@@ -4514,7 +4568,7 @@
         optionsHtml += '<optgroup label="' + ex.group + '">';
         lastGroup = ex.group;
       }
-      optionsHtml += '<option value="' + ex.name + '">' + ex.name + '</option>';
+      optionsHtml += '<option value="' + escapeHtml(ex.name) + '">' + escapeHtml(ex.name) + '</option>';
     });
     optionsHtml += '</optgroup>';
     select.innerHTML = optionsHtml;
