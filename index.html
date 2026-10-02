@@ -2481,12 +2481,12 @@
   document.getElementById('wkWeightInput').addEventListener('input', function(){
     const i = parseInt(this.dataset.setIndex, 10);
     const val = parseFloat(this.value);
-    if(!isNaN(val) && val >= 0) workout[exIndex].sets[i].weight = val;
+    if(!isNaN(val) && val >= 0){ workout[exIndex].sets[i].weight = val; workout[exIndex].sets[i].edited = true; }
   });
   document.getElementById('wkRepsInput').addEventListener('input', function(){
     const i = parseInt(this.dataset.setIndex, 10);
     const val = parseInt(this.value, 10);
-    if(!isNaN(val) && val >= 0) workout[exIndex].sets[i].reps = val;
+    if(!isNaN(val) && val >= 0){ workout[exIndex].sets[i].reps = val; workout[exIndex].sets[i].edited = true; }
   });
 
   function onPrimaryAction(){
@@ -2515,7 +2515,23 @@
     }
 
     currentSet.completed = true;
+    carryOverToPendingSets(ex, aIdx);
     showSetCompletedFeedback();
+  }
+
+  // Al completar una serie, las series PENDIENTES del mismo ejercicio heredan
+  // su peso y reps: si subes el peso en la serie 1, no hay que corregirlo a
+  // mano en las siguientes. Respeta lo que el usuario ya haya editado a mano
+  // en una serie futura (set.edited) y no toca series completadas ni
+  // otros ejercicios. Cada serie sigue siendo editable después.
+  function carryOverToPendingSets(ex, fromIndex){
+    const source = ex.sets[fromIndex];
+    for(let i = fromIndex + 1; i < ex.sets.length; i++){
+      const next = ex.sets[i];
+      if(next.completed || next.edited) continue;
+      next.weight = source.weight;
+      next.reps = source.reps;
+    }
   }
 
   function showSetCompletedFeedback(){
