@@ -512,7 +512,6 @@
   }
   .goal-pill svg{width:12px;height:12px;color:var(--accent-bright);}
   .goal-pill span{font-family:var(--font-body);font-weight:600;font-size:12px;color:var(--accent-bright);}
-  .member-since{font-family:var(--font-body);font-weight:500;font-size:12px;color:var(--text-tertiary);}
   .settings-row{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;}
   .settings-row:last-child{border-bottom:none;}
   .settings-icon{width:32px;height:32px;border-radius:10px;background:var(--surface-high);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -1246,19 +1245,6 @@
         <div class="avatar-lg" id="profileAvatarInitial">F</div>
         <div class="profile-name" id="profileNameDisplay">Felipe</div>
         <div class="goal-pill" id="profileGoalPill"><i data-feather="target"></i><span>Ganar fuerza</span></div>
-        <div class="member-since">Miembro desde ene. 2025</div>
-      </div>
-
-      <div style="height:28px"></div>
-
-      <div class="card">
-        <div class="summary-row">
-          <div class="stat" style="align-items:center"><span class="v" id="profileWorkoutsCount">0</span><span class="l">Entrenamientos</span></div>
-          <div class="v-divider"></div>
-          <div class="stat" style="align-items:center"><span class="v" id="profileLevelValue">Interm.</span><span class="l">Nivel</span></div>
-          <div class="v-divider"></div>
-          <div class="stat" style="align-items:center"><span class="v" id="profileStreakValue">0</span><span class="l">Racha</span></div>
-        </div>
       </div>
 
       <div style="height:28px"></div>
@@ -1266,8 +1252,6 @@
       <div class="card" style="padding:0">
         <div class="settings-row" onclick="openPersonalInfoScreen()"><div class="settings-icon"><i data-feather="user"></i></div><span class="settings-label">Información personal</span><i data-feather="chevron-right" class="chev"></i></div>
         <div class="settings-row" onclick="openGoalLevelScreen()"><div class="settings-icon"><i data-feather="target"></i></div><span class="settings-label">Objetivo y nivel</span><i data-feather="chevron-right" class="chev"></i></div>
-        <div class="settings-row"><div class="settings-icon"><i data-feather="sliders"></i></div><span class="settings-label">Unidades y preferencias</span><i data-feather="chevron-right" class="chev"></i></div>
-        <div class="settings-row"><div class="settings-icon"><i data-feather="bell"></i></div><span class="settings-label">Notificaciones</span><i data-feather="chevron-right" class="chev"></i></div>
         <div class="settings-row"><div class="settings-icon"><i data-feather="help-circle"></i></div><span class="settings-label">Ayuda y soporte</span><i data-feather="chevron-right" class="chev"></i></div>
       </div>
 
@@ -2671,13 +2655,19 @@
   // igual que cualquier otro icono vía width/height en CSS; fill/stroke en
   // "currentColor" heredan el color que ya define cada contenedor
   // (.pr-icon, .ws-icon-badge, .progress-trend-new-badge).
+  // Icono de Récord Personal v2 — "estrella + chevron ascendente", diseñado
+  // específicamente para legibilidad a tamaño pequeño (13-28px, los 3
+  // contextos reales: .progress-trend-new, .pr-icon, .ws-icon-badge). La
+  // v1 (medalla con corona/"PR"/cintas) se leía bien grande pero se volvía
+  // una "pelota" borrosa en miniatura; esta versión usa solo 2 formas
+  // sólidas (sin trazos finos, sin texto) para mantener una silueta clara
+  // a cualquier tamaño. Mismo viewBox 24x24 que ROUTINE_ICON_SHAPES, mismo
+  // punto único de uso (buildPersonalRecordRowHtml, showWorkoutSummary,
+  // renderHomeProgress) — sin tocar lógica de PRs ni layout.
   function prMedalSvg(){
-    return '<svg viewBox="0 0 128 128" fill="none">' +
-      '<path d="M40 32.5 A46 46 0 1 0 88 32.5" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>' +
-      '<path d="M64 13 L68.7 23.1 L79.7 24.3 L71.5 31.7 L73.8 42.5 L64 36.8 L54.2 42.5 L56.5 31.7 L48.3 24.3 L59.3 23.1 Z" fill="currentColor"/>' +
-      '<text x="64" y="72" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="800" letter-spacing="-1" fill="currentColor">PR</text>' +
-      '<path d="M38 87 L20 108 L40 103 L49 117 L55 91" fill="currentColor"/>' +
-      '<path d="M90 87 L108 108 L88 103 L79 117 L73 91" fill="currentColor"/>' +
+    return '<svg viewBox="0 0 24 24" fill="none">' +
+      '<path d="M 12 2 L 13.7 5.95 L 17.99 6.35 L 14.76 9.2 L 15.7 13.4 L 12 11.2 L 8.3 13.4 L 9.24 9.2 L 6.01 6.35 L 10.3 5.95 Z" fill="currentColor"/>' +
+      '<path d="M 12 13.5 L 19 21 L 15.3 21 L 12 17.6 L 8.7 21 L 5 21 Z" fill="currentColor"/>' +
       '</svg>';
   }
 
@@ -4076,7 +4066,6 @@
     renderTrainingCalendar();
     renderProgresoSummary();
     renderWeeklyActivityChart();
-    renderProfileStats();
 
     return {
       routineName: activeRoutineName,
@@ -4340,13 +4329,6 @@
 
     const totalSeries = counts.reduce((a, b) => a + b, 0);
     document.getElementById('weeklyActivityTotal').textContent = totalSeries + ' series esta semana';
-  }
-
-  // Perfil: "Entrenamientos" y "Racha" — mismas fuentes que renderProgresoSummary,
-  // "Nivel" ya era dinámico vía renderProfileGoalLevel() y no se toca aquí.
-  function renderProfileStats(){
-    document.getElementById('profileWorkoutsCount').textContent = workoutLogs.filter(l => l.source === 'workout').length;
-    document.getElementById('profileStreakValue').textContent = computeCurrentStreak();
   }
 
   function renderAllPersonalRecords(){
@@ -4666,18 +4648,11 @@
     showSuccessToast('Objetivo y nivel actualizados');
   }
 
-  function levelShortLabel(key){
-    if(key === 'beginner') return 'Inicial';
-    if(key === 'advanced') return 'Avanz.';
-    return 'Interm.';
-  }
-
   function renderProfileGoalLevel(){
     const goal = GOALS.find(g => g.key === userPreferences.goal);
     const level = LEVELS.find(l => l.key === userPreferences.level);
     document.getElementById('profileGoalPill').innerHTML =
       '<i data-feather="' + (goal ? goal.icon : 'target') + '"></i><span>' + (goal ? goal.label : 'Sin definir') + '</span>';
-    document.getElementById('profileLevelValue').textContent = level ? levelShortLabel(level.key) : '—';
     feather.replace();
   }
 
@@ -4690,7 +4665,6 @@
   renderTrainingCalendar();
   renderProgresoSummary();
   renderWeeklyActivityChart();
-  renderProfileStats();
   feather.replace();
   runSplash();
 </script>
