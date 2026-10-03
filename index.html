@@ -524,7 +524,7 @@
 
   /* ---------- Workout overlay: active-set focus card ---------- */
   .wk-exercise-meta{font-family:var(--font-body);font-weight:500;font-size:14px;color:var(--text-secondary);margin-top:6px;}
-  .wk-serie-row{display:flex;align-items:center;justify-content:space-between;margin:22px 0 14px 0;}
+  .wk-serie-row{display:flex;align-items:center;justify-content:space-between;margin:16px 0 14px 0;}
   .wk-activity-bar{
     width:100%;height:3px;border-radius:999px;
     background:var(--track-empty);overflow:hidden;position:relative;
@@ -585,19 +585,19 @@
   .wk-field-input:disabled{color:var(--text-secondary);}
   .wk-field-unit{flex-shrink:0;font-family:var(--font-body);font-weight:600;font-size:13px;color:var(--text-secondary);}
   .wk-field-divider{display:none;}
-  /* Ajuste rápido: − / + bajo cada caja (±2,5 kg y ±1 rep). Botones "ghost"
-     (solo borde) para que la caja rellena siga siendo lo editable y esto
-     quede como atajo. Altura visual 40px, zona de toque real ~44px. */
-  .wk-stepper{display:flex;gap:8px;}
+  /* Ajuste rápido: − / + a los lados de la etiqueta (±2,5 kg y ±1 rep).
+     Círculos "ghost" de 30px con zona de toque real de ~44px; comparten
+     fila con la etiqueta para no añadir altura a la tarjeta. */
+  .wk-field-head{display:flex;align-items:center;justify-content:space-between;gap:6px;}
   .wk-step-btn{
-    position:relative;flex:1;height:40px;border-radius:14px;
+    position:relative;flex:none;width:30px;height:30px;border-radius:999px;
     background:transparent;border:1px solid var(--border-light);color:var(--text-secondary);
     display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;
     transition:background 0.12s ease, color 0.12s ease, transform 0.12s ease, border-color 0.12s ease;
   }
-  .wk-step-btn::after{content:'';position:absolute;inset:-2px -4px;}
-  .wk-step-btn svg{width:17px;height:17px;stroke-width:2.25;}
-  .wk-step-btn:not(:disabled):active{background:var(--surface-pressed);color:var(--text-primary);border-color:var(--accent-soft-border);transform:scale(0.94);}
+  .wk-step-btn::after{content:'';position:absolute;inset:-7px;}
+  .wk-step-btn svg{width:15px;height:15px;stroke-width:2.25;}
+  .wk-step-btn:not(:disabled):active{background:var(--surface-pressed);color:var(--text-primary);border-color:var(--accent-soft-border);transform:scale(0.9);}
   .wk-step-btn:disabled{opacity:0.35;cursor:default;}
   .wk-demo-images{
     display:flex;gap:10px;margin-top:18px;overflow:hidden;
@@ -615,7 +615,6 @@
   .wk-last-time svg{width:12px;height:12px;color:var(--text-tertiary);}
   .wk-last-time-label{font-family:var(--font-body);font-weight:600;font-size:12px;color:var(--text-tertiary);}
   .wk-last-time-value{font-family:var(--font-body);font-weight:600;font-size:12.5px;color:var(--text-secondary);}
-  #wkExerciseContent{padding-bottom:12px;}
   #wkExerciseContent.wk-fade-out{animation:wkExerciseFadeOut 0.1s ease-out forwards;}
   #wkExerciseContent.wk-fade-in{animation:wkExerciseFadeIn 0.14s ease-out;}
   @keyframes wkExerciseFadeOut{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(-4px);}}
@@ -648,6 +647,7 @@
   .dot{flex:1;height:4px;border-radius:2px;background:var(--surface-high);}
   .dot.done{background:var(--accent-dim);}
   .dot.active{background:var(--accent);}
+  .workout-overlay .dots-row{margin:14px 0 18px 0;}
   .exercise-name{font-family:var(--font-display);font-weight:700;font-size:28px;color:var(--text-primary);}
   .sets-progress{font-family:var(--font-body);font-size:14.5px;color:var(--text-secondary);margin-top:4px;}
   .table-header{display:flex;align-items:center;padding:16px 4px 8px 4px;}
@@ -668,7 +668,7 @@
   .rest-banner{
     display:flex;flex-direction:column;align-items:center;text-align:center;
     background:var(--surface);border:1px solid var(--border-light);border-radius:22px;
-    padding:18px 20px;margin-top:18px;margin-bottom:16px;
+    padding:18px 20px;margin-top:18px;
   }
   .rest-title{
     font-family:var(--font-body);font-weight:700;font-size:11.5px;letter-spacing:1.2px;
@@ -697,18 +697,7 @@
     background:linear-gradient(135deg,var(--accent-bright),var(--accent));color:#fff;
     box-shadow:0 8px 18px -6px rgba(185,28,53,0.45);
   }
-  /* Pie anclado: "Siguiente" y el botón principal quedan siempre visibles,
-     aunque el contenido (imágenes, descanso, tarjeta de peso) sea más alto
-     que la pantalla; lo demás se desplaza por detrás. Los márgenes/padding
-     de ±20px hacen que el fondo opaco cubra todo el ancho (el overlay tiene
-     20px de padding lateral). */
-  .workout-footer{
-    position:sticky;bottom:0;z-index:5;
-    margin:auto -20px 0 -20px;
-    padding:16px 20px calc(env(safe-area-inset-bottom, 14px) + 20px) 20px;
-    background:var(--bg);
-    border-top:1px solid var(--border);
-  }
+  .workout-footer{border-top:1px solid var(--border);padding:16px 0 calc(env(safe-area-inset-bottom, 14px) + 20px) 0;margin-top:auto;}
   .next-row{display:flex;align-items:center;gap:6px;margin-bottom:14px;}
   .next-row svg{width:15px;height:15px;color:var(--text-tertiary);}
   .next-label{font-family:var(--font-body);font-size:12px;color:var(--text-tertiary);}
@@ -1379,27 +1368,27 @@
 
       <div class="wk-current-set-card">
         <div class="wk-field">
-          <div class="wk-field-label">Peso</div>
+          <div class="wk-field-head">
+            <button type="button" class="wk-step-btn" onclick="stepWorkoutField('weight',-1)" aria-label="Restar 2,5 kg"><i data-feather="minus"></i></button>
+            <div class="wk-field-label">Peso</div>
+            <button type="button" class="wk-step-btn" onclick="stepWorkoutField('weight',1)" aria-label="Sumar 2,5 kg"><i data-feather="plus"></i></button>
+          </div>
           <label class="wk-field-value">
             <input type="number" inputmode="decimal" step="0.5" min="0" class="wk-field-input" id="wkWeightInput" />
             <span class="wk-field-unit">kg</span>
           </label>
-          <div class="wk-stepper">
-            <button type="button" class="wk-step-btn" onclick="stepWorkoutField('weight',-1)" aria-label="Restar 2,5 kg"><i data-feather="minus"></i></button>
-            <button type="button" class="wk-step-btn" onclick="stepWorkoutField('weight',1)" aria-label="Sumar 2,5 kg"><i data-feather="plus"></i></button>
-          </div>
         </div>
         <div class="wk-field-divider"></div>
         <div class="wk-field">
-          <div class="wk-field-label">Repeticiones</div>
+          <div class="wk-field-head">
+            <button type="button" class="wk-step-btn" onclick="stepWorkoutField('reps',-1)" aria-label="Restar 1 repetición"><i data-feather="minus"></i></button>
+            <div class="wk-field-label">Repeticiones</div>
+            <button type="button" class="wk-step-btn" onclick="stepWorkoutField('reps',1)" aria-label="Sumar 1 repetición"><i data-feather="plus"></i></button>
+          </div>
           <label class="wk-field-value">
             <input type="number" inputmode="numeric" min="0" class="wk-field-input" id="wkRepsInput" />
             <span class="wk-field-unit">reps</span>
           </label>
-          <div class="wk-stepper">
-            <button type="button" class="wk-step-btn" onclick="stepWorkoutField('reps',-1)" aria-label="Restar 1 repetición"><i data-feather="minus"></i></button>
-            <button type="button" class="wk-step-btn" onclick="stepWorkoutField('reps',1)" aria-label="Sumar 1 repetición"><i data-feather="plus"></i></button>
-          </div>
         </div>
       </div>
 
