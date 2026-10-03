@@ -585,6 +585,20 @@
   .wk-field-input:disabled{color:var(--text-secondary);}
   .wk-field-unit{flex-shrink:0;font-family:var(--font-body);font-weight:600;font-size:13px;color:var(--text-secondary);}
   .wk-field-divider{display:none;}
+  /* Ajuste rápido: − / + bajo cada caja (±2,5 kg y ±1 rep). Botones "ghost"
+     (solo borde) para que la caja rellena siga siendo lo editable y esto
+     quede como atajo. Altura visual 40px, zona de toque real ~44px. */
+  .wk-stepper{display:flex;gap:8px;}
+  .wk-step-btn{
+    position:relative;flex:1;height:40px;border-radius:14px;
+    background:transparent;border:1px solid var(--border-light);color:var(--text-secondary);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;
+    transition:background 0.12s ease, color 0.12s ease, transform 0.12s ease, border-color 0.12s ease;
+  }
+  .wk-step-btn::after{content:'';position:absolute;inset:-2px -4px;}
+  .wk-step-btn svg{width:17px;height:17px;stroke-width:2.25;}
+  .wk-step-btn:not(:disabled):active{background:var(--surface-pressed);color:var(--text-primary);border-color:var(--accent-soft-border);transform:scale(0.94);}
+  .wk-step-btn:disabled{opacity:0.35;cursor:default;}
   .wk-demo-images{
     display:flex;gap:10px;margin-top:18px;overflow:hidden;
     max-height:320px;opacity:1;
@@ -1031,6 +1045,23 @@
     flex:1;height:46px;border-radius:14px;background:var(--surface-high);border:none;cursor:pointer;
     font-family:var(--font-body);font-weight:600;font-size:14px;color:var(--text-primary);
   }
+  /* Salida del entrenamiento: tres opciones apiladas con jerarquía clara —
+     guardar (principal, rojo), seguir (neutro), descartar (texto de peligro). */
+  .confirm-actions-stack{flex-direction:column;gap:8px;}
+  .confirm-actions-stack button{flex:none;width:100%;}
+  .confirm-save-btn{
+    height:50px;border-radius:14px;border:none;cursor:pointer;
+    background:linear-gradient(135deg,var(--accent-bright),var(--accent));
+    font-family:var(--font-body);font-weight:600;font-size:14.5px;color:#fff;
+    box-shadow:0 10px 20px -6px rgba(185,28,53,0.45);
+    transition:transform 0.15s ease;
+  }
+  .confirm-save-btn:active{transform:scale(0.98);}
+  .confirm-discard-btn{
+    height:44px;border-radius:14px;border:none;cursor:pointer;background:transparent;
+    font-family:var(--font-body);font-weight:600;font-size:13.5px;color:var(--danger);
+  }
+  .confirm-discard-btn:active{background:rgba(248,113,113,0.08);}
   .confirm-delete-btn{
     flex:1;height:46px;border-radius:14px;background:var(--danger);border:none;cursor:pointer;
     font-family:var(--font-body);font-weight:600;font-size:14px;color:#2A0B0B;
@@ -1341,6 +1372,10 @@
             <input type="number" inputmode="decimal" step="0.5" min="0" class="wk-field-input" id="wkWeightInput" />
             <span class="wk-field-unit">kg</span>
           </label>
+          <div class="wk-stepper">
+            <button type="button" class="wk-step-btn" onclick="stepWorkoutField('weight',-1)" aria-label="Restar 2,5 kg"><i data-feather="minus"></i></button>
+            <button type="button" class="wk-step-btn" onclick="stepWorkoutField('weight',1)" aria-label="Sumar 2,5 kg"><i data-feather="plus"></i></button>
+          </div>
         </div>
         <div class="wk-field-divider"></div>
         <div class="wk-field">
@@ -1349,6 +1384,10 @@
             <input type="number" inputmode="numeric" min="0" class="wk-field-input" id="wkRepsInput" />
             <span class="wk-field-unit">reps</span>
           </label>
+          <div class="wk-stepper">
+            <button type="button" class="wk-step-btn" onclick="stepWorkoutField('reps',-1)" aria-label="Restar 1 repetición"><i data-feather="minus"></i></button>
+            <button type="button" class="wk-step-btn" onclick="stepWorkoutField('reps',1)" aria-label="Sumar 1 repetición"><i data-feather="plus"></i></button>
+          </div>
         </div>
       </div>
 
@@ -1387,10 +1426,11 @@
   <div class="sheet-backdrop" id="workoutExitConfirmBackdrop" onclick="closeWorkoutExitConfirm()"></div>
   <div class="confirm-dialog" id="workoutExitConfirmDialog">
     <div class="confirm-title">¿Salir del entrenamiento?</div>
-    <div class="confirm-desc">Has avanzado en este entrenamiento. Si sales ahora, perderás el progreso de esta sesión.</div>
-    <div class="confirm-actions">
+    <div class="confirm-desc" id="workoutExitConfirmDesc">Puedes guardar lo que ya has hecho o descartarlo.</div>
+    <div class="confirm-actions confirm-actions-stack">
+      <button class="confirm-save-btn" onclick="saveAndFinishWorkout()">Terminar y guardar</button>
       <button class="confirm-cancel-btn" onclick="closeWorkoutExitConfirm()">Seguir entrenando</button>
-      <button class="confirm-delete-btn" onclick="confirmWorkoutExit()">Salir</button>
+      <button class="confirm-discard-btn" onclick="confirmWorkoutExit()">Salir sin guardar</button>
     </div>
   </div>
 
@@ -2269,20 +2309,60 @@
   let restRemaining = null;
   let restInterval = null;
   let restPaused = false;
+  let restEndAt = null; // marca de tiempo (ms) en la que termina el descanso; fuente de verdad del contador
   let activeRoutineName = 'Push';
   let workoutStartedAt = null;
+
+  // ---------- Pantalla siempre encendida durante el entrenamiento ----------
+  // Screen Wake Lock API: evita que el móvil se bloquee entre series. El
+  // navegador libera el bloqueo solo cuando la app pasa a segundo plano, así
+  // que se vuelve a pedir al regresar. Donde la API no exista (navegadores
+  // antiguos) simplemente no hace nada y todo sigue como antes.
+  let wakeLockSentinel = null;
+  let wakeLockWanted = false;
+
+  async function acquireWakeLock(){
+    wakeLockWanted = true;
+    if(!('wakeLock' in navigator) || wakeLockSentinel) return;
+    try {
+      wakeLockSentinel = await navigator.wakeLock.request('screen');
+      wakeLockSentinel.addEventListener('release', () => { wakeLockSentinel = null; });
+      // Si el entrenamiento se cerró mientras se concedía el permiso, soltarlo.
+      if(!wakeLockWanted) releaseWakeLock();
+    } catch(e){
+      wakeLockSentinel = null; // denegado o no disponible (p. ej. ahorro de batería)
+    }
+  }
+
+  function releaseWakeLock(){
+    wakeLockWanted = false;
+    if(wakeLockSentinel){
+      const sentinel = wakeLockSentinel;
+      wakeLockSentinel = null;
+      try { sentinel.release(); } catch(e){}
+    }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden && wakeLockWanted) acquireWakeLock();
+  });
 
   function openWorkout(){
     document.getElementById('wkRoutineName').textContent = activeRoutineName;
     workoutStartedAt = Date.now();
     document.getElementById('workoutOverlay').classList.add('open');
+    acquireWakeLock();
     renderWorkout();
     feather.replace();
   }
   function closeWorkout(){
     document.getElementById('workoutOverlay').classList.remove('open');
+    releaseWakeLock();
     clearInterval(restInterval);
+    restRemaining = null;
+    restEndAt = null;
     restPaused = false;
+    document.getElementById('restBanner').style.display = 'none';
   }
 
   function hasAnyCompletedSet(){
@@ -2291,6 +2371,10 @@
 
   function requestCloseWorkout(){
     if(hasAnyCompletedSet()){
+      const completedCount = workout.reduce((n, ex) => n + ex.sets.filter(s => s.completed).length, 0);
+      document.getElementById('workoutExitConfirmDesc').textContent =
+        'Has completado ' + completedCount + (completedCount === 1 ? ' serie' : ' series') +
+        '. Puedes guardarlas en tu historial o descartarlas.';
       document.getElementById('workoutExitConfirmBackdrop').classList.add('open');
       document.getElementById('workoutExitConfirmDialog').classList.add('open');
     } else {
@@ -2301,6 +2385,19 @@
   function closeWorkoutExitConfirm(){
     document.getElementById('workoutExitConfirmBackdrop').classList.remove('open');
     document.getElementById('workoutExitConfirmDialog').classList.remove('open');
+  }
+
+  // Cierra el entrenamiento guardando solo las series completadas (mismo
+  // registro y mismo resumen que al finalizar normalmente: historial,
+  // récords, racha y calendario se actualizan igual).
+  function saveAndFinishWorkout(){
+    closeWorkoutExitConfirm();
+    clearInterval(restInterval);
+    restRemaining = null;
+    restEndAt = null;
+    restPaused = false;
+    document.getElementById('restBanner').style.display = 'none';
+    showWorkoutSummary(logCompletedWorkout());
   }
 
   function confirmWorkoutExit(){
@@ -2337,6 +2434,7 @@
       prSection.style.display = 'none';
     }
 
+    releaseWakeLock(); // el entrenamiento ya terminó; no hace falta mantener la pantalla encendida
     document.getElementById('workoutSummaryScreen').classList.add('open');
     feather.replace();
   }
@@ -2403,6 +2501,7 @@
     repsInput.value = focusSet.reps;
     weightInput.disabled = allDone;
     repsInput.disabled = allDone;
+    document.querySelectorAll('.wk-step-btn').forEach(b => { b.disabled = allDone; });
     weightInput.dataset.setIndex = focusIdx;
     repsInput.dataset.setIndex = focusIdx;
 
@@ -2489,6 +2588,27 @@
     if(!isNaN(val) && val >= 0){ workout[exIndex].sets[i].reps = val; workout[exIndex].sets[i].edited = true; }
   });
 
+  // Ajuste rápido de la serie en foco: peso ±2,5 kg, reps ±1 (mínimo 0).
+  // Trabaja sobre el estado (no sobre el texto del input) y marca la serie
+  // como editada a mano, igual que teclear, para que respete el arrastre de
+  // valores a series futuras.
+  const WEIGHT_STEP_KG = 2.5;
+  function stepWorkoutField(field, direction){
+    const ex = workout[exIndex];
+    const input = document.getElementById(field === 'weight' ? 'wkWeightInput' : 'wkRepsInput');
+    const i = parseInt(input.dataset.setIndex, 10);
+    if(isNaN(i) || !ex || !ex.sets[i] || input.disabled) return;
+    const set = ex.sets[i];
+    if(field === 'weight'){
+      set.weight = Math.max(0, Math.round((set.weight + direction * WEIGHT_STEP_KG) * 100) / 100);
+      input.value = set.weight;
+    } else {
+      set.reps = Math.max(0, set.reps + direction);
+      input.value = set.reps;
+    }
+    set.edited = true;
+  }
+
   function onPrimaryAction(){
     const ex = workout[exIndex];
     const aIdx = activeSetIndex(ex);
@@ -2572,26 +2692,43 @@
     clearInterval(restInterval);
     const ex = workout[exIndex];
     restRemaining = (ex && ex.restSeconds) || REST_SECONDS;
+    restEndAt = Date.now() + restRemaining * 1000;
     restPaused = false;
     document.getElementById('restBanner').style.display = 'flex';
     renderRestBanner();
     runRestInterval();
   }
 
+  // El tiempo restante se calcula siempre contra restEndAt (hora real), no
+  // restando 1 por tick: así no se desajusta si el móvil frena los
+  // temporizadores con la pantalla bloqueada o la app en segundo plano.
+  function tickRest(){
+    if(restRemaining === null || restPaused || restEndAt === null) return;
+    const remaining = Math.ceil((restEndAt - Date.now()) / 1000);
+    if(remaining <= 0){
+      endRest(true);
+      return;
+    }
+    if(remaining !== restRemaining){
+      restRemaining = remaining;
+      renderRestBanner();
+    }
+  }
+
   function runRestInterval(){
     clearInterval(restInterval);
-    restInterval = setInterval(() => {
-      restRemaining--;
-      if(restRemaining <= 0){
-        endRest();
-        return;
-      }
-      renderRestBanner();
-    }, 1000);
+    restInterval = setInterval(tickRest, 250);
   }
+
+  // Al volver a la app, ponerse al día al instante en vez de esperar al
+  // siguiente tick.
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden) tickRest();
+  });
 
   function pauseRest(){
     if(restRemaining === null) return;
+    restRemaining = Math.max(1, Math.ceil((restEndAt - Date.now()) / 1000));
     restPaused = true;
     clearInterval(restInterval);
     renderRestBanner();
@@ -2600,6 +2737,7 @@
   function resumeRest(){
     if(restRemaining === null) return;
     restPaused = false;
+    restEndAt = Date.now() + restRemaining * 1000;
     runRestInterval();
     renderRestBanner();
   }
@@ -2607,17 +2745,26 @@
   function addRestTime(seconds){
     if(restRemaining === null) return;
     restRemaining += seconds;
+    if(!restPaused && restEndAt !== null) restEndAt += seconds * 1000;
     renderRestBanner();
   }
 
   function skipRest(){
-    endRest();
+    endRest(false);
   }
 
-  function endRest(){
+  // finishedNaturally: true solo cuando el contador llega a 0 (no al saltar).
+  // La vibración es un aviso de "ya puedes empezar la siguiente serie"; solo
+  // se dispara con la app visible y donde el navegador la soporta (Android;
+  // iOS Safari no expone vibrate).
+  function endRest(finishedNaturally){
     clearInterval(restInterval);
     restRemaining = null;
+    restEndAt = null;
     restPaused = false;
+    if(finishedNaturally === true && !document.hidden && navigator.vibrate){
+      try { navigator.vibrate([180, 90, 180]); } catch(e){}
+    }
     document.getElementById('restBanner').style.display = 'none';
     renderWorkout();
   }
