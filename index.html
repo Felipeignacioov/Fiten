@@ -615,6 +615,7 @@
   .wk-last-time svg{width:12px;height:12px;color:var(--text-tertiary);}
   .wk-last-time-label{font-family:var(--font-body);font-weight:600;font-size:12px;color:var(--text-tertiary);}
   .wk-last-time-value{font-family:var(--font-body);font-weight:600;font-size:12.5px;color:var(--text-secondary);}
+  #wkExerciseContent{padding-bottom:12px;}
   #wkExerciseContent.wk-fade-out{animation:wkExerciseFadeOut 0.1s ease-out forwards;}
   #wkExerciseContent.wk-fade-in{animation:wkExerciseFadeIn 0.14s ease-out;}
   @keyframes wkExerciseFadeOut{from{opacity:1;transform:translateY(0);}to{opacity:0;transform:translateY(-4px);}}
@@ -667,7 +668,7 @@
   .rest-banner{
     display:flex;flex-direction:column;align-items:center;text-align:center;
     background:var(--surface);border:1px solid var(--border-light);border-radius:22px;
-    padding:18px 20px;margin-top:18px;
+    padding:18px 20px;margin-top:18px;margin-bottom:16px;
   }
   .rest-title{
     font-family:var(--font-body);font-weight:700;font-size:11.5px;letter-spacing:1.2px;
@@ -696,7 +697,18 @@
     background:linear-gradient(135deg,var(--accent-bright),var(--accent));color:#fff;
     box-shadow:0 8px 18px -6px rgba(185,28,53,0.45);
   }
-  .workout-footer{border-top:1px solid var(--border);padding:16px 0 calc(env(safe-area-inset-bottom, 14px) + 20px) 0;margin-top:auto;}
+  /* Pie anclado: "Siguiente" y el botón principal quedan siempre visibles,
+     aunque el contenido (imágenes, descanso, tarjeta de peso) sea más alto
+     que la pantalla; lo demás se desplaza por detrás. Los márgenes/padding
+     de ±20px hacen que el fondo opaco cubra todo el ancho (el overlay tiene
+     20px de padding lateral). */
+  .workout-footer{
+    position:sticky;bottom:0;z-index:5;
+    margin:auto -20px 0 -20px;
+    padding:16px 20px calc(env(safe-area-inset-bottom, 14px) + 20px) 20px;
+    background:var(--bg);
+    border-top:1px solid var(--border);
+  }
   .next-row{display:flex;align-items:center;gap:6px;margin-bottom:14px;}
   .next-row svg{width:15px;height:15px;color:var(--text-tertiary);}
   .next-label{font-family:var(--font-body);font-size:12px;color:var(--text-tertiary);}
