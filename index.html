@@ -399,6 +399,20 @@
     transition:transform 0.15s ease;
   }
   .routine-card:active{transform:scale(0.98);}
+  .routine-card.reordering{cursor:default;}
+  .routine-card.reordering:active{transform:none;}
+  .routine-card.dragging{
+    position:relative;z-index:10;transition:none;
+    background:var(--surface-high);border-color:var(--accent-soft-border);
+    box-shadow:0 14px 28px -10px rgba(0,0,0,0.55);opacity:0.97;
+  }
+  .rutinas-toolbar{display:flex;align-items:center;justify-content:space-between;margin-top:16px;}
+  .routines-reorder-btn{
+    display:flex;align-items:center;gap:6px;background:none;border:none;cursor:pointer;
+    padding:6px 0 6px 12px;font-family:var(--font-body);font-weight:500;font-size:14.5px;color:var(--text-secondary);
+  }
+  .routines-reorder-btn svg{width:15px;height:15px;}
+  .routines-reorder-btn.active{color:var(--accent-bright);font-weight:600;}
   .routine-icon{
     width:44px;height:44px;border-radius:14px;background:var(--accent-soft);
     border:1px solid var(--accent-soft-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;
@@ -1250,7 +1264,13 @@
         <button class="add-btn" onclick="openCreateSheet()"><i data-feather="plus"></i></button>
       </div>
 
-      <div class="section-action" style="margin-top:16px;cursor:pointer;" onclick="openExploreRoutinesScreen()">Explorar rutinas <i data-feather="chevron-right"></i></div>
+      <div class="rutinas-toolbar">
+        <div class="section-action" style="cursor:pointer;" onclick="openExploreRoutinesScreen()">Explorar rutinas <i data-feather="chevron-right"></i></div>
+        <button class="routines-reorder-btn" id="routinesReorderToggle" onclick="toggleRoutinesReorderMode()" style="display:none"></button>
+      </div>
+      <div class="routine-reorder-hint" id="routinesReorderHint" style="display:none;margin:14px 0 0 0;">
+        <i data-feather="move"></i> Mantén y arrastra para ordenar. La primera es la que aparece en Inicio.
+      </div>
 
       <div style="height:20px"></div>
 
@@ -2292,6 +2312,7 @@
   }
 
   function showTab(name){
+    if(name !== 'rutinas' && routinesReorderMode){ routinesReorderMode = false; renderRoutinesList(); }
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('pane-' + name).classList.add('active');
@@ -3011,9 +3032,69 @@
     return 'Última vez: hace ' + months + ' meses';
   }
 
+  // ---------- Orden de "Mis rutinas" ----------
+  // El orden del array `routines` ES el orden que ve el usuario, y la rutina
+  // en la posición 0 es la que propone el hero de Inicio (updateHomeHeroState
+  // y startTodayWorkout leen routines[0]). Reordenar = mover dentro del array
+  // y volver a pintar: Inicio se actualiza solo.
+  let routinesReorderMode = false;
+
+  function toggleRoutinesReorderMode(){
+    if(routines.length < 2) return;
+    routinesReorderMode = !routinesReorderMode;
+    renderRoutinesList();
+  }
+
+  function startRoutineCardDrag(evt, index){
+    startDragReorder(evt, index, '#rutinasListContainer .routine-card', moveRoutineInList);
+  }
+
+  function moveRoutineInList(fromIndex, toIndex){
+    if(fromIndex < 0 || fromIndex >= routines.length) return;
+    toIndex = Math.max(0, Math.min(routines.length - 1, toIndex));
+    if(fromIndex === toIndex) return;
+    const [moved] = routines.splice(fromIndex, 1);
+    routines.splice(toIndex, 0, moved);
+    renderRoutinesList();
+    if(toIndex === 0) showSuccessToast('"' + moved.name + '" es ahora tu primera rutina');
+  }
+
+  // ---------- Memoria de pesos por ejercicio ----------
+  // Strive recuerda el último peso usado de cada ejercicio (por nombre) y lo
+  // propone por defecto al meterlo en una rutina nueva, para no volver a
+  // escribirlo. Se actualiza cuando guardas un peso en una rutina y cuando
+  // terminas un entrenamiento (gana siempre lo más reciente). Si el ejercicio
+  // no está en memoria, se mira en las rutinas existentes (de la más nueva a
+  // la más antigua). Si nunca se ha usado el ejercicio, no hay nada que
+  // proponer y el peso queda sin definir.
+  const exerciseWeightMemory = {};
+
+  function rememberExerciseWeight(name, weight){
+    if(!name || typeof weight !== 'number' || isNaN(weight) || weight <= 0) return;
+    exerciseWeightMemory[name] = weight;
+  }
+
+  function getRememberedWeight(name){
+    if(exerciseWeightMemory[name] !== undefined) return exerciseWeightMemory[name];
+    for(let i = routines.length - 1; i >= 0; i--){
+      const found = (routines[i].exercises || []).find(ex => ex.name === name && ex.weight > 0);
+      if(found) return found.weight;
+    }
+    return undefined;
+  }
+
   function renderRoutinesList(highlightId){
+    if(routines.length < 2) routinesReorderMode = false;
     const container = document.getElementById('rutinasListContainer');
     container.innerHTML = '';
+
+    const reorderBtn = document.getElementById('routinesReorderToggle');
+    reorderBtn.style.display = routines.length >= 2 ? 'flex' : 'none';
+    reorderBtn.classList.toggle('active', routinesReorderMode);
+    reorderBtn.innerHTML = routinesReorderMode
+      ? '<i data-feather="check"></i> Listo'
+      : '<i data-feather="move"></i> Reordenar';
+    document.getElementById('routinesReorderHint').style.display = routinesReorderMode ? 'flex' : 'none';
 
     if(routines.length === 0){
       container.innerHTML =
@@ -3028,9 +3109,9 @@
           '</button>' +
         '</div>';
     } else {
-      routines.forEach(r => {
+      routines.forEach((r, index) => {
         const el = document.createElement('div');
-        el.className = 'routine-card' + (r.id === highlightId ? ' just-created' : '');
+        el.className = 'routine-card' + (routinesReorderMode ? ' reordering' : '') + (r.id === highlightId ? ' just-created' : '');
         el.innerHTML =
           '<div class="routine-icon">' + routineIconSvg(r.icon || DEFAULT_ROUTINE_ICON) + '</div>' +
           '<div class="routine-info">' +
@@ -3038,13 +3119,20 @@
             '<div class="routine-meta">' + r.exerciseCount + ' ejercicios · ~' + r.estimatedMinutes + ' min</div>' +
             '<div class="routine-last">' + getRoutineLastPerformedLabel(r) + '</div>' +
           '</div>' +
-          '<button class="routine-kebab-btn" data-role="kebab"><i data-feather="more-vertical"></i></button>' +
-          '<i data-feather="chevron-right" class="chev"></i>';
-        el.addEventListener('click', () => openRoutineDetail(r.id));
-        el.querySelector('[data-role="kebab"]').addEventListener('click', (e) => {
-          e.stopPropagation();
-          openRoutineMenu(r.id);
-        });
+          (routinesReorderMode
+            ? '<div class="routine-ex-handle" data-role="handle" title="Arrastra para reordenar"><i data-feather="move"></i></div>'
+            : '<button class="routine-kebab-btn" data-role="kebab"><i data-feather="more-vertical"></i></button>' +
+              '<i data-feather="chevron-right" class="chev"></i>');
+        if(routinesReorderMode){
+          // En modo reordenar la tarjeta no abre nada: solo se arrastra desde el asa.
+          el.querySelector('[data-role="handle"]').addEventListener('pointerdown', (e) => startRoutineCardDrag(e, index));
+        } else {
+          el.addEventListener('click', () => openRoutineDetail(r.id));
+          el.querySelector('[data-role="kebab"]').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openRoutineMenu(r.id);
+          });
+        }
         container.appendChild(el);
       });
     }
@@ -3341,6 +3429,7 @@
     const raw = input ? input.value.trim() : '';
     const parsed = parseFloat(raw);
     routine.exercises[index].weight = (raw !== '' && !isNaN(parsed) && parsed >= 0) ? parsed : undefined;
+    rememberExerciseWeight(routine.exercises[index].name, routine.exercises[index].weight);
 
     editingWeightIndex = null;
     renderRoutineDetailBody();
@@ -3452,7 +3541,13 @@
       lastPerformed: null,
       icon: template.icon,
       libraryId: template.id, // referencia informativa; nada más depende de esto hoy
-      exercises: template.exercises.map(ex => ({ ...ex })),
+      // El peso que ya usaste en ese ejercicio manda sobre el sugerido por la plantilla.
+      exercises: template.exercises.map(ex => {
+        const copy = { ...ex };
+        const remembered = getRememberedWeight(ex.name);
+        if(remembered !== undefined) copy.weight = remembered;
+        return copy;
+      }),
     };
     routines.push(newRoutine);
 
@@ -3546,6 +3641,7 @@
     ex.repsRange = repsRange;
     ex.restSeconds = exerciseConfigDraft.restSeconds;
     ex.weight = (parsedWeight !== undefined && !isNaN(parsedWeight) && parsedWeight >= 0) ? parsedWeight : undefined;
+    rememberExerciseWeight(ex.name, ex.weight);
 
     closeExerciseConfig();
     renderRoutineDetailBody();
@@ -3576,7 +3672,7 @@
       fromIndex: index,
       currentIndex: index,
       startY: evt.clientY,
-      rowHeight: row.getBoundingClientRect().height || 60,
+      rowHeight: (row.getBoundingClientRect().height || 60) + (parseFloat(getComputedStyle(row).marginBottom) || 0),
       rows,
       onReorder,
     };
@@ -3822,7 +3918,10 @@
     if(existingIndex !== -1){
       editingRoutineExercises.splice(existingIndex, 1);
     } else {
-      editingRoutineExercises.push({ name, exerciseId, sets: 3, repsRange: '8-12' });
+      const newEx = { name, exerciseId, sets: 3, repsRange: '8-12' };
+      const remembered = getRememberedWeight(name);
+      if(remembered !== undefined) newEx.weight = remembered;
+      editingRoutineExercises.push(newEx);
     }
     renderEditRoutineExercises();
     renderEditRoutineCatalog();
@@ -3836,6 +3935,7 @@
     routine.name = typedName || routine.name;
     routine.icon = editingRoutineIcon;
     routine.exercises = editingRoutineExercises.map(ex => ({ ...ex }));
+    routine.exercises.forEach(ex => rememberExerciseWeight(ex.name, ex.weight));
     routine.exerciseCount = routine.exercises.length;
     routine.estimatedMinutes = Math.max(20, Math.round(routine.exercises.length * 9));
 
@@ -4146,12 +4246,13 @@
   function saveCustomRoutine(){
     const name = document.getElementById('routineNameInput').value.trim();
     if(selectedExerciseIds.length === 0 || !isValidRoutineName(name)) return;
-    const exercises = selectedExerciseIds.map(id => ({
-      name: EXERCISE_NAME_BY_ID[id],
-      exerciseId: id,
-      sets: 3,
-      repsRange: '8-12',
-    }));
+    const exercises = selectedExerciseIds.map(id => {
+      const name = EXERCISE_NAME_BY_ID[id];
+      const ex = { name, exerciseId: id, sets: 3, repsRange: '8-12' };
+      const remembered = getRememberedWeight(name);
+      if(remembered !== undefined) ex.weight = remembered;
+      return ex;
+    });
     const exerciseCount = exercises.length;
     const estimatedMinutes = Math.max(20, Math.round(exerciseCount * 9));
     const id = 'custom-' + Date.now();
@@ -4269,12 +4370,13 @@
 
   function generateRoutineForGoal(goalKey, preferences){
     const template = GOAL_ROUTINE_TEMPLATES[goalKey] || GOAL_ROUTINE_TEMPLATES.fitness;
-    const exercises = template.exercises.map(t => ({
-      name: EXERCISE_NAME_BY_ID[t.ref],
-      exerciseId: t.ref,
-      sets: t.sets,
-      repsRange: t.repsRange,
-    }));
+    const exercises = template.exercises.map(t => {
+      const name = EXERCISE_NAME_BY_ID[t.ref];
+      const ex = { name, exerciseId: t.ref, sets: t.sets, repsRange: t.repsRange };
+      const remembered = getRememberedWeight(name);
+      if(remembered !== undefined) ex.weight = remembered;
+      return ex;
+    });
     return {
       id: 'strive-' + Date.now(),
       name: template.name,
@@ -4336,6 +4438,7 @@
     exerciseNames.forEach(name => {
       const previousBest = computePreviousBestForExercise(name);
       const sessionBest = Math.max(...entries.filter(e => e.exerciseName === name).map(e => e.weightKg));
+      rememberExerciseWeight(name, sessionBest);
       if(previousBest !== null && sessionBest > previousBest){
         prBreaks.push({ exerciseName: name, weight: sessionBest, previous: previousBest });
       }
