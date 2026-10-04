@@ -107,9 +107,9 @@
     color:var(--text-tertiary);
     font-family:var(--font-body);
     font-weight:600;
-    font-size:10.5px;
-    letter-spacing:0.3px;
-    text-transform:uppercase;
+    font-size:11px;
+    letter-spacing:0;
+    text-transform:none;
     padding:2px 10px;
     cursor:pointer;
     transition:color 0.15s ease;
@@ -586,19 +586,20 @@
   .wk-field-unit{flex-shrink:0;font-family:var(--font-body);font-weight:600;font-size:13px;color:var(--text-secondary);}
   .wk-field-divider{display:none;}
   /* Ajuste rápido: − / + a los lados de la etiqueta (±2,5 kg y ±1 rep).
-     Círculos "ghost" de 30px con zona de toque real de ~44px; comparten
-     fila con la etiqueta para no añadir altura a la tarjeta. */
-  .wk-field-head{display:flex;align-items:center;justify-content:space-between;gap:6px;}
+     Deliberadamente discretos: solo el símbolo, sin círculo ni borde, en
+     gris terciario, para que el protagonismo siga siendo el número. La zona
+     de toque real es ~34x44px aunque el icono mida 16px. */
+  .wk-field-head{display:flex;align-items:center;justify-content:space-between;gap:4px;}
   .wk-step-btn{
-    position:relative;flex:none;width:30px;height:30px;border-radius:999px;
-    background:transparent;border:1px solid var(--border-light);color:var(--text-secondary);
+    position:relative;flex:none;width:28px;height:28px;border-radius:999px;
+    background:transparent;border:none;color:var(--text-tertiary);
     display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;
-    transition:background 0.12s ease, color 0.12s ease, transform 0.12s ease, border-color 0.12s ease;
+    transition:background 0.12s ease, color 0.12s ease, transform 0.12s ease;
   }
-  .wk-step-btn::after{content:'';position:absolute;inset:-7px;}
-  .wk-step-btn svg{width:15px;height:15px;stroke-width:2.25;}
-  .wk-step-btn:not(:disabled):active{background:var(--surface-pressed);color:var(--text-primary);border-color:var(--accent-soft-border);transform:scale(0.9);}
-  .wk-step-btn:disabled{opacity:0.35;cursor:default;}
+  .wk-step-btn::after{content:'';position:absolute;inset:-8px -3px;}
+  .wk-step-btn svg{width:16px;height:16px;stroke-width:2;}
+  .wk-step-btn:not(:disabled):active{background:rgba(255,255,255,0.08);color:var(--text-primary);transform:scale(0.9);}
+  .wk-step-btn:disabled{opacity:0.3;cursor:default;}
   .wk-demo-images{
     display:flex;gap:10px;margin-top:18px;overflow:hidden;
     max-height:320px;opacity:1;
@@ -1186,7 +1187,7 @@
       </div>
 
       <div class="hero" id="heroWithRoutine">
-        <div class="hero-watermark">4</div>
+        <div class="hero-watermark" id="heroWatermark">4</div>
         <div class="hero-eyebrow-row">
           <div class="hero-eyebrow-dot"></div>
           <div class="hero-eyebrow">Tu entrenamiento de hoy</div>
@@ -2329,6 +2330,7 @@
   let restTotal = 0;    // duración total del descanso en curso (s), base del aro
   let restEndAt = null; // marca de tiempo (ms) en la que termina el descanso; fuente de verdad del contador
   let activeRoutineName = 'Push';
+  let activeRoutineId = null; // id de la rutina en curso; se guarda en el log para enlazar el historial aunque se renombre
   let workoutStartedAt = null;
 
   // ---------- Pantalla siempre encendida durante el entrenamiento ----------
@@ -2983,6 +2985,34 @@
   // nuevo empieza en 0: nada se copia automáticamente desde la biblioteca.
   let routines = [];
 
+  // "Última vez" real de una rutina, calculada desde workoutLogs. Se enlaza
+  // por id (los logs nuevos lo guardan, así que renombrar la rutina no
+  // rompe el vínculo); los logs sin id caen al nombre.
+  function getRoutineLastPerformedLabel(routine){
+    const logs = workoutLogs.filter(log =>
+      log.source === 'workout' &&
+      (log.routineId ? log.routineId === routine.id : log.routineName === routine.name)
+    );
+    if(logs.length === 0) return 'Aún sin entrenar';
+
+    const latest = logs.reduce((a, b) => (b.date > a.date ? b : a));
+    const p = latest.date.split('-');
+    const logDay = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const days = Math.max(0, Math.round((today - logDay) / 86400000));
+
+    if(days === 0) return 'Última vez: hoy';
+    if(days === 1) return 'Última vez: ayer';
+    if(days < 14) return 'Última vez: hace ' + days + ' días';
+    if(days < 60){
+      const weeks = Math.floor(days / 7);
+      return 'Última vez: hace ' + weeks + ' semanas';
+    }
+    const months = Math.floor(days / 30);
+    return 'Última vez: hace ' + months + ' meses';
+  }
+
   function renderRoutinesList(highlightId){
     const container = document.getElementById('rutinasListContainer');
     container.innerHTML = '';
@@ -3008,7 +3038,7 @@
           '<div class="routine-info">' +
             '<div class="routine-name">' + escapeHtml(r.name) + '</div>' +
             '<div class="routine-meta">' + r.exerciseCount + ' ejercicios · ~' + r.estimatedMinutes + ' min</div>' +
-            '<div class="routine-last">' + (r.lastPerformed ? 'Última vez: ' + r.lastPerformed : 'Recién creada') + '</div>' +
+            '<div class="routine-last">' + getRoutineLastPerformedLabel(r) + '</div>' +
           '</div>' +
           '<button class="routine-kebab-btn" data-role="kebab"><i data-feather="more-vertical"></i></button>' +
           '<i data-feather="chevron-right" class="chev"></i>';
@@ -3038,6 +3068,7 @@
       document.getElementById('heroTodayTitle').textContent = routine.name;
       const exerciseCount = routine.exercises ? routine.exercises.length : routine.exerciseCount;
       document.getElementById('heroTodayExercises').textContent = exerciseCount + ' ejercicios';
+      document.getElementById('heroWatermark').textContent = exerciseCount;
       document.getElementById('heroTodayDuration').textContent = '~' + routine.estimatedMinutes + ' min';
     }
   }
@@ -3605,11 +3636,21 @@
     return match[2] ? parseInt(match[2], 10) : parseInt(match[1], 10);
   }
 
+  // Valores iniciales de cada serie al empezar un entrenamiento:
+  //  - Si la rutina define un peso objetivo para el ejercicio, se respeta tal cual.
+  //  - Si no (peso sin definir), se parte de lo que hiciste la última vez
+  //    (peso y reps de tu mejor serie de la sesión más reciente), en vez de
+  //    arrancar en 0 kg. Sin historial, se mantiene el comportamiento de
+  //    siempre (0 kg y el tope del rango de reps).
   function buildSetsForExercise(ex){
     const targetReps = parseTargetReps(ex.repsRange);
+    const hasTargetWeight = ex.weight !== undefined && ex.weight !== null;
+    const last = hasTargetWeight ? null : getLastPerformanceForExercise(ex.name);
+    const startWeight = last ? last.weightKg : (ex.weight || 0);
+    const startReps = (last && last.reps > 0) ? last.reps : targetReps;
     const sets = [];
     for(let i = 0; i < ex.sets; i++){
-      sets.push({ weight: ex.weight || 0, reps: targetReps, started: false, completed: false });
+      sets.push({ weight: startWeight, reps: startReps, started: false, completed: false });
     }
     return sets;
   }
@@ -3623,6 +3664,7 @@
     clearInterval(restInterval);
     restRemaining = null;
     activeRoutineName = routine.name;
+    activeRoutineId = routine.id;
 
     closeRoutineDetail();
     closeEditRoutineScreen();
@@ -4306,6 +4348,7 @@
     workoutLogs.push({
       date: todayIso(),
       source: 'workout',
+      routineId: activeRoutineId,
       routineName: activeRoutineName,
       durationMinutes,
       entries,
@@ -4316,6 +4359,7 @@
     renderTrainingCalendar();
     renderProgresoSummary();
     renderWeeklyActivityChart();
+    renderRoutinesList();
 
     return {
       routineName: activeRoutineName,
