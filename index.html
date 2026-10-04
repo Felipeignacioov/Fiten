@@ -299,6 +299,24 @@
   .hero-empty-eyebrow-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;position:relative;}
   .hero-empty-eyebrow-dot{width:6px;height:6px;border-radius:3px;background:var(--text-tertiary);flex-shrink:0;}
   .hero-empty-eyebrow{font-family:var(--font-body);font-weight:600;font-size:13px;color:var(--text-secondary);position:relative;}
+  /* Tarjeta para compartir (resumen final): vista previa 9:16 del canvas que se comparte */
+  .ws-card-preview canvas{
+    display:block;height:min(46dvh,420px);width:auto;aspect-ratio:9/16;
+    border-radius:22px;border:1px solid var(--border-light);background:var(--surface);
+    box-shadow:var(--shadow-elevated);
+  }
+  .ws-photo-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:16px;}
+  .ws-photo-btn{
+    display:flex;align-items:center;gap:8px;height:44px;padding:0 18px;border-radius:14px;cursor:pointer;
+    background:transparent;border:1px dashed var(--border-light);
+    font-family:var(--font-body);font-weight:600;font-size:14px;color:var(--text-secondary);
+  }
+  .ws-photo-btn svg{width:16px;height:16px;}
+  .ws-photo-btn:active{background:var(--surface-high);}
+  .ws-photo-remove{
+    background:none;border:none;cursor:pointer;padding:10px 4px;
+    font-family:var(--font-body);font-weight:600;font-size:14px;color:var(--text-tertiary);
+  }
   .ws-icon-badge{
     width:64px;height:64px;border-radius:20px;
     background:var(--accent-soft);border:1px solid var(--accent-soft-border);
@@ -1883,28 +1901,25 @@
     </div>
   </div>
 
-  <!-- ============ WORKOUT SUMMARY ============ -->
+  <!-- ============ WORKOUT SUMMARY + TARJETA PARA COMPARTIR ============ -->
   <div class="flow-overlay" id="workoutSummaryScreen" style="z-index:165;">
-    <div class="flow-body" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:56px;">
-      <div class="ws-icon-badge"><i data-feather="award"></i></div>
-      <div class="page-title" style="margin-top:18px;">¡Entrenamiento completado!</div>
+    <div class="flow-body" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:28px;padding-bottom:24px;">
+      <div class="page-title">¡Entrenamiento completado!</div>
       <div class="page-subtitle" id="wsSubtitle">Push · 52 min</div>
 
-      <div style="height:28px"></div>
+      <div style="height:20px"></div>
 
-      <div class="card" style="width:100%;">
-        <div class="summary-row">
-          <div class="stat" style="align-items:center"><span class="v" id="wsSetsValue">16</span><span class="l">series</span></div>
-          <div class="v-divider"></div>
-          <div class="stat" style="align-items:center"><span class="v" id="wsExercisesValue">4</span><span class="l">ejercicios</span></div>
-          <div class="v-divider"></div>
-          <div class="stat" style="align-items:center"><span class="v" id="wsDurationValue">52 min</span><span class="l">duración</span></div>
-        </div>
+      <div class="ws-card-preview"><canvas id="wsShareCanvas" width="1080" height="1920"></canvas></div>
+
+      <div class="ws-photo-row">
+        <button class="ws-photo-btn" onclick="pickShareCardPhoto()"><i data-feather="image"></i> <span id="wsPhotoBtnLabel">Añadir foto de fondo</span></button>
+        <button class="ws-photo-remove" id="wsPhotoRemove" onclick="removeShareCardPhoto()" style="display:none">Quitar</button>
       </div>
+      <input type="file" id="wsPhotoInput" accept="image/*" style="display:none" />
 
       <div style="height:24px"></div>
 
-      <div id="wsPrSection" style="width:100%;display:none;">
+      <div id="wsPrSection" style="width:100%;display:none;text-align:left;">
         <div class="section-header" style="margin-bottom:10px;">
           <span class="section-title" style="font-size:17px;">Nuevos récords</span>
         </div>
@@ -1915,11 +1930,13 @@
     </div>
 
     <div class="flow-footer">
-      <button class="flow-primary-btn" onclick="closeWorkoutSummary()">
-        Volver a inicio <i data-feather="arrow-right"></i>
+      <button class="flow-primary-btn" id="wsShareBtn" onclick="shareWorkoutCard()">
+        <span id="wsShareBtnLabel">Compartir</span> <i data-feather="share-2" id="wsShareBtnIcon"></i>
       </button>
+      <button class="flow-secondary-btn" onclick="closeWorkoutSummary()">Volver a inicio</button>
     </div>
   </div>
+
 
   <!-- ============ SUCCESS TOAST ============ -->
   <div class="toast" id="successToast">
@@ -2446,6 +2463,289 @@
     closeWorkout();
   }
 
+  // ================================================================
+  // TARJETA PARA COMPARTIR — imagen vertical 9:16 (1080x1920) dibujada en un
+  // <canvas> en el propio dispositivo (nada se sube a ningún servidor). El
+  // mismo canvas es la vista previa y la imagen que se comparte con el menú
+  // nativo del móvil (Instagram, WhatsApp, Facebook...). Una web no puede
+  // publicar directamente en esas apps: se comparte el archivo y el usuario
+  // elige dónde. Sin soporte de compartir archivos, se descarga la imagen.
+  // El contenido se mantiene dentro de y=800..1550 para respetar las zonas
+  // que tapa la interfaz de Stories (arriba ~250px y abajo ~340px).
+  // ================================================================
+  let shareCardState = { summary: null, photo: null, file: null };
+  let shareCardRenderToken = 0;
+
+  function formatThousandsEs(n){
+    return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  function formatLongDateEs(iso){
+    const p = iso.split('-');
+    return parseInt(p[2], 10) + ' ' + MONTHS_ES[parseInt(p[1], 10) - 1] + ' ' + p[0];
+  }
+
+  // Los tres datos grandes de la tarjeta: Duración · Volumen · Series.
+  // Si no hubo peso (volumen 0, p. ej. solo peso corporal), Volumen se
+  // sustituye por Ejercicios para no enseñar un "0 kg" vacío.
+  function buildShareStats(summary){
+    const mins = summary.durationMinutes;
+    const duration = mins >= 60
+      ? { num: Math.floor(mins / 60) + ':' + String(mins % 60).padStart(2, '0'), unit: 'h' }
+      : { num: String(mins), unit: 'min' };
+
+    const v = summary.totalVolumeKg || 0;
+    let middle;
+    if(v <= 0) middle = { label: 'Ejercicios', num: String(summary.totalExercises), unit: '' };
+    else if(v >= 10000) middle = { label: 'Volumen', num: (v / 1000).toFixed(1).replace('.', ','), unit: 't' };
+    else middle = { label: 'Volumen', num: formatThousandsEs(v), unit: 'kg' };
+
+    return [
+      { label: 'Duración', num: duration.num, unit: duration.unit },
+      middle,
+      { label: 'Series', num: String(summary.totalSets), unit: '' },
+    ];
+  }
+
+  function drawStarPath(ctx, cx, cy, R){
+    const r = R * 0.42;
+    ctx.beginPath();
+    for(let k = 0; k < 10; k++){
+      const ang = -Math.PI / 2 + k * Math.PI / 5;
+      const rad = k % 2 === 0 ? R : r;
+      const x = cx + rad * Math.cos(ang), y = cy + rad * Math.sin(ang);
+      if(k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+  }
+
+  // Texto con espaciado entre letras (ctx.letterSpacing no existe en todos los navegadores).
+  function drawSpacedText(ctx, text, centerX, baselineY, spacing){
+    const widths = Array.from(text).map(ch => ctx.measureText(ch).width);
+    const total = widths.reduce((a, b) => a + b, 0) + spacing * (widths.length - 1);
+    let x = centerX - total / 2;
+    ctx.textAlign = 'left';
+    Array.from(text).forEach((ch, i) => { ctx.fillText(ch, x, baselineY); x += widths[i] + spacing; });
+    ctx.textAlign = 'center';
+  }
+
+  // Reduce el tamaño de fuente hasta que el texto quepa en maxWidth.
+  function fitFontSize(ctx, text, weight, startPx, minPx, maxWidth, family){
+    let size = startPx;
+    ctx.font = weight + ' ' + size + 'px ' + family;
+    while(size > minPx && ctx.measureText(text).width > maxWidth){
+      size -= 2;
+      ctx.font = weight + ' ' + size + 'px ' + family;
+    }
+    return size;
+  }
+
+  function drawShareCard(canvas, data, photo){
+    const W = 1080, H = 1920;
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    const DISPLAY = "Sora, Inter, sans-serif";
+    const BODY = "Inter, sans-serif";
+
+    // ---- Fondo ----
+    if(photo){
+      const scale = Math.max(W / photo.naturalWidth, H / photo.naturalHeight);
+      const dw = photo.naturalWidth * scale, dh = photo.naturalHeight * scale;
+      ctx.drawImage(photo, (W - dw) / 2, (H - dh) / 2, dw, dh);
+      const top = ctx.createLinearGradient(0, 0, 0, 520);
+      top.addColorStop(0, 'rgba(0,0,0,0.45)'); top.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = top; ctx.fillRect(0, 0, W, 520);
+      const bottom = ctx.createLinearGradient(0, 640, 0, H);
+      bottom.addColorStop(0, 'rgba(0,0,0,0)');
+      bottom.addColorStop(0.55, 'rgba(0,0,0,0.72)');
+      bottom.addColorStop(1, 'rgba(0,0,0,0.9)');
+      ctx.fillStyle = bottom; ctx.fillRect(0, 640, W, H - 640);
+    } else {
+      const base = ctx.createLinearGradient(0, 0, 0, H);
+      base.addColorStop(0, '#15151C'); base.addColorStop(1, '#0B0B0F');
+      ctx.fillStyle = base; ctx.fillRect(0, 0, W, H);
+      const glow = ctx.createRadialGradient(540, 1150, 0, 540, 1150, 950);
+      glow.addColorStop(0, 'rgba(224,45,72,0.22)'); glow.addColorStop(1, 'rgba(224,45,72,0)');
+      ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+    }
+
+    if(photo){ ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 28; }
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+
+    // ---- Marca: punto rojo + STRIVE (igual que la pantalla de inicio) ----
+    ctx.fillStyle = '#E02D48';
+    ctx.beginPath(); ctx.arc(540, 872, 12, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '700 150px ' + DISPLAY;
+    drawSpacedText(ctx, 'STRIVE', 540, 1040, 22);
+
+    // ---- Rutina · fecha ----
+    const line = data.routineName + '  ·  ' + formatLongDateEs(data.date);
+    fitFontSize(ctx, line, 500, 46, 30, 920, BODY);
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillText(line, 540, 1125);
+
+    // ---- Tres datos grandes ----
+    const cols = buildShareStats(data);
+    const centers = [220, 540, 860];
+    const widthOf = (c, size) => {
+      ctx.font = '700 ' + size + 'px ' + DISPLAY;
+      const n = ctx.measureText(c.num).width;
+      if(!c.unit) return n;
+      ctx.font = '600 ' + Math.round(size * 0.46) + 'px ' + DISPLAY;
+      return n + 12 + ctx.measureText(c.unit).width;
+    };
+    let size = 84;
+    while(size > 52 && cols.some(c => widthOf(c, size) > 262)) size -= 2;
+
+    cols.forEach((c, i) => {
+      ctx.fillStyle = 'rgba(255,255,255,0.72)';
+      ctx.font = '500 38px ' + BODY;
+      ctx.textAlign = 'center';
+      ctx.fillText(c.label, centers[i], 1262);
+
+      const total = widthOf(c, size);
+      let x = centers[i] - total / 2;
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = '700 ' + size + 'px ' + DISPLAY;
+      ctx.fillText(c.num, x, 1362);
+      if(c.unit){
+        x += ctx.measureText(c.num).width + 12;
+        ctx.fillStyle = 'rgba(255,255,255,0.75)';
+        ctx.font = '600 ' + Math.round(size * 0.46) + 'px ' + DISPLAY;
+        ctx.fillText(c.unit, x, 1362);
+      }
+    });
+    ctx.textAlign = 'center';
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+    ctx.lineWidth = 2;
+    [380, 700].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 1215); ctx.lineTo(x, 1385); ctx.stroke(); });
+    if(photo){ ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 28; }
+
+    // ---- Récord (si lo hubo) ----
+    if(data.prBreaks && data.prBreaks.length > 0){
+      const text = data.prBreaks.length === 1
+        ? 'Nuevo récord · ' + data.prBreaks[0].exerciseName + ' ' + formatWeightEs(data.prBreaks[0].weight) + ' kg'
+        : data.prBreaks.length + ' nuevos récords';
+      const fs = fitFontSize(ctx, text, 600, 42, 28, 800, BODY);
+      const textW = ctx.measureText(text).width;
+      const starR = Math.round(fs * 0.62);
+      const gap = 18;
+      const totalW = starR * 2 + gap + textW;
+      const startX = 540 - totalW / 2;
+      ctx.fillStyle = '#E02D48';
+      drawStarPath(ctx, startX + starR, 1478, starR);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      ctx.textAlign = 'left';
+      ctx.fillText(text, startX + starR * 2 + gap, 1478 + fs * 0.35);
+      ctx.textAlign = 'center';
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  async function renderShareCard(){
+    const token = ++shareCardRenderToken;
+    const data = shareCardState.summary;
+    if(!data) return;
+    const canvas = document.getElementById('wsShareCanvas');
+
+    // Esperar a que Sora/Inter estén cargadas para que el canvas no use la fuente de reserva.
+    try {
+      if(document.fonts && document.fonts.load){
+        await Promise.all([
+          document.fonts.load('700 100px Sora'), document.fonts.load('600 40px Sora'),
+          document.fonts.load('500 40px Inter'), document.fonts.load('600 40px Inter'),
+        ]);
+      }
+    } catch(e){}
+    if(token !== shareCardRenderToken) return;
+
+    const photo = shareCardState.photo;
+    drawShareCard(canvas, data, photo);
+
+    // Dejar el archivo ya generado: compartir debe llamarse al instante del toque (requisito de iOS/Safari).
+    shareCardState.file = null;
+    const type = photo ? 'image/jpeg' : 'image/png';
+    canvas.toBlob(blob => {
+      if(!blob || token !== shareCardRenderToken) return;
+      shareCardState.file = new File([blob], 'strive-entrenamiento.' + (photo ? 'jpg' : 'png'), { type });
+    }, type, 0.92);
+  }
+
+  function updateShareCardControls(){
+    const hasPhoto = !!shareCardState.photo;
+    document.getElementById('wsPhotoBtnLabel').textContent = hasPhoto ? 'Cambiar foto' : 'Añadir foto de fondo';
+    document.getElementById('wsPhotoRemove').style.display = hasPhoto ? 'inline-block' : 'none';
+
+    // Si el navegador no puede compartir archivos, el botón guarda la imagen.
+    const canShareFiles = !!(navigator.share && navigator.canShare);
+    document.getElementById('wsShareBtnLabel').textContent = canShareFiles ? 'Compartir' : 'Guardar imagen';
+    document.getElementById('wsShareBtnIcon').setAttribute('data-feather', canShareFiles ? 'share-2' : 'download');
+    feather.replace();
+  }
+
+  function pickShareCardPhoto(){
+    document.getElementById('wsPhotoInput').click();
+  }
+
+  function removeShareCardPhoto(){
+    shareCardState.photo = null;
+    updateShareCardControls();
+    renderShareCard();
+  }
+
+  document.getElementById('wsPhotoInput').addEventListener('change', function(){
+    const file = this.files && this.files[0];
+    this.value = ''; // permite elegir la misma foto otra vez
+    if(!file) return;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      shareCardState.photo = img;
+      updateShareCardControls();
+      renderShareCard();
+    };
+    img.onerror = () => URL.revokeObjectURL(url);
+    img.src = url;
+  });
+
+  function downloadShareFile(file){
+    const url = URL.createObjectURL(file);
+    const a = document.createElement('a');
+    a.href = url; a.download = file.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    showSuccessToast('Imagen guardada. Ya puedes subirla.');
+  }
+
+  async function shareWorkoutCard(){
+    const canvas = document.getElementById('wsShareCanvas');
+    let file = shareCardState.file;
+    if(!file){
+      const type = shareCardState.photo ? 'image/jpeg' : 'image/png';
+      file = await new Promise(resolve => canvas.toBlob(
+        blob => resolve(blob ? new File([blob], 'strive-entrenamiento.' + (shareCardState.photo ? 'jpg' : 'png'), { type }) : null),
+        type, 0.92));
+    }
+    if(!file) return;
+
+    if(navigator.share && navigator.canShare && navigator.canShare({ files: [file] })){
+      try {
+        await navigator.share({ files: [file], title: 'Mi entrenamiento en Strive' });
+      } catch(e){
+        if(e && e.name === 'AbortError') return; // el usuario cerró el menú
+        downloadShareFile(file);
+      }
+    } else {
+      downloadShareFile(file);
+    }
+  }
+
   function showWorkoutSummary(summary){
     if(!summary){
       closeWorkout();
@@ -2454,9 +2754,11 @@
     }
 
     document.getElementById('wsSubtitle').textContent = summary.routineName + ' · ' + summary.durationMinutes + ' min';
-    document.getElementById('wsSetsValue').textContent = summary.totalSets;
-    document.getElementById('wsExercisesValue').textContent = summary.totalExercises;
-    document.getElementById('wsDurationValue').textContent = summary.durationMinutes + ' min';
+
+    // Tarjeta para compartir: estado nuevo en cada resumen (sin foto de la vez anterior).
+    shareCardState = { summary, photo: null, file: null };
+    updateShareCardControls();
+    renderShareCard();
 
     const prSection = document.getElementById('wsPrSection');
     if(summary.prBreaks.length > 0){
@@ -2481,6 +2783,8 @@
   }
 
   function closeWorkoutSummary(){
+    shareCardRenderToken++;
+    shareCardState = { summary: null, photo: null, file: null }; // libera la foto y la imagen generada
     document.getElementById('workoutSummaryScreen').classList.remove('open');
     closeWorkout();
     showTab('home');
@@ -4509,9 +4813,11 @@
 
     return {
       routineName: activeRoutineName,
+      date: todayIso(),
       durationMinutes,
       totalSets: entries.length,
       totalExercises: exerciseNames.length,
+      totalVolumeKg: entries.reduce((sum, e) => sum + (e.weightKg || 0) * (e.reps || 0), 0),
       prBreaks,
     };
   }
