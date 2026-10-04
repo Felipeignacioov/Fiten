@@ -3083,6 +3083,27 @@
     return undefined;
   }
 
+  // Aplica un peso a TODAS las rutinas del usuario que contienen ese
+  // ejercicio (y lo deja en memoria para las que se creen después). Se usa
+  // cuando el usuario confirma un cambio de peso (✓ en el detalle de rutina,
+  // guardar ejercicio/rutina) y al terminar un entrenamiento. Solo toca
+  // pesos válidos (>0): borrar el peso de una rutina no lo borra en las demás.
+  // No modifica las plantillas de la biblioteca. Devuelve cuántas rutinas
+  // contienen el ejercicio (para el aviso al usuario).
+  function applyExerciseWeightEverywhere(name, weight){
+    if(!name || typeof weight !== 'number' || isNaN(weight) || weight <= 0) return 0;
+    exerciseWeightMemory[name] = weight;
+    let affected = 0;
+    routines.forEach(r => {
+      let touched = false;
+      (r.exercises || []).forEach(ex => {
+        if(ex.name === name){ ex.weight = weight; touched = true; }
+      });
+      if(touched) affected++;
+    });
+    return affected;
+  }
+
   function renderRoutinesList(highlightId){
     if(routines.length < 2) routinesReorderMode = false;
     const container = document.getElementById('rutinasListContainer');
@@ -3428,12 +3449,19 @@
     const input = document.getElementById('weightEditInput');
     const raw = input ? input.value.trim() : '';
     const parsed = parseFloat(raw);
-    routine.exercises[index].weight = (raw !== '' && !isNaN(parsed) && parsed >= 0) ? parsed : undefined;
-    rememberExerciseWeight(routine.exercises[index].name, routine.exercises[index].weight);
+    const target = routine.exercises[index];
+    const previousWeight = target.weight;
+    target.weight = (raw !== '' && !isNaN(parsed) && parsed >= 0) ? parsed : undefined;
+
+    // Si el peso cambió, se actualiza en todas las rutinas con este ejercicio.
+    let affected = 0;
+    if(target.weight > 0 && target.weight !== previousWeight){
+      affected = applyExerciseWeightEverywhere(target.name, target.weight);
+    }
 
     editingWeightIndex = null;
     renderRoutineDetailBody();
-    showSuccessToast('Marca actualizada');
+    showSuccessToast(affected > 1 ? 'Peso actualizado en ' + affected + ' rutinas' : 'Marca actualizada');
   }
 
   function closeRoutineDetail(){
@@ -3637,15 +3665,19 @@
     const weightRaw = document.getElementById('exerciseConfigWeightInput').value.trim();
     const parsedWeight = weightRaw === '' ? undefined : parseFloat(weightRaw);
 
+    const previousWeight = ex.weight;
     ex.sets = exerciseConfigDraft.sets;
     ex.repsRange = repsRange;
     ex.restSeconds = exerciseConfigDraft.restSeconds;
     ex.weight = (parsedWeight !== undefined && !isNaN(parsedWeight) && parsedWeight >= 0) ? parsedWeight : undefined;
-    rememberExerciseWeight(ex.name, ex.weight);
+    let affected = 0;
+    if(ex.weight > 0 && ex.weight !== previousWeight){
+      affected = applyExerciseWeightEverywhere(ex.name, ex.weight);
+    }
 
     closeExerciseConfig();
     renderRoutineDetailBody();
-    showSuccessToast('Ejercicio actualizado');
+    showSuccessToast(affected > 1 ? 'Peso actualizado en ' + affected + ' rutinas' : 'Ejercicio actualizado');
   }
 
   let dragReorderState = null;
@@ -3934,15 +3966,28 @@
 
     routine.name = typedName || routine.name;
     routine.icon = editingRoutineIcon;
+    // Peso de referencia de cada ejercicio ANTES de guardar: el que ya tenía en
+    // esta rutina o, si es un ejercicio nuevo, el recordado. Solo se propaga
+    // a las demás rutinas lo que el usuario realmente cambió.
+    const baselineWeights = {};
+    editingRoutineExercises.forEach(ex => {
+      const before = (routine.exercises || []).find(e => e.name === ex.name);
+      baselineWeights[ex.name] = before ? before.weight : getRememberedWeight(ex.name);
+    });
     routine.exercises = editingRoutineExercises.map(ex => ({ ...ex }));
-    routine.exercises.forEach(ex => rememberExerciseWeight(ex.name, ex.weight));
+    let editAffected = 0;
+    routine.exercises.forEach(ex => {
+      if(ex.weight > 0 && ex.weight !== baselineWeights[ex.name]){
+        editAffected = Math.max(editAffected, applyExerciseWeightEverywhere(ex.name, ex.weight));
+      }
+    });
     routine.exerciseCount = routine.exercises.length;
     routine.estimatedMinutes = Math.max(20, Math.round(routine.exercises.length * 9));
 
     closeEditRoutineScreen();
     renderRoutinesList();
     if(currentPreviewRoutineId === routine.id) openRoutineDetail(routine.id);
-    showSuccessToast('Rutina actualizada');
+    showSuccessToast(editAffected > 1 ? 'Rutina actualizada · peso sincronizado en ' + editAffected + ' rutinas' : 'Rutina actualizada');
   }
 
   let routineMenuTargetId = null;
@@ -4438,7 +4483,7 @@
     exerciseNames.forEach(name => {
       const previousBest = computePreviousBestForExercise(name);
       const sessionBest = Math.max(...entries.filter(e => e.exerciseName === name).map(e => e.weightKg));
-      rememberExerciseWeight(name, sessionBest);
+      applyExerciseWeightEverywhere(name, sessionBest);
       if(previousBest !== null && sessionBest > previousBest){
         prBreaks.push({ exerciseName: name, weight: sessionBest, previous: previousBest });
       }
