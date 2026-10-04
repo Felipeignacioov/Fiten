@@ -2907,28 +2907,17 @@
       'stroke-linecap="round" stroke-linejoin="round">' + shape + '</svg>';
   }
 
-  // Icono oficial de Récord Personal, provisto por diseño — se usa TAL CUAL,
-  // sin reinterpretar (medalla con corona de laureles, estrella superior,
-  // "PR" y dos cintas inferiores). Único punto de la app que dibuja este
-  // icono: buildPersonalRecordRowHtml(), showWorkoutSummary() y
-  // renderHomeProgress() lo llaman desde aquí, así que cualquier ajuste
-  // futuro también se hace en un solo lugar. viewBox 0 0 128 128 se escala
-  // igual que cualquier otro icono vía width/height en CSS; fill/stroke en
-  // "currentColor" heredan el color que ya define cada contenedor
-  // (.pr-icon, .ws-icon-badge, .progress-trend-new-badge).
-  // Icono de Récord Personal v2 — "estrella + chevron ascendente", diseñado
-  // específicamente para legibilidad a tamaño pequeño (13-28px, los 3
-  // contextos reales: .progress-trend-new, .pr-icon, .ws-icon-badge). La
-  // v1 (medalla con corona/"PR"/cintas) se leía bien grande pero se volvía
-  // una "pelota" borrosa en miniatura; esta versión usa solo 2 formas
-  // sólidas (sin trazos finos, sin texto) para mantener una silueta clara
-  // a cualquier tamaño. Mismo viewBox 24x24 que ROUTINE_ICON_SHAPES, mismo
-  // punto único de uso (buildPersonalRecordRowHtml, showWorkoutSummary,
-  // renderHomeProgress) — sin tocar lógica de PRs ni layout.
+  // Icono de Récord Personal: una única estrella sólida de 5 puntas.
+  // Único punto de la app que dibuja este icono: buildPersonalRecordRowHtml(),
+  // showWorkoutSummary() y renderHomeProgress() lo llaman desde aquí, así que
+  // cualquier ajuste futuro también se hace en un solo lugar. Hereda el color
+  // del contenedor (.pr-icon, .progress-trend-new) vía currentColor.
   function prMedalSvg(){
-    return '<svg viewBox="0 0 24 24" fill="none">' +
-      '<path d="M 12 2 L 13.7 5.95 L 17.99 6.35 L 14.76 9.2 L 15.7 13.4 L 12 11.2 L 8.3 13.4 L 9.24 9.2 L 6.01 6.35 L 10.3 5.95 Z" fill="currentColor"/>' +
-      '<path d="M 12 13.5 L 19 21 L 15.3 21 L 12 17.6 L 8.7 21 L 5 21 Z" fill="currentColor"/>' +
+    // Estrella sólida de 5 puntas, simétrica, centrada en (12,12) del viewBox.
+    // fill="currentColor" hereda el color del contenedor (.pr-icon,
+    // .progress-trend-new). Sin detalles adicionales: legible desde 13px.
+    return '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' +
+      '<polygon points="12.00 1.50 14.59 8.43 21.99 8.76 16.19 13.36 18.17 20.49 12.00 16.41 5.83 20.49 7.81 13.36 2.01 8.76 9.41 8.43"/>' +
       '</svg>';
   }
 
