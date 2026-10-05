@@ -376,6 +376,22 @@
     background:var(--accent-soft);display:flex;align-items:center;justify-content:center;
   }
   .progress-trend-new svg{width:13px;height:13px;color:var(--accent-text);}
+  /* Estados vacíos: mensaje corto dentro de su tarjeta (Inicio, Progreso) */
+  .empty-block{text-align:center;padding:26px 22px;}
+  .empty-block-title{font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--text-primary);margin-bottom:6px;}
+  .empty-block-sub{font-family:var(--font-body);font-size:13px;color:var(--text-secondary);line-height:1.45;}
+  .empty-block-btn{
+    display:inline-flex;align-items:center;gap:6px;margin-top:16px;height:40px;padding:0 16px;border-radius:12px;cursor:pointer;
+    background:transparent;border:1px solid var(--border-light);
+    font-family:var(--font-body);font-weight:600;font-size:13.5px;color:var(--text-primary);
+  }
+  .empty-block-btn svg{width:15px;height:15px;color:var(--text-secondary);}
+  .empty-block-btn:active{background:var(--surface-high);}
+  .chart{position:relative;}
+  .chart-empty-msg{
+    position:absolute;left:0;right:0;top:22px;text-align:center;
+    font-family:var(--font-body);font-size:13px;color:var(--text-secondary);
+  }
   .progress-empty{
     width:100%;
     font-family:var(--font-body);font-size:13.5px;color:var(--text-tertiary);
@@ -1285,7 +1301,7 @@
         <button class="add-btn" onclick="openCreateSheet()"><i data-feather="plus"></i></button>
       </div>
 
-      <div class="rutinas-toolbar">
+      <div class="rutinas-toolbar" id="rutinasToolbar">
         <div class="section-action" style="cursor:pointer;" onclick="openExploreRoutinesScreen()">Explorar rutinas <i data-feather="chevron-right"></i></div>
         <button class="routines-reorder-btn" id="routinesReorderToggle" onclick="toggleRoutinesReorderMode()" style="display:none"></button>
       </div>
@@ -1330,7 +1346,7 @@
       <div style="height:28px"></div>
       <div class="section-header">
         <span class="section-title">Récords personales</span>
-        <span class="section-action" onclick="openAllRecordsScreen()">Ver todos <i data-feather="chevron-right"></i></span>
+        <span class="section-action" id="personalRecordsViewAll" onclick="openAllRecordsScreen()">Ver todos <i data-feather="chevron-right"></i></span>
       </div>
       <div class="card" style="padding:0">
         <div id="personalRecordsList"></div>
@@ -3416,6 +3432,8 @@
     const container = document.getElementById('rutinasListContainer');
     container.innerHTML = '';
 
+    // Con la lista vacía, "Explorar rutinas" ya está como botón en el estado vacío: no repetirlo arriba.
+    document.getElementById('rutinasToolbar').style.display = routines.length === 0 ? 'none' : 'flex';
     const reorderBtn = document.getElementById('routinesReorderToggle');
     reorderBtn.style.display = routines.length >= 2 ? 'flex' : 'none';
     reorderBtn.classList.toggle('active', routinesReorderMode);
@@ -4926,8 +4944,24 @@
 
   function renderPersonalRecords(){
     const container = document.getElementById('personalRecordsList');
-    const records = getAllPersonalRecords().slice(0, PERSONAL_RECORDS_PREVIEW_LIMIT);
-    container.innerHTML = records.map(buildPersonalRecordRowHtml).join('');
+    const allRecords = getAllPersonalRecords();
+    const records = allRecords.slice(0, PERSONAL_RECORDS_PREVIEW_LIMIT);
+
+    // "Ver todos" solo si hay algo que ver. Mientras no haya récords, la propia
+    // tarjeta vacía ofrece "Añadir marca" (importar un peso anterior), que es
+    // el único acceso a esa función para un usuario nuevo.
+    document.getElementById('personalRecordsViewAll').style.display = allRecords.length === 0 ? 'none' : 'flex';
+
+    if(records.length === 0){
+      container.innerHTML =
+        '<div class="empty-block">' +
+          '<div class="empty-block-title">Aún no tienes récords</div>' +
+          '<div class="empty-block-sub">Se registran solos al completar entrenamientos. También puedes añadir una marca que ya tenías.</div>' +
+          '<button class="empty-block-btn" onclick="openAddRecordScreen()"><i data-feather="plus"></i> Añadir marca</button>' +
+        '</div>';
+    } else {
+      container.innerHTML = records.map(buildPersonalRecordRowHtml).join('');
+    }
     feather.replace();
   }
 
@@ -4943,7 +4977,11 @@
     document.getElementById('homeProgressViewAll').style.display = records.length === 0 ? 'none' : 'flex';
 
     if(records.length === 0){
-      container.innerHTML = '<div class="progress-empty">Completa un entrenamiento para empezar a ver tu progreso aquí.</div>';
+      container.innerHTML =
+        '<div class="card progress-card"><div class="empty-block">' +
+          '<div class="empty-block-title">Tu progreso aparecerá aquí</div>' +
+          '<div class="empty-block-sub">Completa un entrenamiento y verás tus mejores marcas.</div>' +
+        '</div></div>';
       return;
     }
 
@@ -5077,7 +5115,10 @@
     const maxCount = Math.max(...counts, 0);
     const todayStr = todayIso();
 
-    document.getElementById('weeklyActivityChart').innerHTML = weekDates.map((dateStr, i) => {
+    const weekIsEmpty = counts.every(c => c === 0);
+    document.getElementById('weeklyActivityChart').innerHTML =
+      (weekIsEmpty ? '<div class="chart-empty-msg">Tu semana aparecerá aquí cuando entrenes</div>' : '') +
+      weekDates.map((dateStr, i) => {
       const count = counts[i];
       const isToday = dateStr === todayStr;
       const heightStyle = count === 0 ? '3px' : Math.max(8, Math.round((count / maxCount) * 100)) + '%';
