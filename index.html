@@ -873,7 +873,7 @@
     display:flex;align-items:center;justify-content:center;margin-bottom:10px;
   }
   .exercise-card.selected .exercise-card-icon{background:var(--accent-dim);}
-  .exercise-card-icon svg{width:17px;height:17px;color:var(--text-secondary);}
+  .exercise-card-icon svg{width:20px;height:20px;color:var(--text-secondary);}
   .exercise-card.selected .exercise-card-icon svg{color:#fff;}
   .exercise-card-icon-photo{overflow:hidden;padding:0;}
   .exercise-card-icon-photo img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -1157,6 +1157,51 @@
   .goal-option.selected .goal-radio{border-color:var(--accent-text);}
   .goal-option.selected .goal-radio::after{content:'';position:absolute;inset:3px;border-radius:999px;background:var(--accent-text);}
 
+  /* Momento de récord: capa breve sobre el resumen. Animaciones solo con CSS. */
+  .pr-victory{
+    position:absolute;inset:0;z-index:180;background:rgba(11,11,15,0.97);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    padding:0 28px;opacity:0;pointer-events:none;transition:opacity 0.3s ease;
+  }
+  .pr-victory.open{opacity:1;pointer-events:auto;}
+  .pr-victory-glow{
+    position:absolute;left:50%;top:38%;width:560px;height:560px;transform:translate(-50%,-50%);
+    background:radial-gradient(circle, rgba(42,155,136,0.30), transparent 62%);pointer-events:none;
+    opacity:0;
+  }
+  .pr-victory.open .pr-victory-glow{animation:prGlow 1.2s ease-out forwards;}
+  .pr-victory-inner{position:relative;display:flex;flex-direction:column;align-items:center;}
+  .pr-victory-star{position:relative;width:104px;height:104px;display:flex;align-items:center;justify-content:center;margin-bottom:26px;color:var(--logo-mint);}
+  .pr-victory-star svg{width:92px;height:92px;opacity:0;}
+  .pr-victory.open .pr-victory-star svg{animation:prStarPop 0.85s cubic-bezier(.2,.9,.3,1.2) 0.1s forwards;}
+  .pr-victory-ring{
+    position:absolute;inset:0;border-radius:50%;border:2px solid var(--logo-mint);opacity:0;
+  }
+  .pr-victory.open .pr-victory-ring{animation:prRing 1.3s ease-out 0.35s forwards;}
+  .pr-victory.open .pr-victory-ring-2{animation-delay:0.65s;}
+  .pr-victory-title{font-family:var(--font-display);font-weight:700;font-size:30px;letter-spacing:-0.5px;color:var(--text-primary);opacity:0;}
+  .pr-victory-exercise{font-family:var(--font-body);font-weight:600;font-size:16px;color:var(--text-secondary);margin-top:10px;opacity:0;}
+  .pr-victory-weight{font-family:var(--font-display);font-weight:700;font-size:52px;letter-spacing:-1px;color:var(--text-primary);margin-top:14px;line-height:1;opacity:0;}
+  .pr-victory-delta{display:flex;align-items:center;gap:6px;font-family:var(--font-body);font-weight:600;font-size:16px;color:var(--accent-text);margin-top:12px;opacity:0;}
+  .pr-victory-delta svg{width:16px;height:16px;}
+  .pr-victory-more{font-family:var(--font-body);font-weight:500;font-size:13.5px;color:var(--text-tertiary);margin-top:10px;opacity:0;}
+  .pr-victory.open .pr-victory-title{animation:prRise 0.5s ease-out 0.45s forwards;}
+  .pr-victory.open .pr-victory-exercise{animation:prRise 0.5s ease-out 0.6s forwards;}
+  .pr-victory.open .pr-victory-weight{animation:prRise 0.55s ease-out 0.72s forwards;}
+  .pr-victory.open .pr-victory-delta{animation:prRise 0.5s ease-out 0.9s forwards;}
+  .pr-victory.open .pr-victory-more{animation:prRise 0.5s ease-out 1.0s forwards;}
+  .pr-victory-hint{
+    position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom, 14px) + 28px);
+    font-family:var(--font-body);font-weight:500;font-size:12.5px;color:var(--text-tertiary);opacity:0;
+  }
+  .pr-victory.open .pr-victory-hint{animation:prRise 0.5s ease-out 1.4s forwards;}
+  @keyframes prStarPop{0%{transform:scale(0.3) rotate(-18deg);opacity:0;}55%{transform:scale(1.18) rotate(6deg);opacity:1;}100%{transform:scale(1) rotate(0);opacity:1;}}
+  @keyframes prRing{0%{transform:scale(0.6);opacity:0.5;}100%{transform:scale(2.2);opacity:0;}}
+  @keyframes prRise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes prGlow{from{opacity:0;transform:translate(-50%,-50%) scale(0.7);}to{opacity:1;transform:translate(-50%,-50%) scale(1);}}
+  @media (prefers-reduced-motion: reduce){
+    .pr-victory.open *{animation-duration:0.01s !important;animation-delay:0s !important;}
+  }
   .toast{
     position:absolute;left:20px;right:20px;
     bottom:calc(env(safe-area-inset-bottom, 10px) + 82px);
@@ -1479,8 +1524,8 @@
       </div>
 
       <div class="wk-demo-images wk-demo-hidden" id="wkDemoImages">
-        <div class="wk-demo-img-wrap"><img id="wkDemoImgA" src="" alt="" loading="lazy" /></div>
-        <div class="wk-demo-img-wrap"><img id="wkDemoImgB" src="" alt="" loading="lazy" /></div>
+        <div class="wk-demo-img-wrap"><img id="wkDemoImgA" src="" alt="" loading="lazy" onerror="wkDemoImageFailed()" /></div>
+        <div class="wk-demo-img-wrap"><img id="wkDemoImgB" src="" alt="" loading="lazy" onerror="wkDemoImageFailed()" /></div>
       </div>
 
       <div class="wk-last-time" id="wkLastTime" style="display:none">
@@ -1972,6 +2017,20 @@
     </div>
   </div>
 
+
+  <!-- ============ MOMENTO DE RÉCORD (se superpone al resumen solo si hubo récord) ============ -->
+  <div class="pr-victory" id="prVictory" onclick="closePrVictory(true)">
+    <div class="pr-victory-glow"></div>
+    <div class="pr-victory-inner" id="prVictoryInner">
+      <div class="pr-victory-star"><span class="pr-victory-ring"></span><span class="pr-victory-ring pr-victory-ring-2"></span><span id="prVictoryStarSvg"></span></div>
+      <div class="pr-victory-title" id="prVictoryTitle">¡Nuevo récord!</div>
+      <div class="pr-victory-exercise" id="prVictoryExercise">Sentadilla</div>
+      <div class="pr-victory-weight" id="prVictoryWeight">97,5 kg</div>
+      <div class="pr-victory-delta" id="prVictoryDelta"></div>
+      <div class="pr-victory-more" id="prVictoryMore"></div>
+    </div>
+    <div class="pr-victory-hint">Toca para continuar</div>
+  </div>
 
   <!-- ============ SUCCESS TOAST ============ -->
   <div class="toast" id="successToast">
@@ -2889,9 +2948,56 @@
     releaseWakeLock(); // el entrenamiento ya terminó; no hace falta mantener la pantalla encendida
     document.getElementById('workoutSummaryScreen').classList.add('open');
     feather.replace();
+    openPrVictory(summary.prBreaks);
+  }
+
+  // ---------- Momento de récord ----------
+  // Si el entrenamiento rompió algún récord, una capa breve (estrella animada,
+  // titular y el peso nuevo) se superpone al resumen y se retira sola o al
+  // tocarla. El resumen y la tarjeta para compartir quedan debajo, intactos.
+  let prVictoryTimer = null;
+  let prVictoryOpenedAt = 0;
+
+  function openPrVictory(prBreaks){
+    if(!prBreaks || prBreaks.length === 0) return;
+    const overlay = document.getElementById('prVictory');
+    const n = prBreaks.length;
+
+    // El récord principal es el de mayor salto sobre la marca anterior.
+    const main = prBreaks.slice().sort((a, b) => (b.weight - b.previous) - (a.weight - a.previous))[0];
+    const delta = Math.round((main.weight - main.previous) * 100) / 100;
+
+    document.getElementById('prVictoryStarSvg').innerHTML = prMedalSvg();
+    document.getElementById('prVictoryTitle').textContent = n === 1 ? '¡Nuevo récord!' : '¡' + n + ' nuevos récords!';
+    document.getElementById('prVictoryExercise').textContent = main.exerciseName;
+    document.getElementById('prVictoryWeight').textContent = formatWeightEs(main.weight) + ' kg';
+    document.getElementById('prVictoryDelta').innerHTML = '<i data-feather="trending-up"></i> +' + formatWeightEs(delta) + ' kg sobre tu marca anterior';
+    document.getElementById('prVictoryMore').textContent = n > 1 ? 'y ' + (n - 1) + ' más' : '';
+    feather.replace();
+
+    // Reiniciar las animaciones si ya se había abierto antes.
+    overlay.classList.remove('open');
+    void overlay.offsetWidth;
+    overlay.classList.add('open');
+    prVictoryOpenedAt = Date.now();
+
+    if(navigator.vibrate){
+      try { navigator.vibrate([30, 70, 30, 70, 110]); } catch(e){}
+    }
+    clearTimeout(prVictoryTimer);
+    prVictoryTimer = setTimeout(() => closePrVictory(false), 3600);
+  }
+
+  // fromTap: ignora toques en los primeros 900ms para que el toque que acaba de
+  // terminar el entrenamiento no lo cierre sin querer.
+  function closePrVictory(fromTap){
+    if(fromTap && Date.now() - prVictoryOpenedAt < 900) return;
+    clearTimeout(prVictoryTimer);
+    document.getElementById('prVictory').classList.remove('open');
   }
 
   function closeWorkoutSummary(){
+    closePrVictory(false);
     shareCardRenderToken++;
     shareCardState = { summary: null, photo: null, file: null }; // libera la foto y la imagen generada
     document.getElementById('workoutSummaryScreen').classList.remove('open');
@@ -2962,11 +3068,13 @@
     const demo = getDemoImagesForExerciseName(ex.name);
     const demoEl = document.getElementById('wkDemoImages');
     if(demo){
+      // Al cambiar de ejercicio se olvida un fallo anterior de imagen.
+      if(document.getElementById('wkDemoImgA').getAttribute('src') !== demo.imageStart) demoEl.dataset.broken = '';
       document.getElementById('wkDemoImgA').src = demo.imageStart;
       document.getElementById('wkDemoImgA').alt = ex.name + ' — posición A';
       document.getElementById('wkDemoImgB').src = demo.imageEnd;
       document.getElementById('wkDemoImgB').alt = ex.name + ' — posición B';
-      demoEl.classList.toggle('wk-demo-hidden', restRemaining !== null);
+      demoEl.classList.toggle('wk-demo-hidden', restRemaining !== null || demoEl.dataset.broken === '1');
     } else {
       demoEl.classList.add('wk-demo-hidden');
     }
@@ -3004,6 +3112,12 @@
     }
 
     feather.replace();
+  }
+
+  function wkDemoImageFailed(){
+    const demoEl = document.getElementById('wkDemoImages');
+    demoEl.dataset.broken = '1';
+    demoEl.classList.add('wk-demo-hidden');
   }
 
   function toggleSet(i){
@@ -3601,8 +3715,49 @@
     startWorkoutFromRoutine(routine.id);
   }
 
+  // Iconos de grupo muscular (selector de ejercicios). Mismo estilo que los
+  // iconos de rutina (24x24, trazo 2). Los grupos de "empuje/tirón/piernas"
+  // reutilizan esos dibujos; el resto son propios. Se referencian como
+  // 'muscle:<clave>' en el campo `icon` de cada grupo.
+  const MUSCLE_ICON_SHAPES = {
+    pecho: ROUTINE_ICON_SHAPES.push,
+    espalda: ROUTINE_ICON_SHAPES.pull,
+    piernas: ROUTINE_ICON_SHAPES.legs,
+    cuerpo_completo: ROUTINE_ICON_SHAPES.bodyweight,
+    default: ROUTINE_ICON_SHAPES.dumbbell,
+    // Abdominales: torso con rejilla de 6 celdas
+    core:
+      '<rect x="6" y="3" width="12" height="18" rx="4.5"/><path d="M12 3v18"/><path d="M6 9h12"/><path d="M6 15h12"/>',
+    // Hombros: cabeza y deltoides redondeados
+    hombros:
+      '<circle cx="12" cy="5.2" r="2.4"/><path d="M3 21v-4.2C3 13.8 5.4 11.4 8.4 11h7.2c3 .4 5.4 2.8 5.4 5.8V21"/>' +
+      '<circle cx="5.6" cy="14.2" r="2.3" fill="currentColor" stroke="none"/><circle cx="18.4" cy="14.2" r="2.3" fill="currentColor" stroke="none"/>',
+    // Bíceps: curl (flecha que sube hacia la mancuerna)
+    biceps:
+      '<path d="M4 20C4 13.5 7.5 9.5 12 8.5"/><path d="M9.2 6.8 12.2 8.5 10.2 11.3"/>' +
+      '<path d="M12.5 12.5 18 7"/><path d="M14.5 5.5 19.5 10.5"/><path d="M16.8 3.2 21.8 8.2"/>',
+    // Tríceps: extensión (el mismo gesto en sentido contrario, hacia abajo)
+    triceps:
+      '<path d="M4 4C4 10.5 7.5 14.5 12 15.5"/><path d="M9.2 17.2 12.2 15.5 10.2 12.7"/>' +
+      '<g transform="translate(0 24) scale(1 -1)"><path d="M12.5 12.5 18 7"/><path d="M14.5 5.5 19.5 10.5"/><path d="M16.8 3.2 21.8 8.2"/></g>',
+    // Antebrazos: puño cerrado
+    antebrazos:
+      '<path d="M6 11V8.3a1.5 1.5 0 0 1 3 0V11"/><path d="M9 11V6.8a1.5 1.5 0 0 1 3 0V11"/><path d="M12 11V6.8a1.5 1.5 0 0 1 3 0V11"/><path d="M15 11V8.3a1.5 1.5 0 0 1 3 0V11"/>' +
+      '<path d="M6 11v6.3A3.2 3.2 0 0 0 9.2 20.5h5.6a3.2 3.2 0 0 0 3.2-3.2V11z"/><path d="M6 13.5C4.4 13.5 3.4 14.5 3.4 15.8"/>',
+  };
+
+  // Marcado del icono de un grupo: SVG propio si es 'muscle:<clave>', o un icono
+  // de Feather en cualquier otro caso.
+  function groupIconMarkup(groupIcon){
+    if(groupIcon && String(groupIcon).indexOf('muscle:') === 0){
+      const shape = MUSCLE_ICON_SHAPES[String(groupIcon).slice(7)] || MUSCLE_ICON_SHAPES.default;
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + shape + '</svg>';
+    }
+    return '<i data-feather="' + groupIcon + '"></i>';
+  }
+
   const MUSCLE_GROUPS = [
-    { key:'espalda', label:'ESPALDA', icon:'chevrons-up', exercises:[
+    { key:'espalda', label:'ESPALDA', icon:'muscle:espalda', exercises:[
       { id:'b1', name:'Dominadas' },
       { id:'b2', name:'Remo con barra' },
       { id:'b3', name:'Jalón al pecho' },
@@ -3610,7 +3765,7 @@
       { id:'b5', name:'Peso muerto' },
       { id:'b6', name:'Remo en polea baja' },
     ]},
-    { key:'pecho', label:'PECHO', icon:'shield', exercises:[
+    { key:'pecho', label:'PECHO', icon:'muscle:pecho', exercises:[
       { id:'c1', name:'Press banca' },
       { id:'c2', name:'Press inclinado mancuerna' },
       { id:'c3', name:'Aperturas con mancuerna' },
@@ -3618,7 +3773,7 @@
       { id:'c5', name:'Cruces en polea' },
       { id:'c6', name:'Fondos en paralelas' },
     ]},
-    { key:'piernas', label:'PIERNAS', icon:'trending-up', exercises:[
+    { key:'piernas', label:'PIERNAS', icon:'muscle:piernas', exercises:[
       { id:'l1', name:'Sentadilla' },
       { id:'l2', name:'Peso muerto rumano' },
       { id:'l3', name:'Prensa' },
@@ -3626,7 +3781,7 @@
       { id:'l5', name:'Curl femoral' },
       { id:'l6', name:'Extensión de cuádriceps' },
     ]},
-    { key:'hombros', label:'HOMBROS', icon:'triangle', exercises:[
+    { key:'hombros', label:'HOMBROS', icon:'muscle:hombros', exercises:[
       { id:'s1', name:'Press militar' },
       { id:'s2', name:'Elevaciones laterales' },
       { id:'s3', name:'Face pull' },
@@ -3634,7 +3789,7 @@
       { id:'s5', name:'Pájaros (posterior)' },
       { id:'s6', name:'Press Arnold' },
     ]},
-    { key:'biceps', label:'BÍCEPS', icon:'zap', exercises:[
+    { key:'biceps', label:'BÍCEPS', icon:'muscle:biceps', exercises:[
       { id:'bi1', name:'Curl de bíceps' },
       { id:'bi2', name:'Curl martillo' },
       { id:'bi3', name:'Curl concentrado' },
@@ -3642,7 +3797,7 @@
       { id:'bi5', name:'Curl scott' },
       { id:'bi6', name:'Curl 21' },
     ]},
-    { key:'triceps', label:'TRÍCEPS', icon:'activity', exercises:[
+    { key:'triceps', label:'TRÍCEPS', icon:'muscle:triceps', exercises:[
       { id:'t1', name:'Extensión de tríceps' },
       { id:'t2', name:'Fondos en banco' },
       { id:'t3', name:'Press francés' },
@@ -3656,9 +3811,9 @@
   MUSCLE_GROUPS.forEach(group => group.exercises.forEach(ex => { EXERCISE_NAME_BY_ID[ex.id] = ex.name; }));
 
   const LIBRARY_GROUP_META = {
-    core: { label:'CORE', icon:'crosshair' },
-    antebrazos: { label:'ANTEBRAZOS', icon:'move' },
-    cuerpo_completo: { label:'CUERPO COMPLETO', icon:'user' },
+    core: { label:'CORE', icon:'muscle:core' },
+    antebrazos: { label:'ANTEBRAZOS', icon:'muscle:antebrazos' },
+    cuerpo_completo: { label:'CUERPO COMPLETO', icon:'muscle:cuerpo_completo' },
   };
 
   function buildCatalogGroups(){
@@ -3678,7 +3833,7 @@
     library.forEach(item => {
       let group = byKey[item.muscleGroup];
       if(!group){
-        const meta = LIBRARY_GROUP_META[item.muscleGroup] || { label: item.muscleGroup.toUpperCase(), icon:'circle' };
+        const meta = LIBRARY_GROUP_META[item.muscleGroup] || { label: item.muscleGroup.toUpperCase(), icon:'muscle:default' };
         group = { key:item.muscleGroup, label:meta.label, icon:meta.icon, exercises:[] };
         byKey[item.muscleGroup] = group;
         groups.push(group);
@@ -3832,7 +3987,7 @@
 
       const catalogEx = findCatalogExerciseFor(ex);
       const demoHtml = (catalogEx && catalogEx.imageStart)
-        ? '<button class="routine-ex-demo-btn" onclick="openExerciseDemo(\'' + catalogEx.id + '\')" title="Ver ejercicio"><img src="' + catalogEx.imageStart + '" alt="" loading="lazy" /></button>'
+        ? '<button class="routine-ex-demo-btn" onclick="openExerciseDemo(\'' + catalogEx.id + '\')" title="Ver ejercicio"><img src="' + catalogEx.imageStart + '" alt="" loading="lazy" onerror="this.parentElement.style.display=\'none\'" /></button>'
         : '';
 
       const handleHtml = '<div class="routine-ex-handle" onpointerdown="startRoutineDetailDrag(event,' + i + ')" title="Arrastra para reordenar"><i data-feather="move"></i></div>';
@@ -3946,7 +4101,7 @@
 
       const catalogEx = findCatalogExerciseFor(ex);
       const demoHtml = (catalogEx && catalogEx.imageStart)
-        ? '<button class="routine-ex-demo-btn" onclick="openExerciseDemo(\'' + catalogEx.id + '\')" title="Ver ejercicio"><img src="' + catalogEx.imageStart + '" alt="" loading="lazy" /></button>'
+        ? '<button class="routine-ex-demo-btn" onclick="openExerciseDemo(\'' + catalogEx.id + '\')" title="Ver ejercicio"><img src="' + catalogEx.imageStart + '" alt="" loading="lazy" onerror="this.parentElement.style.display=\'none\'" /></button>'
         : '';
       const weightHtml = hasWeight
         ? '<div class="routine-ex-weight-btn" style="cursor:default;">' + formatWeightEs(ex.weight) + ' kg</div>'
@@ -4333,11 +4488,21 @@
     if(editCatalogOpen) renderEditRoutineCatalog();
   }
 
+  // Si la foto de un ejercicio no carga, se sustituye por el icono de su grupo
+  // muscular (en vez del icono de imagen rota con el texto alternativo).
+  function exerciseImageFallback(img){
+    const wrap = img.parentElement;
+    if(!wrap) return;
+    wrap.classList.remove('exercise-card-icon-photo');
+    wrap.innerHTML = groupIconMarkup(img.getAttribute('data-group-icon'));
+    feather.replace();
+  }
+
   function exerciseCardIconHtml(ex, groupIcon){
     if(ex.imageStart){
-      return '<div class="exercise-card-icon exercise-card-icon-photo"><img src="' + ex.imageStart + '" alt="' + escapeHtml(ex.name) + '" loading="lazy"></div>';
+      return '<div class="exercise-card-icon exercise-card-icon-photo"><img src="' + ex.imageStart + '" alt="" loading="lazy" data-group-icon="' + escapeHtml(groupIcon) + '" onerror="exerciseImageFallback(this)"></div>';
     }
-    return '<div class="exercise-card-icon"><i data-feather="' + groupIcon + '"></i></div>';
+    return '<div class="exercise-card-icon">' + groupIconMarkup(groupIcon) + '</div>';
   }
 
   function renderEditRoutineCatalog(){
@@ -4427,10 +4592,10 @@
 
     document.getElementById('exerciseDemoName').textContent = ex.name;
 
-    const imagesHtml = ['<div class="ex-demo-img-wrap"><img src="' + ex.imageStart + '" alt="' + escapeHtml(ex.name) + ' — posición inicial" /></div>'];
+    const imagesHtml = ['<div class="ex-demo-img-wrap"><img src="' + ex.imageStart + '" alt="' + escapeHtml(ex.name) + ' — posición inicial" onerror="this.parentElement.style.display=\'none\'" /></div>'];
     if(ex.imageEnd){
       imagesHtml.push('<div class="ex-demo-arrow"><i data-feather="arrow-right"></i></div>');
-      imagesHtml.push('<div class="ex-demo-img-wrap"><img src="' + ex.imageEnd + '" alt="' + escapeHtml(ex.name) + ' — posición final" /></div>');
+      imagesHtml.push('<div class="ex-demo-img-wrap"><img src="' + ex.imageEnd + '" alt="' + escapeHtml(ex.name) + ' — posición final" onerror="this.parentElement.style.display=\'none\'" /></div>');
     }
     document.getElementById('exerciseDemoImages').innerHTML = imagesHtml.join('');
 
