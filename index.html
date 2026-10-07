@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Strive</title>
+<title>Fiten</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
-<!-- Strive Exercise Library — imported from RepDB (see exercise-library.js header).
+<!-- Fiten Exercise Library — imported from RepDB (see exercise-library.js header).
      Loaded as a plain script tag (not fetch) so this keeps working when the
      app is opened directly as a file, with no local server involved. -->
 <script src="exercise-library.js?v=demo-images-1"></script>
@@ -1273,14 +1273,14 @@
           <div class="hero-empty-eyebrow-dot"></div>
           <div class="hero-empty-eyebrow">Sin entrenamiento programado</div>
         </div>
-        <div class="hero-empty-title">Empieza con Strive</div>
+        <div class="hero-empty-title">Empieza con Fiten</div>
         <div class="hero-empty-subtitle">Crea una rutina adaptada a tu objetivo y a tu forma de entrenar.</div>
         <div class="hero-empty-actions">
           <button class="hero-empty-secondary" onclick="openExploreRoutinesScreen()">
             <i data-feather="arrow-right"></i> Explorar rutinas
           </button>
           <button class="hero-empty-primary" onclick="showTab('rutinas'); openGoalPicker();">
-            Crear con Strive <i data-feather="cpu"></i>
+            Crear con Fiten <i data-feather="cpu"></i>
           </button>
         </div>
       </div>
@@ -1542,7 +1542,7 @@
     <div class="sheet-option" onclick="openGoalPicker()">
       <div class="sheet-option-icon"><i data-feather="cpu"></i></div>
       <div>
-        <div class="sheet-option-title">Crear rutina con Strive</div>
+        <div class="sheet-option-title">Crear rutina con Fiten</div>
         <div class="sheet-option-desc">Te generamos una rutina según tu objetivo</div>
       </div>
     </div>
@@ -1616,12 +1616,12 @@
     </div>
   </div>
 
-  <!-- ============ CREATE WITH STRIVE: GOAL PICKER ============ -->
+  <!-- ============ CREATE WITH FITEN: GOAL PICKER ============ -->
   <div class="flow-overlay" id="goalPickerScreen">
     <div class="flow-header">
       <div>
         <div class="flow-title">¿Qué quieres conseguir con tu entrenamiento?</div>
-        <div class="flow-subtitle">Strive generará una rutina personalizada para ti.</div>
+        <div class="flow-subtitle">Fiten generará una rutina personalizada para ti.</div>
       </div>
       <button class="close-btn" onclick="closeGoalPicker()"><i data-feather="x"></i></button>
     </div>
@@ -1640,7 +1640,7 @@
     <div class="flow-header">
       <div>
         <div class="flow-title">Añadir marca</div>
-        <div class="flow-subtitle">Importa un peso que ya tenías antes de usar Strive.</div>
+        <div class="flow-subtitle">Importa un peso que ya tenías antes de usar Fiten.</div>
       </div>
       <button class="close-btn" onclick="closeAddRecordScreen()"><i data-feather="x"></i></button>
     </div>
@@ -1691,7 +1691,7 @@
     </div>
   </div>
 
-  <!-- ============ EXPLORAR RUTINAS: biblioteca de Strive ============ -->
+  <!-- ============ EXPLORAR RUTINAS: biblioteca de Fiten ============ -->
   <!-- Plantillas globales (LIBRARY_ROUTINES) — nunca pertenecen al usuario
        hasta que pulsa "Añadir a mis rutinas" dentro de la preview (ver
        openLibraryRoutineDetail / addLibraryRoutineToMine). Sin kebab, sin
@@ -1700,7 +1700,7 @@
     <div class="flow-header">
       <div>
         <div class="flow-title">Explorar rutinas</div>
-        <div class="flow-subtitle">Rutinas de Strive listas para añadir a tu plan.</div>
+        <div class="flow-subtitle">Rutinas de Fiten listas para añadir a tu plan.</div>
       </div>
       <button class="close-btn" onclick="closeExploreRoutinesScreen()"><i data-feather="x"></i></button>
     </div>
@@ -1915,7 +1915,7 @@
     <div class="flow-header">
       <div>
         <div class="flow-title">Objetivo y nivel</div>
-        <div class="flow-subtitle">Ayuda a Strive a generar rutinas más ajustadas a ti.</div>
+        <div class="flow-subtitle">Ayuda a Fiten a generar rutinas más ajustadas a ti.</div>
       </div>
       <button class="close-btn" onclick="closeGoalLevelScreen()"><i data-feather="x"></i></button>
     </div>
@@ -1993,7 +1993,7 @@
       <div class="auth-scroll">
         <div class="brand-lockup" data-fiten-logo="horizontal"></div>
         <div class="flow-title">Inicia sesión</div>
-        <div class="flow-subtitle">Entrena, registra y progresa con Strive.</div>
+        <div class="flow-subtitle">Entrena, registra y progresa con Fiten.</div>
 
         <div class="auth-fields">
           <div class="form-label">Email</div>
@@ -2781,7 +2781,7 @@
     const type = photo ? 'image/jpeg' : 'image/png';
     canvas.toBlob(blob => {
       if(!blob || token !== shareCardRenderToken) return;
-      shareCardState.file = new File([blob], 'strive-entrenamiento.' + (photo ? 'jpg' : 'png'), { type });
+      shareCardState.file = new File([blob], 'fiten-entrenamiento.' + (photo ? 'jpg' : 'png'), { type });
     }, type, 0.92);
   }
 
@@ -2838,14 +2838,14 @@
     if(!file){
       const type = shareCardState.photo ? 'image/jpeg' : 'image/png';
       file = await new Promise(resolve => canvas.toBlob(
-        blob => resolve(blob ? new File([blob], 'strive-entrenamiento.' + (shareCardState.photo ? 'jpg' : 'png'), { type }) : null),
+        blob => resolve(blob ? new File([blob], 'fiten-entrenamiento.' + (shareCardState.photo ? 'jpg' : 'png'), { type }) : null),
         type, 0.92));
     }
     if(!file) return;
 
     if(navigator.share && navigator.canShare && navigator.canShare({ files: [file] })){
       try {
-        await navigator.share({ files: [file], title: 'Mi entrenamiento en Strive' });
+        await navigator.share({ files: [file], title: 'Mi entrenamiento en Fiten' });
       } catch(e){
         if(e && e.name === 'AbortError') return; // el usuario cerró el menú
         downloadShareFile(file);
@@ -3372,7 +3372,7 @@
   const DEFAULT_ROUTINE_ICON = 'target';
 
   // ================================================================
-  // BIBLIOTECA DE STRIVE — plantillas globales ("Explorar rutinas").
+  // BIBLIOTECA DE FITEN — plantillas globales ("Explorar rutinas").
   // Exactamente las mismas 3 rutinas que antes poblaban `routines`
   // directamente; solo cambia CUÁNDO entran a formar parte del usuario.
   // Nunca se mutan in-place (la preview de biblioteca es de solo lectura,
@@ -3413,7 +3413,7 @@
   ];
 
   // MIS RUTINAS — rutinas que pertenecen al usuario (creadas a mano,
-  // generadas con Strive, o añadidas desde la biblioteca). Un usuario
+  // generadas con Fiten, o añadidas desde la biblioteca). Un usuario
   // nuevo empieza en 0: nada se copia automáticamente desde la biblioteca.
   let routines = [];
 
@@ -3473,7 +3473,7 @@
   }
 
   // ---------- Memoria de pesos por ejercicio ----------
-  // Strive recuerda el último peso usado de cada ejercicio (por nombre) y lo
+  // Fiten recuerda el último peso usado de cada ejercicio (por nombre) y lo
   // propone por defecto al meterlo en una rutina nueva, para no volver a
   // escribirlo. Se actualiza cuando guardas un peso en una rutina y cuando
   // terminas un entrenamiento (gana siempre lo más reciente). Si el ejercicio
@@ -3536,7 +3536,7 @@
       container.innerHTML =
         '<div class="ex-empty-state" style="padding-top:64px;">' +
           '<div class="ex-empty-title">Aún no tienes rutinas</div>' +
-          '<div class="ex-empty-sub">Crea tu primera rutina o explora la biblioteca de Strive.</div>' +
+          '<div class="ex-empty-sub">Crea tu primera rutina o explora la biblioteca de Fiten.</div>' +
           '<button class="flow-primary-btn" style="margin-top:24px;" onclick="openCreateSheet()">' +
             '<i data-feather="plus"></i> Crear rutina' +
           '</button>' +
@@ -3740,7 +3740,7 @@
     return details;
   }
 
-  console.log('[Strive] workout demo-images build loaded — mapped exercises:', Object.keys(LEGACY_EXERCISE_IMAGE_MAP).length);
+  console.log('[Fiten] workout demo-images build loaded — mapped exercises:', Object.keys(LEGACY_EXERCISE_IMAGE_MAP).length);
 
   let currentPreviewRoutineId = null;
   let currentPreviewSource = 'mine'; // 'mine' | 'library' — qué footer/cuerpo renderizar
@@ -3884,7 +3884,7 @@
   }
 
   // ================================================================
-  // EXPLORAR RUTINAS — biblioteca de Strive (LIBRARY_ROUTINES).
+  // EXPLORAR RUTINAS — biblioteca de Fiten (LIBRARY_ROUTINES).
   // Solo lectura: aquí nunca se editan series/reps/peso/descanso ni se
   // reordena, precisamente porque esos datos son una plantilla global,
   // no algo del usuario — mutarlos in-place afectaría a todo el mundo.
@@ -4776,7 +4776,7 @@
 
   const GOAL_ROUTINE_TEMPLATES = {
     muscle: {
-      name:'Hipertrofia Strive', estimatedMinutes:55, icon:'dumbbell',
+      name:'Hipertrofia Fiten', estimatedMinutes:55, icon:'dumbbell',
       exercises:[
         { ref:'c1',  sets:4, repsRange:'8-12' },
         { ref:'b2',  sets:4, repsRange:'8-12' },
@@ -4786,7 +4786,7 @@
       ],
     },
     strength: {
-      name:'Fuerza Strive', estimatedMinutes:60, icon:'strength',
+      name:'Fuerza Fiten', estimatedMinutes:60, icon:'strength',
       exercises:[
         { ref:'l1', sets:5, repsRange:'3-5' },
         { ref:'c1', sets:5, repsRange:'3-5' },
@@ -4795,7 +4795,7 @@
       ],
     },
     endurance: {
-      name:'Resistencia Strive', estimatedMinutes:45, icon:'cardio',
+      name:'Resistencia Fiten', estimatedMinutes:45, icon:'cardio',
       exercises:[
         { ref:'l3',  sets:3, repsRange:'15-20' },
         { ref:'b3',  sets:3, repsRange:'15-20' },
@@ -4806,7 +4806,7 @@
       ],
     },
     fatloss: {
-      name:'Quema Strive', estimatedMinutes:40, icon:'lightning',
+      name:'Quema Fiten', estimatedMinutes:40, icon:'lightning',
       exercises:[
         { ref:'l1', sets:3, repsRange:'12-15' },
         { ref:'b2', sets:3, repsRange:'12-15' },
@@ -4817,7 +4817,7 @@
       ],
     },
     fitness: {
-      name:'Full Body Strive', estimatedMinutes:45, icon:'heart',
+      name:'Full Body Fiten', estimatedMinutes:45, icon:'heart',
       exercises:[
         { ref:'l1',  sets:3, repsRange:'10-12' },
         { ref:'c1',  sets:3, repsRange:'10-12' },
@@ -4838,7 +4838,7 @@
       return ex;
     });
     return {
-      id: 'strive-' + Date.now(),
+      id: 'fiten-' + Date.now(),
       name: template.name,
       exerciseCount: exercises.length,
       estimatedMinutes: template.estimatedMinutes,
@@ -4857,7 +4857,7 @@
     closeGoalPicker();
     showTab('rutinas');
     renderRoutinesList(routine.id);
-    showSuccessToast('Strive creó "' + routine.name + '"');
+    showSuccessToast('Fiten creó "' + routine.name + '"');
   }
 
   let toastTimeout;
