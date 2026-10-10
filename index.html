@@ -310,6 +310,19 @@
     border-radius:22px;border:1px solid var(--border-light);background:var(--surface);
     box-shadow:var(--shadow-elevated);
   }
+  .ws-card-preview.square canvas{height:auto;width:min(76vw,330px);aspect-ratio:1/1;}
+  .ws-card-preview canvas.has-photo{touch-action:none;cursor:grab;}
+  .ws-format-toggle{
+    display:inline-flex;gap:4px;padding:4px;margin-top:16px;border-radius:14px;
+    background:var(--surface);border:1px solid var(--border);
+  }
+  .ws-format-btn{
+    height:34px;padding:0 16px;border-radius:10px;border:none;cursor:pointer;background:transparent;
+    font-family:var(--font-body);font-weight:600;font-size:13px;color:var(--text-tertiary);
+    transition:background 0.15s ease,color 0.15s ease;
+  }
+  .ws-format-btn.selected{background:var(--accent-soft);color:var(--accent-text);}
+  .ws-photo-hint{margin-top:10px;font-family:var(--font-body);font-weight:500;font-size:12.5px;color:var(--text-tertiary);}
   .ws-photo-row{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:16px;}
   .ws-photo-btn{
     display:flex;align-items:center;gap:8px;height:44px;padding:0 18px;border-radius:14px;cursor:pointer;
@@ -411,6 +424,36 @@
   .stat .v{font-family:var(--font-display);font-weight:600;font-size:20px;color:var(--text-primary);letter-spacing:-0.3px;}
   .stat .l{font-family:var(--font-body);font-weight:600;font-size:10.5px;letter-spacing:0.4px;text-transform:uppercase;color:var(--text-tertiary);margin-top:4px;}
   .v-divider{width:1px;height:34px;background:linear-gradient(180deg, transparent, var(--border-light), transparent);}
+  /* Meta semanal: aro de progreso + "de N días"; toda la tarjeta abre la hoja para cambiarla */
+  .activity-row-goal{cursor:pointer;transition:transform 0.15s ease;}
+  .activity-row-goal:active{transform:scale(0.98);}
+  .activity-goal{display:flex;align-items:center;gap:12px;min-width:0;}
+  .activity-ring{position:relative;width:52px;height:52px;flex-shrink:0;}
+  .activity-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);}
+  .activity-ring circle{fill:none;stroke-width:5;}
+  .activity-ring-track{stroke:var(--track-empty);}
+  .activity-ring-progress{stroke:var(--accent-text);stroke-linecap:round;stroke-dasharray:138.23;stroke-dashoffset:138.23;transition:stroke-dashoffset 0.6s ease;}
+  .activity-ring-center{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;font-size:17px;color:var(--text-primary);
+  }
+  .activity-ring-center svg{position:static;width:20px;height:20px;transform:none;color:var(--accent-text);}
+  .activity-goal-title{
+    display:flex;align-items:center;gap:6px;
+    font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--text-primary);letter-spacing:-0.2px;
+  }
+  .activity-goal-title svg{width:12px;height:12px;color:var(--text-tertiary);}
+  .activity-goal-label{font-family:var(--font-body);font-weight:600;font-size:10.5px;letter-spacing:0.4px;text-transform:uppercase;color:var(--text-tertiary);margin-top:4px;}
+  .sheet-subtitle{font-family:var(--font-body);font-size:13.5px;color:var(--text-secondary);margin:-6px 0 16px 0;}
+  .goal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:14px;}
+  .goal-day-btn{
+    height:48px;border-radius:14px;cursor:pointer;
+    background:var(--surface);border:1px solid var(--border);
+    font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--text-primary);
+    transition:transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+  .goal-day-btn:active{transform:scale(0.94);}
+  .goal-day-btn.selected{background:var(--accent-soft);border-color:var(--accent-soft-border);color:var(--accent-text);}
   .activity-icon-row{display:flex;align-items:center;gap:6px;}
   .activity-icon-row svg{width:15px;height:15px;color:var(--accent-text);}
   .activity-week{display:flex;gap:7px;flex-shrink:0;}
@@ -1147,7 +1190,7 @@
     background:var(--surface-high);display:flex;align-items:center;justify-content:center;
   }
   .goal-option.selected .goal-icon{background:var(--accent-dim);}
-  .goal-icon svg{width:18px;height:18px;color:var(--text-secondary);}
+  .goal-icon svg{width:22px;height:22px;color:var(--text-secondary);}
   .goal-option.selected .goal-icon svg{color:#fff;}
   .goal-label{flex:1;font-family:var(--font-body);font-weight:600;font-size:14.5px;color:var(--text-primary);}
   .goal-radio{
@@ -1341,10 +1384,19 @@
       <div style="height:32px"></div>
 
       <div class="section-header"><span class="section-title">Actividad</span></div>
-      <div class="activity-row">
-        <div class="stat">
-          <div class="activity-icon-row"><i data-feather="calendar"></i><span class="v" id="activityDaysCount">0</span></div>
-          <span class="l">días esta semana</span>
+      <div class="activity-row activity-row-goal" onclick="openWeeklyGoalSheet()">
+        <div class="activity-goal">
+          <div class="activity-ring">
+            <svg viewBox="0 0 52 52" aria-hidden="true">
+              <circle class="activity-ring-track" cx="26" cy="26" r="22"/>
+              <circle class="activity-ring-progress" id="activityRingProgress" cx="26" cy="26" r="22"/>
+            </svg>
+            <div class="activity-ring-center" id="activityRingCenter">0</div>
+          </div>
+          <div>
+            <div class="activity-goal-title"><span id="activityGoalText">de 3 días</span><i data-feather="edit-2"></i></div>
+            <div class="activity-goal-label">esta semana</div>
+          </div>
         </div>
         <div class="activity-week" id="activityWeekDots"></div>
       </div>
@@ -1972,6 +2024,11 @@
       <div style="height:10px"></div>
       <div class="muscle-section-title" style="margin-bottom:12px;">NIVEL</div>
       <div id="goalLevelLevelList"></div>
+
+      <div style="height:10px"></div>
+      <div class="muscle-section-title" style="margin-bottom:12px;">DÍAS POR SEMANA</div>
+      <div class="goal-days" id="goalLevelDays"></div>
+      <div style="height:8px"></div>
     </div>
 
     <div class="flow-footer">
@@ -1991,10 +2048,16 @@
 
       <div class="ws-card-preview"><canvas id="wsShareCanvas" width="1080" height="1920"></canvas></div>
 
+      <div class="ws-format-toggle">
+        <button class="ws-format-btn selected" data-format="story" onclick="setShareCardFormat('story')">Stories</button>
+        <button class="ws-format-btn" data-format="square" onclick="setShareCardFormat('square')">Cuadrado</button>
+      </div>
+
       <div class="ws-photo-row">
         <button class="ws-photo-btn" onclick="pickShareCardPhoto()"><i data-feather="image"></i> <span id="wsPhotoBtnLabel">Añadir foto de fondo</span></button>
         <button class="ws-photo-remove" id="wsPhotoRemove" onclick="removeShareCardPhoto()" style="display:none">Quitar</button>
       </div>
+      <div class="ws-photo-hint" id="wsPhotoHint" style="display:none">Arrastra para encuadrar · Pellizca para hacer zoom</div>
       <input type="file" id="wsPhotoInput" accept="image/*" style="display:none" />
 
       <div style="height:24px"></div>
@@ -2030,6 +2093,16 @@
       <div class="pr-victory-more" id="prVictoryMore"></div>
     </div>
     <div class="pr-victory-hint">Toca para continuar</div>
+  </div>
+
+  <!-- ============ META SEMANAL: HOJA PARA CAMBIARLA ============ -->
+  <div class="sheet-backdrop" id="weeklyGoalBackdrop" onclick="closeWeeklyGoalSheet()"></div>
+  <div class="action-sheet" id="weeklyGoalSheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Meta semanal</div>
+    <div class="sheet-subtitle">¿Cuántos días quieres entrenar a la semana?</div>
+    <div class="goal-days" id="weeklyGoalDays"></div>
+    <button class="sheet-cancel" onclick="closeWeeklyGoalSheet()">Cancelar</button>
   </div>
 
   <!-- ============ SUCCESS TOAST ============ -->
@@ -2277,9 +2350,9 @@
       key: 'experience',
       question: '¿Cuál es tu experiencia entrenando?',
       options: [
-        { value: 'beginner',     label: 'Estoy empezando',            icon: 'sunrise' },
-        { value: 'intermediate', label: 'Tengo algo de experiencia',  icon: 'activity' },
-        { value: 'advanced',     label: 'Llevo años entrenando',      icon: 'award' },
+        { value: 'beginner',     label: 'Estoy empezando',            icon: 'ui:level_1' },
+        { value: 'intermediate', label: 'Tengo algo de experiencia',  icon: 'ui:level_2' },
+        { value: 'advanced',     label: 'Llevo años entrenando',      icon: 'ui:level_3' },
       ],
     },
     {
@@ -2297,9 +2370,9 @@
       key: 'trainingLocation',
       question: '¿Dónde entrenas normalmente?',
       options: [
-        { value: 'gym',  label: 'Gimnasio',        icon: 'activity' },
-        { value: 'home', label: 'En casa',          icon: 'home' },
-        { value: 'both', label: 'Gimnasio y casa',  icon: 'layers' },
+        { value: 'gym',  label: 'Gimnasio',        icon: 'ui:loc_gym' },
+        { value: 'home', label: 'En casa',          icon: 'ui:loc_home' },
+        { value: 'both', label: 'Gimnasio y casa',  icon: 'ui:loc_both' },
       ],
     },
   ];
@@ -2340,7 +2413,7 @@
       const isSelected = currentValue === opt.value;
       return (
         '<div class="goal-option' + (isSelected ? ' selected' : '') + '" onclick="selectOnboardingOption(\'' + opt.value + '\')">' +
-          '<div class="goal-icon">' + (opt.iconText ? '<span class="goal-icon-text">' + opt.iconText + '</span>' : '<i data-feather="' + opt.icon + '"></i>') + '</div>' +
+          '<div class="goal-icon">' + (opt.iconText ? '<span class="goal-icon-text">' + opt.iconText + '</span>' : uiIconMarkup(opt.icon)) + '</div>' +
           '<div class="goal-label">' + opt.label + '</div>' +
           '<div class="goal-radio"></div>' +
         '</div>'
@@ -2401,7 +2474,8 @@
       userPreferences.level = onboardingProfile.experience;
     }
     if(onboardingProfile.trainingDays){
-      userPreferences.daysAvailable = onboardingProfile.trainingDays;
+      // '2'..'5' -> número; '6_plus' -> 6. Es la meta semanal inicial (editable en Inicio y en Perfil).
+      userPreferences.daysAvailable = onboardingProfile.trainingDays === '6_plus' ? 6 : parseInt(onboardingProfile.trainingDays, 10);
     }
     if(onboardingProfile.trainingLocation){
       userPreferences.trainingLocation = onboardingProfile.trainingLocation;
@@ -2409,6 +2483,7 @@
     // Refleja el cambio de inmediato en Perfil (pill de objetivo + "Nivel"),
     // igual que ya hace saveGoalLevel() cuando el usuario los edita a mano.
     renderProfileGoalLevel();
+    renderHomeActivity();
   }
 
   function completeOnboarding(){
@@ -2645,7 +2720,12 @@
   // El contenido se mantiene dentro de y=800..1550 para respetar las zonas
   // que tapa la interfaz de Stories (arriba ~250px y abajo ~340px).
   // ================================================================
-  let shareCardState = { summary: null, photo: null, file: null };
+  // photo: imagen elegida; pan (-1..1) y zoom (1..4) encuadran la foto a mano;
+  // format: 'story' (9:16) o 'square' (1:1).
+  function newShareCardState(summary){
+    return { summary: summary || null, photo: null, file: null, format: 'story', panX: 0, panY: 0, zoom: 1 };
+  }
+  let shareCardState = newShareCardState(null);
   let shareCardRenderToken = 0;
 
   function formatThousandsEs(n){
@@ -2712,8 +2792,24 @@
     return size;
   }
 
-  function drawShareCard(canvas, data, photo){
-    const W = 1080, H = 1920;
+  // Posiciones de cada formato. Stories (9:16): el contenido queda en y=600..1560,
+  // fuera de las zonas que tapa la interfaz de Stories. Cuadrado (1:1) para el feed.
+  function shareLayout(format){
+    if(format === 'square') return { W: 1080, H: 1080, logoW: 380, logoTop: 126, routineY: 540, labelY: 652, valueY: 746, divTop: 602, divBot: 776, bestY: 852, prY: 918 };
+    return { W: 1080, H: 1920, logoW: 486, logoTop: 610, routineY: 1125, labelY: 1262, valueY: 1362, divTop: 1215, divBot: 1385, bestY: 1478, prY: 1548 };
+  }
+
+  // Tamaño de la foto cubriendo el lienzo y recorrido máximo de arrastre en cada eje.
+  function shareCardPhotoMetrics(photo, W, H, zoom){
+    const scale = Math.max(W / photo.naturalWidth, H / photo.naturalHeight) * zoom;
+    const dw = photo.naturalWidth * scale, dh = photo.naturalHeight * scale;
+    return { dw, dh, maxX: Math.max(0, (dw - W) / 2), maxY: Math.max(0, (dh - H) / 2) };
+  }
+
+  function drawShareCard(canvas, data, photo, opts){
+    opts = opts || {};
+    const L = shareLayout(opts.format);
+    const W = L.W, H = L.H;
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
     const DISPLAY = "Sora, Inter, sans-serif";
@@ -2721,23 +2817,32 @@
 
     // ---- Fondo ----
     if(photo){
-      const scale = Math.max(W / photo.naturalWidth, H / photo.naturalHeight);
-      const dw = photo.naturalWidth * scale, dh = photo.naturalHeight * scale;
-      ctx.drawImage(photo, (W - dw) / 2, (H - dh) / 2, dw, dh);
-      const top = ctx.createLinearGradient(0, 0, 0, 520);
-      top.addColorStop(0, 'rgba(0,0,0,0.45)'); top.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = top; ctx.fillRect(0, 0, W, 520);
-      const bottom = ctx.createLinearGradient(0, 640, 0, H);
-      bottom.addColorStop(0, 'rgba(0,0,0,0)');
-      bottom.addColorStop(0.55, 'rgba(0,0,0,0.72)');
-      bottom.addColorStop(1, 'rgba(0,0,0,0.9)');
-      ctx.fillStyle = bottom; ctx.fillRect(0, 640, W, H - 640);
+      const m = shareCardPhotoMetrics(photo, W, H, opts.zoom || 1);
+      const dx = (W - m.dw) / 2 + (opts.panX || 0) * m.maxX;
+      const dy = (H - m.dh) / 2 + (opts.panY || 0) * m.maxY;
+      ctx.drawImage(photo, dx, dy, m.dw, m.dh);
+      if(opts.format === 'square'){
+        const g = ctx.createLinearGradient(0, 0, 0, H);
+        g.addColorStop(0, 'rgba(0,0,0,0.5)'); g.addColorStop(0.38, 'rgba(0,0,0,0.28)');
+        g.addColorStop(0.6, 'rgba(0,0,0,0.55)'); g.addColorStop(1, 'rgba(0,0,0,0.9)');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      } else {
+        const top = ctx.createLinearGradient(0, 0, 0, 520);
+        top.addColorStop(0, 'rgba(0,0,0,0.45)'); top.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = top; ctx.fillRect(0, 0, W, 520);
+        const bottom = ctx.createLinearGradient(0, 640, 0, H);
+        bottom.addColorStop(0, 'rgba(0,0,0,0)');
+        bottom.addColorStop(0.55, 'rgba(0,0,0,0.72)');
+        bottom.addColorStop(1, 'rgba(0,0,0,0.9)');
+        ctx.fillStyle = bottom; ctx.fillRect(0, 640, W, H - 640);
+      }
     } else {
       const base = ctx.createLinearGradient(0, 0, 0, H);
       base.addColorStop(0, '#15151C'); base.addColorStop(1, '#0B0B0F');
       ctx.fillStyle = base; ctx.fillRect(0, 0, W, H);
-      const glow = ctx.createRadialGradient(540, 1150, 0, 540, 1150, 950);
-      glow.addColorStop(0, 'rgba(22,99,89,0.22)'); glow.addColorStop(1, 'rgba(22,99,89,0)');
+      const gy = H * 0.6;
+      const glow = ctx.createRadialGradient(540, gy, 0, 540, gy, Math.max(W, H) * 0.5);
+      glow.addColorStop(0, 'rgba(42,155,136,0.22)'); glow.addColorStop(1, 'rgba(42,155,136,0)');
       ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
     }
 
@@ -2745,14 +2850,14 @@
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
 
-    // ---- Marca: logo Fiten (símbolo sobre wordmark), 486px de ancho, termina en y≈1020 ----
-    drawFitenLogoOnCanvas(ctx, 540, 610, 486, FITEN_LOGO_COLOR);
+    // ---- Marca: logo Fiten (símbolo sobre wordmark) ----
+    drawFitenLogoOnCanvas(ctx, 540, L.logoTop, L.logoW, FITEN_LOGO_COLOR);
 
     // ---- Rutina · fecha ----
     const line = data.routineName + '  ·  ' + formatLongDateEs(data.date);
     fitFontSize(ctx, line, 500, 46, 30, 920, BODY);
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.fillText(line, 540, 1125);
+    ctx.fillText(line, 540, L.routineY);
 
     // ---- Tres datos grandes ----
     const cols = buildShareStats(data);
@@ -2771,27 +2876,40 @@
       ctx.fillStyle = 'rgba(255,255,255,0.72)';
       ctx.font = '500 38px ' + BODY;
       ctx.textAlign = 'center';
-      ctx.fillText(c.label, centers[i], 1262);
+      ctx.fillText(c.label, centers[i], L.labelY);
 
       const total = widthOf(c, size);
       let x = centers[i] - total / 2;
       ctx.textAlign = 'left';
       ctx.fillStyle = '#FFFFFF';
       ctx.font = '700 ' + size + 'px ' + DISPLAY;
-      ctx.fillText(c.num, x, 1362);
+      ctx.fillText(c.num, x, L.valueY);
       if(c.unit){
         x += ctx.measureText(c.num).width + 12;
         ctx.fillStyle = 'rgba(255,255,255,0.75)';
         ctx.font = '600 ' + Math.round(size * 0.46) + 'px ' + DISPLAY;
-        ctx.fillText(c.unit, x, 1362);
+        ctx.fillText(c.unit, x, L.valueY);
       }
     });
     ctx.textAlign = 'center';
     ctx.shadowBlur = 0;
     ctx.strokeStyle = 'rgba(255,255,255,0.22)';
     ctx.lineWidth = 2;
-    [380, 700].forEach(x => { ctx.beginPath(); ctx.moveTo(x, 1215); ctx.lineTo(x, 1385); ctx.stroke(); });
+    [380, 700].forEach(x => { ctx.beginPath(); ctx.moveTo(x, L.divTop); ctx.lineTo(x, L.divBot); ctx.stroke(); });
     if(photo){ ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 28; }
+
+    // ---- Mejor serie del entrenamiento ----
+    if(data.bestSet && (data.bestSet.weightKg > 0 || data.bestSet.reps > 0)){
+      const b = data.bestSet;
+      const detail = b.weightKg > 0
+        ? formatWeightEs(b.weightKg) + ' kg × ' + b.reps
+        : b.reps + ' reps';
+      const text = 'Mejor serie  ·  ' + b.exerciseName + '  ' + detail;
+      fitFontSize(ctx, text, 500, 40, 26, 900, BODY);
+      ctx.fillStyle = 'rgba(255,255,255,0.88)';
+      ctx.textAlign = 'center';
+      ctx.fillText(text, 540, L.bestY);
+    }
 
     // ---- Récord (si lo hubo) ----
     if(data.prBreaks && data.prBreaks.length > 0){
@@ -2805,14 +2923,31 @@
       const totalW = starR * 2 + gap + textW;
       const startX = 540 - totalW / 2;
       ctx.fillStyle = '#2A9B88';
-      drawStarPath(ctx, startX + starR, 1478, starR);
+      drawStarPath(ctx, startX + starR, L.prY, starR);
       ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,0.92)';
       ctx.textAlign = 'left';
-      ctx.fillText(text, startX + starR * 2 + gap, 1478 + fs * 0.35);
+      ctx.fillText(text, startX + starR * 2 + gap, L.prY + fs * 0.35);
       ctx.textAlign = 'center';
     }
     ctx.shadowBlur = 0;
+  }
+
+  function shareCardOpts(){
+    const st = shareCardState;
+    return { format: st.format, panX: st.panX, panY: st.panY, zoom: st.zoom };
+  }
+
+  // Deja el archivo ya generado: compartir debe llamarse al instante del toque (requisito de iOS/Safari).
+  function prepareShareFile(token){
+    shareCardState.file = null;
+    const canvas = document.getElementById('wsShareCanvas');
+    const photo = shareCardState.photo;
+    const type = photo ? 'image/jpeg' : 'image/png';
+    canvas.toBlob(blob => {
+      if(!blob || (token !== undefined && token !== shareCardRenderToken)) return;
+      shareCardState.file = new File([blob], 'fiten-entrenamiento.' + (photo ? 'jpg' : 'png'), { type });
+    }, type, 0.92);
   }
 
   async function renderShareCard(){
@@ -2832,22 +2967,36 @@
     } catch(e){}
     if(token !== shareCardRenderToken) return;
 
-    const photo = shareCardState.photo;
-    drawShareCard(canvas, data, photo);
+    drawShareCard(canvas, data, shareCardState.photo, shareCardOpts());
+    prepareShareFile(token);
+  }
 
-    // Dejar el archivo ya generado: compartir debe llamarse al instante del toque (requisito de iOS/Safari).
-    shareCardState.file = null;
-    const type = photo ? 'image/jpeg' : 'image/png';
-    canvas.toBlob(blob => {
-      if(!blob || token !== shareCardRenderToken) return;
-      shareCardState.file = new File([blob], 'fiten-entrenamiento.' + (photo ? 'jpg' : 'png'), { type });
-    }, type, 0.92);
+  // Redibujado ligero mientras el usuario arrastra / hace zoom a la foto
+  // (las fuentes ya están cargadas); el archivo se regenera al soltar.
+  let shareLiveFrame = null, shareFileTimer = null;
+  function redrawShareCardLive(){
+    if(shareLiveFrame) return;
+    shareLiveFrame = requestAnimationFrame(() => {
+      shareLiveFrame = null;
+      const data = shareCardState.summary;
+      if(!data) return;
+      drawShareCard(document.getElementById('wsShareCanvas'), data, shareCardState.photo, shareCardOpts());
+      shareCardState.file = null;
+      clearTimeout(shareFileTimer);
+      shareFileTimer = setTimeout(() => prepareShareFile(shareCardRenderToken), 300);
+    });
   }
 
   function updateShareCardControls(){
-    const hasPhoto = !!shareCardState.photo;
+    const st = shareCardState;
+    const hasPhoto = !!st.photo;
     document.getElementById('wsPhotoBtnLabel').textContent = hasPhoto ? 'Cambiar foto' : 'Añadir foto de fondo';
     document.getElementById('wsPhotoRemove').style.display = hasPhoto ? 'inline-block' : 'none';
+    document.getElementById('wsPhotoHint').style.display = hasPhoto ? 'block' : 'none';
+
+    document.querySelector('.ws-card-preview').classList.toggle('square', st.format === 'square');
+    document.getElementById('wsShareCanvas').classList.toggle('has-photo', hasPhoto);
+    document.querySelectorAll('.ws-format-btn').forEach(b => b.classList.toggle('selected', b.dataset.format === st.format));
 
     // Si el navegador no puede compartir archivos, el botón guarda la imagen.
     const canShareFiles = !!(navigator.share && navigator.canShare);
@@ -2856,12 +3005,87 @@
     feather.replace();
   }
 
+  function setShareCardFormat(format){
+    if(shareCardState.format === format) return;
+    shareCardState.format = format;
+    updateShareCardControls();
+    renderShareCard();
+  }
+
+  // Gestos sobre la vista previa: arrastrar = encuadrar, pellizcar / rueda = zoom.
+  (function setupShareCardGestures(){
+    const canvas = document.getElementById('wsShareCanvas');
+    const pointers = new Map();
+    let pinchStart = null; // { dist, zoom }
+
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    const photoMetrics = () => {
+      const L = shareLayout(shareCardState.format);
+      return shareCardPhotoMetrics(shareCardState.photo, L.W, L.H, shareCardState.zoom);
+    };
+    const canvasScale = () => shareLayout(shareCardState.format).W / (canvas.getBoundingClientRect().width || 1);
+
+    function panBy(dxClient, dyClient){
+      const m = photoMetrics(), k = canvasScale();
+      if(m.maxX > 0) shareCardState.panX = clamp(shareCardState.panX + (dxClient * k) / m.maxX, -1, 1);
+      if(m.maxY > 0) shareCardState.panY = clamp(shareCardState.panY + (dyClient * k) / m.maxY, -1, 1);
+    }
+
+    function setZoom(z){
+      shareCardState.zoom = clamp(z, 1, 4);
+      // Al acercar o alejar, mantener la foto dentro de los límites.
+      panBy(0, 0);
+      shareCardState.panX = clamp(shareCardState.panX, -1, 1);
+      shareCardState.panY = clamp(shareCardState.panY, -1, 1);
+    }
+
+    function twoPointerInfo(){
+      const pts = Array.from(pointers.values());
+      return { dist: Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y), cx: (pts[0].x + pts[1].x) / 2, cy: (pts[0].y + pts[1].y) / 2 };
+    }
+
+    canvas.addEventListener('pointerdown', e => {
+      if(!shareCardState.photo) return;
+      canvas.setPointerCapture(e.pointerId);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if(pointers.size === 2) pinchStart = { dist: twoPointerInfo().dist, zoom: shareCardState.zoom };
+    });
+
+    canvas.addEventListener('pointermove', e => {
+      if(!pointers.has(e.pointerId) || !shareCardState.photo) return;
+      const prev = pointers.get(e.pointerId);
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if(pointers.size === 1){
+        panBy(e.clientX - prev.x, e.clientY - prev.y);
+      } else if(pointers.size === 2 && pinchStart && pinchStart.dist > 0){
+        setZoom(pinchStart.zoom * (twoPointerInfo().dist / pinchStart.dist));
+      }
+      redrawShareCardLive();
+    });
+
+    const endPointer = e => {
+      pointers.delete(e.pointerId);
+      pinchStart = null;
+      if(pointers.size === 1) { /* queda un dedo: sigue arrastrando sin saltos */ }
+    };
+    canvas.addEventListener('pointerup', endPointer);
+    canvas.addEventListener('pointercancel', endPointer);
+
+    canvas.addEventListener('wheel', e => {
+      if(!shareCardState.photo) return;
+      e.preventDefault();
+      setZoom(shareCardState.zoom * (e.deltaY < 0 ? 1.08 : 1 / 1.08));
+      redrawShareCardLive();
+    }, { passive: false });
+  })();
+
   function pickShareCardPhoto(){
     document.getElementById('wsPhotoInput').click();
   }
 
   function removeShareCardPhoto(){
     shareCardState.photo = null;
+    shareCardState.panX = 0; shareCardState.panY = 0; shareCardState.zoom = 1;
     updateShareCardControls();
     renderShareCard();
   }
@@ -2875,6 +3099,7 @@
     img.onload = () => {
       URL.revokeObjectURL(url);
       shareCardState.photo = img;
+      shareCardState.panX = 0; shareCardState.panY = 0; shareCardState.zoom = 1;
       updateShareCardControls();
       renderShareCard();
     };
@@ -2924,7 +3149,7 @@
     document.getElementById('wsSubtitle').textContent = summary.routineName + ' · ' + summary.durationMinutes + ' min';
 
     // Tarjeta para compartir: estado nuevo en cada resumen (sin foto de la vez anterior).
-    shareCardState = { summary, photo: null, file: null };
+    shareCardState = newShareCardState(summary);
     updateShareCardControls();
     renderShareCard();
 
@@ -2971,7 +3196,7 @@
     document.getElementById('prVictoryTitle').textContent = n === 1 ? '¡Nuevo récord!' : '¡' + n + ' nuevos récords!';
     document.getElementById('prVictoryExercise').textContent = main.exerciseName;
     document.getElementById('prVictoryWeight').textContent = formatWeightEs(main.weight) + ' kg';
-    document.getElementById('prVictoryDelta').innerHTML = '<i data-feather="trending-up"></i> +' + formatWeightEs(delta) + ' kg sobre tu marca anterior';
+    document.getElementById('prVictoryDelta').innerHTML = '<i data-feather="trending-up"></i> +' + formatWeightEs(delta) + ' kg más que antes';
     document.getElementById('prVictoryMore').textContent = n > 1 ? 'y ' + (n - 1) + ' más' : '';
     feather.replace();
 
@@ -2999,7 +3224,7 @@
   function closeWorkoutSummary(){
     closePrVictory(false);
     shareCardRenderToken++;
-    shareCardState = { summary: null, photo: null, file: null }; // libera la foto y la imagen generada
+    shareCardState = newShareCardState(null); // libera la foto y la imagen generada
     document.getElementById('workoutSummaryScreen').classList.remove('open');
     closeWorkout();
     showTab('home');
@@ -4890,12 +5115,60 @@
     showSuccessToast('Rutina "' + name + '" creada');
   }
 
+  // Iconos de objetivo, nivel y lugar de entrenamiento (onboarding y Perfil).
+  // Mismo estilo que el resto (24x24, trazo 2). Se referencian como 'ui:<clave>'.
+  const UI_ICON_SHAPES = {
+    // Ganar músculo: mancuerna
+    goal_muscle:
+      '<path d="M7 12h10"/><path d="M7 7.5v9"/><path d="M17 7.5v9"/><path d="M3.5 9.5v5"/><path d="M20.5 9.5v5"/>',
+    // Ganar fuerza: hexágono con doble chevron de subida
+    goal_strength:
+      '<path d="M12 2.5 20 7v10l-8 4.5L4 17V7z"/><path d="M8.5 12.5 12 9l3.5 3.5"/><path d="M8.5 16 12 12.5l3.5 3.5"/>',
+    // Resistencia: cronómetro
+    goal_endurance:
+      '<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.6 2.2"/><path d="M9.5 2.5h5"/><path d="M12 2.5V6"/>',
+    // Perder grasa: llama
+    goal_fatloss:
+      '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+    // Condición física: corazón
+    goal_fitness:
+      '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+    // Nivel principiante: 1 de 3 barras
+    level_1:
+      '<rect x="4" y="13" width="4" height="7" rx="1.4" fill="currentColor" stroke="none"/><rect x="10" y="8.5" width="4" height="11.5" rx="1.4" fill="currentColor" stroke="none" opacity="0.28"/><rect x="16" y="4" width="4" height="16" rx="1.4" fill="currentColor" stroke="none" opacity="0.28"/>',
+    // Nivel intermedio: 2 de 3 barras
+    level_2:
+      '<rect x="4" y="13" width="4" height="7" rx="1.4" fill="currentColor" stroke="none"/><rect x="10" y="8.5" width="4" height="11.5" rx="1.4" fill="currentColor" stroke="none"/><rect x="16" y="4" width="4" height="16" rx="1.4" fill="currentColor" stroke="none" opacity="0.28"/>',
+    // Nivel avanzado: 3 de 3 barras
+    level_3:
+      '<rect x="4" y="13" width="4" height="7" rx="1.4" fill="currentColor" stroke="none"/><rect x="10" y="8.5" width="4" height="11.5" rx="1.4" fill="currentColor" stroke="none"/><rect x="16" y="4" width="4" height="16" rx="1.4" fill="currentColor" stroke="none"/>',
+    // Gimnasio: barra olímpica
+    loc_gym:
+      '<path d="M1.5 12h21"/><rect x="4.5" y="5.5" width="3" height="13" rx="1"/><rect x="16.5" y="5.5" width="3" height="13" rx="1"/>',
+    // En casa: casa
+    loc_home:
+      '<path d="M3 11.2 12 3.5l9 7.7"/><path d="M5.5 9.6V20.5h13V9.6"/><path d="M10 20.5v-5.5h4v5.5"/>',
+    // Gimnasio y casa: casa con mancuerna
+    loc_both:
+      '<path d="M3 11.2 12 3.5l9 7.7"/><path d="M5.5 9.6V20.5h13V9.6"/><path d="M8.6 15.3h6.8"/><path d="M8.6 13.3v4"/><path d="M15.4 13.3v4"/>',
+  };
+
+  // Marcado de un icono: SVG propio si es 'ui:<clave>', o un icono de Feather
+  // en cualquier otro caso.
+  function uiIconMarkup(id){
+    if(id && String(id).indexOf('ui:') === 0){
+      const shape = UI_ICON_SHAPES[String(id).slice(3)];
+      if(shape) return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + shape + '</svg>';
+    }
+    return '<i data-feather="' + id + '"></i>';
+  }
+
   const GOALS = [
-    { key:'muscle',    label:'Ganar músculo',            icon:'trending-up' },
-    { key:'strength',  label:'Ganar fuerza',              icon:'zap' },
-    { key:'endurance', label:'Mejorar resistencia',       icon:'activity' },
-    { key:'fatloss',   label:'Perder grasa',              icon:'trending-down' },
-    { key:'fitness',   label:'Mejorar condición física',  icon:'heart' },
+    { key:'muscle',    label:'Ganar músculo',            icon:'ui:goal_muscle' },
+    { key:'strength',  label:'Ganar fuerza',              icon:'ui:goal_strength' },
+    { key:'endurance', label:'Mejorar resistencia',       icon:'ui:goal_endurance' },
+    { key:'fatloss',   label:'Perder grasa',              icon:'ui:goal_fatloss' },
+    { key:'fitness',   label:'Mejorar condición física',  icon:'ui:goal_fitness' },
   ];
 
   let selectedGoal = null;
@@ -4914,7 +5187,7 @@
     const body = document.getElementById('goalPickerBody');
     body.innerHTML = GOALS.map(g => (
       '<div class="goal-option' + (selectedGoal === g.key ? ' selected' : '') + '" onclick="selectGoal(\'' + g.key + '\')">' +
-        '<div class="goal-icon"><i data-feather="' + g.icon + '"></i></div>' +
+        '<div class="goal-icon">' + uiIconMarkup(g.icon) + '</div>' +
         '<div class="goal-label">' + g.label + '</div>' +
         '<div class="goal-radio"></div>' +
       '</div>'
@@ -5087,9 +5360,18 @@
     renderWeeklyActivityChart();
     renderRoutinesList();
 
+    // Mejor serie de la sesión: la de más peso (a igualdad, más repeticiones).
+    // Sin peso (solo cuerpo), la de más repeticiones.
+    const bestEntry = entries.reduce((best, e) => {
+      if(!best) return e;
+      if((e.weightKg || 0) !== (best.weightKg || 0)) return (e.weightKg || 0) > (best.weightKg || 0) ? e : best;
+      return (e.reps || 0) > (best.reps || 0) ? e : best;
+    }, null);
+
     return {
       routineName: activeRoutineName,
       date: todayIso(),
+      bestSet: bestEntry ? { exerciseName: bestEntry.exerciseName, weightKg: bestEntry.weightKg || 0, reps: bestEntry.reps || 0 } : null,
       durationMinutes,
       totalSets: entries.length,
       totalExercises: exerciseNames.length,
@@ -5293,6 +5575,39 @@
     return trained;
   }
 
+  // Meta semanal = días por semana que eligió el usuario (onboarding, cambiable
+  // en Inicio y en Perfil). Sin dato, 3 por defecto.
+  function getWeeklyGoal(){
+    const n = Number(userPreferences.daysAvailable);
+    return (n >= 1 && n <= 7) ? Math.round(n) : 3;
+  }
+
+  function weeklyGoalButtonsHtml(selected, onclickName){
+    let html = '';
+    for(let n = 1; n <= 7; n++){
+      html += '<button class="goal-day-btn' + (n === selected ? ' selected' : '') + '" onclick="' + onclickName + '(' + n + ')">' + n + '</button>';
+    }
+    return html;
+  }
+
+  function openWeeklyGoalSheet(){
+    document.getElementById('weeklyGoalDays').innerHTML = weeklyGoalButtonsHtml(getWeeklyGoal(), 'selectWeeklyGoal');
+    document.getElementById('weeklyGoalBackdrop').classList.add('open');
+    document.getElementById('weeklyGoalSheet').classList.add('open');
+  }
+
+  function closeWeeklyGoalSheet(){
+    document.getElementById('weeklyGoalBackdrop').classList.remove('open');
+    document.getElementById('weeklyGoalSheet').classList.remove('open');
+  }
+
+  function selectWeeklyGoal(n){
+    userPreferences.daysAvailable = n;
+    closeWeeklyGoalSheet();
+    renderHomeActivity();
+    showSuccessToast('Meta semanal: ' + n + (n === 1 ? ' día' : ' días'));
+  }
+
   const HOME_ACTIVITY_DAY_LABELS = ['L','M','X','J','V','S','D'];
 
   function renderHomeActivity(){
@@ -5300,7 +5615,16 @@
     const trainedSet = getTrainedDatesThisWeek(weekDates);
     const todayStr = todayIso();
 
-    document.getElementById('activityDaysCount').textContent = trainedSet.size;
+    // Meta semanal: aro (días entrenados / meta) + texto. Si se cumple, check y mensaje.
+    const done = trainedSet.size;
+    const goal = getWeeklyGoal();
+    const circumference = 2 * Math.PI * 22;
+    document.getElementById('activityRingProgress').style.strokeDashoffset =
+      circumference * (1 - Math.min(1, done / goal));
+    document.getElementById('activityRingCenter').innerHTML =
+      done >= goal ? '<i data-feather="check"></i>' : String(done);
+    document.getElementById('activityGoalText').textContent =
+      done > goal ? 'Superada' : (done === goal ? '¡Cumplida!' : 'de ' + goal + (goal === 1 ? ' día' : ' días'));
 
     document.getElementById('activityWeekDots').innerHTML = weekDates.map((dateStr, i) => {
       const classes = ['activity-day'];
@@ -5313,6 +5637,7 @@
         '</div>'
       );
     }).join('');
+    feather.replace();
   }
 
   // ================================================================
@@ -5654,17 +5979,19 @@
   }
 
   const LEVELS = [
-    { key:'beginner',     label:'Principiante', icon:'sunrise' },
-    { key:'intermediate', label:'Intermedio',   icon:'activity' },
-    { key:'advanced',     label:'Avanzado',     icon:'award' },
+    { key:'beginner',     label:'Principiante', icon:'ui:level_1' },
+    { key:'intermediate', label:'Intermedio',   icon:'ui:level_2' },
+    { key:'advanced',     label:'Avanzado',     icon:'ui:level_3' },
   ];
 
   let goalLevelDraftGoal = null;
   let goalLevelDraftLevel = null;
+  let goalLevelDraftDays = null;
 
   function openGoalLevelScreen(){
     goalLevelDraftGoal = userPreferences.goal;
     goalLevelDraftLevel = userPreferences.level;
+    goalLevelDraftDays = getWeeklyGoal();
     renderGoalLevelScreen();
     document.getElementById('goalLevelScreen').classList.add('open');
   }
@@ -5676,7 +6003,7 @@
   function renderGoalLevelScreen(){
     document.getElementById('goalLevelGoalList').innerHTML = GOALS.map(g => (
       '<div class="goal-option' + (goalLevelDraftGoal === g.key ? ' selected' : '') + '" onclick="selectGoalLevelGoal(\'' + g.key + '\')">' +
-        '<div class="goal-icon"><i data-feather="' + g.icon + '"></i></div>' +
+        '<div class="goal-icon">' + uiIconMarkup(g.icon) + '</div>' +
         '<div class="goal-label">' + g.label + '</div>' +
         '<div class="goal-radio"></div>' +
       '</div>'
@@ -5684,11 +6011,13 @@
 
     document.getElementById('goalLevelLevelList').innerHTML = LEVELS.map(l => (
       '<div class="goal-option' + (goalLevelDraftLevel === l.key ? ' selected' : '') + '" onclick="selectGoalLevelLevel(\'' + l.key + '\')">' +
-        '<div class="goal-icon"><i data-feather="' + l.icon + '"></i></div>' +
+        '<div class="goal-icon">' + uiIconMarkup(l.icon) + '</div>' +
         '<div class="goal-label">' + l.label + '</div>' +
         '<div class="goal-radio"></div>' +
       '</div>'
     )).join('');
+
+    document.getElementById('goalLevelDays').innerHTML = weeklyGoalButtonsHtml(goalLevelDraftDays, 'selectGoalLevelDays');
 
     document.getElementById('saveGoalLevelBtn').disabled = !(goalLevelDraftGoal && goalLevelDraftLevel);
     feather.replace();
@@ -5696,12 +6025,15 @@
 
   function selectGoalLevelGoal(key){ goalLevelDraftGoal = key; renderGoalLevelScreen(); }
   function selectGoalLevelLevel(key){ goalLevelDraftLevel = key; renderGoalLevelScreen(); }
+  function selectGoalLevelDays(n){ goalLevelDraftDays = n; renderGoalLevelScreen(); }
 
   function saveGoalLevel(){
     if(!goalLevelDraftGoal || !goalLevelDraftLevel) return;
     userPreferences.goal = goalLevelDraftGoal;
     userPreferences.level = goalLevelDraftLevel;
+    userPreferences.daysAvailable = goalLevelDraftDays;
     renderProfileGoalLevel();
+    renderHomeActivity();
     closeGoalLevelScreen();
     showSuccessToast('Objetivo y nivel actualizados');
   }
@@ -5710,7 +6042,7 @@
     const goal = GOALS.find(g => g.key === userPreferences.goal);
     const level = LEVELS.find(l => l.key === userPreferences.level);
     document.getElementById('profileGoalPill').innerHTML =
-      '<i data-feather="' + (goal ? goal.icon : 'target') + '"></i><span>' + (goal ? goal.label : 'Sin definir') + '</span>';
+      uiIconMarkup(goal ? goal.icon : 'target') + '<span>' + (goal ? goal.label : 'Sin definir') + '</span>';
     feather.replace();
   }
 
