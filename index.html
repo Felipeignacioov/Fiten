@@ -4169,9 +4169,7 @@
     tricep_extension_machine: 'Máquina de extensión de tríceps',
     wrist_roller: 'Rodillo de muñeca',
   };
-  // Ejercicios con imágenes locales REALES (assets/exercises/<id>-start.webp y -end.webp, comprobados uno a uno).
-  // El resto no tiene imagen y muestra el icono de respaldo. Las imágenes de RepDB serán una fase aparte.
-  const CATALOG_LOCAL_IMAGE_IDS = new Set(['rdb-barbell-curl', 'rdb-barbell-row', 'rdb-bench-press', 'rdb-face-pull', 'rdb-incline-db-press', 'rdb-lat-pulldown', 'rdb-lateral-raise', 'rdb-leg-curl', 'rdb-leg-press', 'rdb-pull-up', 'rdb-romanian-deadlift', 'rdb-squat', 'rdb-standing-calf-raise', 'rdb-tricep-pushdown']);
+  // Imágenes: por ahora ningún ejercicio tiene imagen (se muestra el icono del grupo). Las imágenes de RepDB serán una fase aparte.
 
   // state: loading | ready | error (sin conexión o respuesta inválida) | empty (la tabla no devolvió ejercicios utilizables)
   const catalogStatus = { state:'loading', count:0, skipped:0, error:null, truncated:false, unknownEquipment:[] };
@@ -4190,13 +4188,11 @@
     if(!name) return null;
     const group = catalogGroupForRow(row);
     if(!group) return null;
-    const hasImg = CATALOG_LOCAL_IMAGE_IDS.has(row.id);
     return {
       id: row.id, name, muscleGroup: group,
       muscles: [].concat(row.primary_muscles || [], row.secondary_muscles || []),
       equipment: row.equipment ? (CATALOG_EQUIPMENT_ES[row.equipment] || humanizeKey(row.equipment)) : null,
-      imageStart: hasImg ? 'assets/exercises/' + row.id + '-start.webp' : null,
-      imageEnd: hasImg ? 'assets/exercises/' + row.id + '-end.webp' : null,
+      imageStart: null, imageEnd: null,
       source: 'repdb', sourceId: row.id.replace(/^rdb-/, ''),
     };
   }
@@ -4265,7 +4261,8 @@
       totalInCatalog: Object.keys(EXERCISE_DETAILS_BY_ID).length, groups,
       templateIdsChecked: uniq.length, templateIdsMissing: ready ? uniq.filter(id => !EXERCISE_DETAILS_BY_ID[id]) : null,
       equipmentKeysWithoutTranslation: catalogStatus.unknownEquipment,
-      exercisesWithLocalImages: Object.values(EXERCISE_DETAILS_BY_ID).filter(e => e.imageStart).length,
+      exercisesWithImageReferences: Object.values(EXERCISE_DETAILS_BY_ID).filter(e => e.imageStart).length, // declaradas, NO verificadas
+      imagesVerified: false,
     };
   }
   window.FitenCatalog = { init: initCatalog, retry: retryCatalog, status: catalogStatus, diagnose: diagnoseCatalog };
@@ -4985,17 +4982,28 @@
     document.getElementById('routineMenuSheet').classList.remove('open');
   }
 
+  // Si una imagen de la hoja no carga: se oculta; con una sola visible se oculta también la flecha; sin ninguna, se oculta el bloque.
+  function exerciseDemoImageFailed(img){
+    if(img.parentElement) img.parentElement.style.display = 'none';
+    const box = document.getElementById('exerciseDemoImages');
+    const visible = Array.from(box.querySelectorAll('.ex-demo-img-wrap')).filter(w => w.style.display !== 'none');
+    const arrow = box.querySelector('.ex-demo-arrow');
+    if(arrow && visible.length < 2) arrow.style.display = 'none';
+    if(visible.length === 0) box.style.display = 'none';
+  }
+
   function openExerciseDemo(exerciseId){
     const ex = EXERCISE_DETAILS_BY_ID[exerciseId];
     if(!ex || !ex.imageStart) return;
 
     document.getElementById('exerciseDemoName').textContent = ex.name;
 
-    const imagesHtml = ['<div class="ex-demo-img-wrap"><img src="' + ex.imageStart + '" alt="' + escapeHtml(ex.name) + ' — posición inicial" onerror="this.parentElement.style.display=\'none\'" /></div>'];
+    const imagesHtml = ['<div class="ex-demo-img-wrap"><img src="' + ex.imageStart + '" alt="' + escapeHtml(ex.name) + ' — posición inicial" onerror="exerciseDemoImageFailed(this)" /></div>'];
     if(ex.imageEnd){
       imagesHtml.push('<div class="ex-demo-arrow"><i data-feather="arrow-right"></i></div>');
-      imagesHtml.push('<div class="ex-demo-img-wrap"><img src="' + ex.imageEnd + '" alt="' + escapeHtml(ex.name) + ' — posición final" onerror="this.parentElement.style.display=\'none\'" /></div>');
+      imagesHtml.push('<div class="ex-demo-img-wrap"><img src="' + ex.imageEnd + '" alt="' + escapeHtml(ex.name) + ' — posición final" onerror="exerciseDemoImageFailed(this)" /></div>');
     }
+    document.getElementById('exerciseDemoImages').style.display = '';
     document.getElementById('exerciseDemoImages').innerHTML = imagesHtml.join('');
 
     const metaParts = [ex.groupLabel];
