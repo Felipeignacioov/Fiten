@@ -4123,7 +4123,7 @@
     cuerpo_completo: { label:'CUERPO COMPLETO', icon:'muscle:cuerpo_completo' },
   };
 
-  function buildCatalogGroups(){
+  function buildCatalogGroups(libraryItems){
     const groups = MUSCLE_GROUPS.map(g => ({
       key: g.key, label: g.label, icon: g.icon,
       exercises: g.exercises.map(ex => ({
@@ -4136,7 +4136,7 @@
     const byKey = {};
     groups.forEach(g => { byKey[g.key] = g; });
 
-    const library = window.STRIVE_EXERCISE_LIBRARY || [];
+    const library = libraryItems || window.STRIVE_EXERCISE_LIBRARY || [];
     library.forEach(item => {
       let group = byKey[item.muscleGroup];
       if(!group){
@@ -4163,6 +4163,128 @@
     EXERCISE_DETAILS_BY_ID[ex.id] = ex;
     EXERCISE_NAME_BY_ID[ex.id] = ex.name;
   }));
+
+  // ================================================================
+  // CATÁLOGO DESDE SUPABASE (fase 1). Supabase es la fuente principal de los ejercicios de RepDB; el catálogo
+  // LOCAL (manuales + exercise-library.js) se construye primero y se conserva como respaldo y complemento.
+  // Para revertir: enabled:false (la app vuelve a usar solo el catálogo local, sin ninguna petición).
+  // ================================================================
+  const SUPABASE_CATALOG = {
+    enabled: true,
+    url: 'https://lgysqyhflqogiqiuhezv.supabase.co',
+    publishableKey: 'sb_publishable_wOTIyyRPR8AuX-jmv8U-QA_c2lEndg8', // clave PÚBLICA (publishable). Nunca poner aquí claves secretas ni de servicio.
+    table: 'repdb_exercises',
+    fields: 'id,name,source_name_es,body_part,equipment,primary_muscles,secondary_muscles',
+    timeoutMs: 8000,
+  };
+  const CATALOG_BODY_PART_GROUP = { core:'core', full_body:'cuerpo_completo', back:'espalda', chest:'pecho', shoulders:'hombros', upper_legs:'piernas', lower_legs:'piernas', lower_arms:'antebrazos' };
+  // state: loading | ready | fallback (Supabase falló, se usa el local) | empty (Supabase sin filas utilizables) | error (sin catálogo)
+  const catalogStatus = { state:'loading', source:'local', count:0, skipped:0, localOnly:0, newFromSupabase:0, groupRuleMismatches:0, error:null };
+  let catalogInitPromise = null;
+  let catalogRemoteIds = null;
+
+  // Grupo de un ejercicio NUEVO (los que ya están en el catálogo local conservan su grupo). Regla validada contra
+  // los 601 locales: upper_arms se reparte entre bíceps y tríceps según el músculo principal.
+  function catalogGroupForRow(row){
+    if(row.body_part === 'upper_arms') return (row.primary_muscles || []).some(m => /triceps/i.test(m)) ? 'triceps' : 'biceps';
+    return CATALOG_BODY_PART_GROUP[row.body_part] || null;
+  }
+  function humanizeKey(k){ const t = String(k).replace(/_/g, ' ').trim(); return t.charAt(0).toUpperCase() + t.slice(1); }
+
+  // Fila de Supabase -> formato de exercise-library.js. Para IDs que ya existen en el catálogo local se conservan su
+  // grupo, su equipamiento traducido y sus imágenes (no se inventan rutas). Devuelve null si la fila no es utilizable.
+  function adaptCatalogRow(row, localById){
+    if(!row || typeof row.id !== 'string' || !row.id) return null;
+    const name = String(row.name || row.source_name_es || '').trim();
+    if(!name) return null;
+    const local = localById[row.id];
+    const group = local ? local.muscleGroup : catalogGroupForRow(row);
+    if(!group) return null;
+    return {
+      id: row.id, name, muscleGroup: group,
+      muscles: [].concat(row.primary_muscles || [], row.secondary_muscles || []),
+      equipment: local ? local.equipment : (row.equipment ? humanizeKey(row.equipment) : null),
+      imageStart: local ? local.imageStart : null, imageEnd: local ? local.imageEnd : null,
+      source: 'repdb', sourceId: row.id.replace(/^rdb-/, ''),
+    };
+  }
+
+  // Reconstruye el catálogo EN EL MISMO SITIO: CATALOG_GROUPS, EXERCISE_DETAILS_BY_ID y EXERCISE_NAME_BY_ID
+  // siguen siendo los mismos objetos (nadie queda con una referencia obsoleta). Solo añade o actualiza entradas.
+  function applyCatalogItems(items){
+    const groups = buildCatalogGroups(items);
+    CATALOG_GROUPS.length = 0;
+    groups.forEach(g => CATALOG_GROUPS.push(g));
+    CATALOG_GROUPS.forEach(group => group.exercises.forEach(ex => { EXERCISE_DETAILS_BY_ID[ex.id] = ex; EXERCISE_NAME_BY_ID[ex.id] = ex.name; }));
+  }
+
+  // Vuelve a dibujar solo lo que está abierto y depende del catálogo.
+  function refreshCatalogViews(){
+    const isOpen = id => { const el = document.getElementById(id); return !!el && el.classList.contains('open'); };
+    if(isOpen('exercisePickerScreen')){ renderExerciseFilterPills(); renderExercisePicker(); }
+    if(isOpen('editRoutineScreen') && editCatalogOpen) renderEditRoutineCatalog();
+    if(isOpen('routineDetailScreen') && editingWeightIndex === null){
+      if(currentPreviewSource === 'library'){ const t = LIBRARY_ROUTINES.find(r => r.id === currentPreviewRoutineId); if(t) renderLibraryPreviewBody(t); }
+      else if(routines.some(r => r.id === currentPreviewRoutineId)) renderRoutineDetailBody();
+    }
+  }
+
+  async function loadCatalog(){
+    const cfg = SUPABASE_CATALOG;
+    if(!cfg.enabled){ catalogStatus.state = 'fallback'; catalogStatus.error = 'desactivado'; return catalogStatus; }
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), cfg.timeoutMs);
+    try {
+      const url = cfg.url + '/rest/v1/' + cfg.table + '?select=' + cfg.fields + '&is_active=eq.true&order=name.asc&limit=1000';
+      const res = await fetch(url, { headers: { apikey: cfg.publishableKey, Accept: 'application/json' }, signal: ctrl.signal });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const rows = await res.json();
+      if(!Array.isArray(rows)) throw new Error('respuesta inesperada');
+      const local = window.STRIVE_EXERCISE_LIBRARY || [];
+      const localById = {}; local.forEach(e => { localById[e.id] = e; });
+      const items = []; let skipped = 0, mismatches = 0;
+      rows.forEach(r => {
+        const it = adaptCatalogRow(r, localById);
+        if(!it){ skipped++; return; }
+        if(localById[r.id] && catalogGroupForRow(r) !== localById[r.id].muscleGroup) mismatches++;
+        items.push(it);
+      });
+      catalogStatus.skipped = skipped; catalogStatus.groupRuleMismatches = mismatches;
+      if(items.length === 0){ catalogStatus.state = 'empty'; catalogStatus.error = rows.length ? 'filas no utilizables' : 'sin ejercicios'; }
+      else {
+        const remote = new Set(items.map(i => i.id));
+        const localOnly = local.filter(e => !remote.has(e.id)); // los que Supabase no tiene siguen disponibles en local
+        applyCatalogItems(items.concat(localOnly));
+        catalogRemoteIds = remote;
+        Object.assign(catalogStatus, { state:'ready', source:'supabase', count: items.length, localOnly: localOnly.length, newFromSupabase: items.filter(i => !localById[i.id]).length, truncated: rows.length >= 1000, error: null });
+      }
+    } catch(e){
+      catalogStatus.state = CATALOG_GROUPS.length ? 'fallback' : 'error';
+      catalogStatus.error = e && e.name === 'AbortError' ? 'tiempo agotado' : String((e && e.message) || e);
+    } finally { clearTimeout(timer); }
+    refreshCatalogViews();
+    return catalogStatus;
+  }
+  function initCatalog(){ if(!catalogInitPromise) catalogInitPromise = loadCatalog(); return catalogInitPromise; } // una sola petición
+
+  // Diagnóstico para comprobar la conexión real desde la consola del navegador: FitenCatalog.diagnose()
+  function diagnoseCatalog(){
+    const local = window.STRIVE_EXERCISE_LIBRARY || [];
+    return {
+      state: catalogStatus.state, source: catalogStatus.source, error: catalogStatus.error,
+      supabaseRows: catalogStatus.count, skippedRows: catalogStatus.skipped, newInSupabase: catalogStatus.newFromSupabase,
+      localLibraryIds: local.length, localIdsMissingInSupabase: catalogRemoteIds ? local.filter(e => !catalogRemoteIds.has(e.id)).map(e => e.id) : null,
+      groupRuleMismatches: catalogStatus.groupRuleMismatches,
+      manualPreserved: MUSCLE_GROUPS.every(g => g.exercises.every(e => !!EXERCISE_DETAILS_BY_ID[e.id])),
+      totalInCatalog: Object.keys(EXERCISE_DETAILS_BY_ID).length,
+    };
+  }
+  window.FitenCatalog = { init: initCatalog, status: catalogStatus, diagnose: diagnoseCatalog };
+
+  function catalogNoticeHtml(){
+    if(catalogStatus.state !== 'fallback' && catalogStatus.state !== 'empty' && catalogStatus.state !== 'error') return '';
+    return '<div class="routine-reorder-hint">Catálogo en línea no disponible: se usa el catálogo local.</div>';
+  }
 
   function findCatalogExerciseFor(routineExercise){
     if(routineExercise.exerciseId && EXERCISE_DETAILS_BY_ID[routineExercise.exerciseId]){
@@ -5152,6 +5274,8 @@
         );
       }).join('');
     }
+    const notice = catalogNoticeHtml();
+    if(notice) body.insertAdjacentHTML('afterbegin', notice);
     updateAddExercisesFooter();
     feather.replace();
   }
@@ -6181,6 +6305,7 @@
   renderFitenLogos();
   feather.replace();
   runSplash();
+  initCatalog(); // no bloquea el arranque: el catálogo local ya está disponible
 </script>
 </body>
 </html>
