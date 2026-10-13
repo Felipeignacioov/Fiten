@@ -7,10 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
-<!-- Fiten Exercise Library — imported from RepDB (see exercise-library.js header).
-     Loaded as a plain script tag (not fetch) so this keeps working when the
-     app is opened directly as a file, with no local server involved. -->
-<script src="exercise-library.js?v=demo-images-1"></script>
 <style>
   :root{
     --bg:#0B0B0F;
@@ -3381,7 +3377,7 @@
     weightInput.dataset.setIndex = focusIdx;
     repsInput.dataset.setIndex = focusIdx;
 
-    const demo = getDemoImagesForExerciseName(ex.name);
+    const demo = getDemoImagesForExercise(ex);
     const demoEl = document.getElementById('wkDemoImages');
     if(demo){
       // Al cambiar de ejercicio se olvida un fallo anterior de imagen.
@@ -3832,30 +3828,30 @@
     {
       id:'push', name:'Push', exerciseCount:4, estimatedMinutes:50, lastPerformed:null, icon:'push',
       exercises:[
-        { name:'Press banca', sets:4, repsRange:'6-10', weight:72.5 },
-        { name:'Press inclinado mancuerna', sets:3, repsRange:'8-12', weight:26 },
-        { name:'Elevaciones laterales', sets:3, repsRange:'10-15', weight:10 },
-        { name:'Extensión de tríceps', sets:3, repsRange:'10-12', weight:22.5 },
+        { name:'Press banca', exerciseId:'rdb-bench-press', sets:4, repsRange:'6-10', weight:72.5 },
+        { name:'Press inclinado mancuerna', exerciseId:'rdb-incline-db-press', sets:3, repsRange:'8-12', weight:26 },
+        { name:'Elevaciones laterales', exerciseId:'rdb-lateral-raise', sets:3, repsRange:'10-15', weight:10 },
+        { name:'Extensión de tríceps', exerciseId:'rdb-tricep-pushdown', sets:3, repsRange:'10-12', weight:22.5 },
       ],
     },
     {
       id:'pull', name:'Pull', exerciseCount:5, estimatedMinutes:55, lastPerformed:null, icon:'pull',
       exercises:[
-        { name:'Dominadas', sets:4, repsRange:'6-10' },
-        { name:'Remo con barra', sets:4, repsRange:'8-10', weight:60 },
-        { name:'Jalón al pecho', sets:3, repsRange:'10-12', weight:55 },
-        { name:'Face pull', sets:3, repsRange:'12-15', weight:18 },
-        { name:'Curl de bíceps', sets:3, repsRange:'10-12', weight:14 },
+        { name:'Dominadas', exerciseId:'rdb-pull-up', sets:4, repsRange:'6-10' },
+        { name:'Remo con barra', exerciseId:'rdb-barbell-row', sets:4, repsRange:'8-10', weight:60 },
+        { name:'Jalón al pecho', exerciseId:'rdb-lat-pulldown', sets:3, repsRange:'10-12', weight:55 },
+        { name:'Face pull', exerciseId:'rdb-face-pull', sets:3, repsRange:'12-15', weight:18 },
+        { name:'Curl de bíceps', exerciseId:'rdb-barbell-curl', sets:3, repsRange:'10-12', weight:14 },
       ],
     },
     {
       id:'legs', name:'Legs', exerciseCount:5, estimatedMinutes:60, lastPerformed:null, icon:'legs',
       exercises:[
-        { name:'Sentadilla', sets:4, repsRange:'5-8', weight:95 },
-        { name:'Peso muerto rumano', sets:3, repsRange:'8-10', weight:80 },
-        { name:'Prensa', sets:3, repsRange:'10-12', weight:140 },
-        { name:'Curl femoral', sets:3, repsRange:'10-12', weight:40 },
-        { name:'Elevación de talones', sets:4, repsRange:'12-15', weight:60 },
+        { name:'Sentadilla', exerciseId:'rdb-squat', sets:4, repsRange:'5-8', weight:95 },
+        { name:'Peso muerto rumano', exerciseId:'rdb-romanian-deadlift', sets:3, repsRange:'8-10', weight:80 },
+        { name:'Prensa', exerciseId:'rdb-leg-press', sets:3, repsRange:'10-12', weight:140 },
+        { name:'Curl femoral', exerciseId:'rdb-leg-curl', sets:3, repsRange:'10-12', weight:40 },
+        { name:'Elevación de talones', exerciseId:'rdb-standing-calf-raise', sets:4, repsRange:'12-15', weight:60 },
       ],
     },
   ];
@@ -4063,114 +4059,47 @@
     return '<i data-feather="' + groupIcon + '"></i>';
   }
 
-  const MUSCLE_GROUPS = [
-    { key:'espalda', label:'ESPALDA', icon:'muscle:espalda', exercises:[
-      { id:'b1', name:'Dominadas' },
-      { id:'b2', name:'Remo con barra' },
-      { id:'b3', name:'Jalón al pecho' },
-      { id:'b4', name:'Remo con mancuerna a una mano' },
-      { id:'b5', name:'Peso muerto' },
-      { id:'b6', name:'Remo en polea baja' },
-    ]},
-    { key:'pecho', label:'PECHO', icon:'muscle:pecho', exercises:[
-      { id:'c1', name:'Press banca' },
-      { id:'c2', name:'Press inclinado mancuerna' },
-      { id:'c3', name:'Aperturas con mancuerna' },
-      { id:'c4', name:'Press declinado' },
-      { id:'c5', name:'Cruces en polea' },
-      { id:'c6', name:'Fondos en paralelas' },
-    ]},
-    { key:'piernas', label:'PIERNAS', icon:'muscle:piernas', exercises:[
-      { id:'l1', name:'Sentadilla' },
-      { id:'l2', name:'Peso muerto rumano' },
-      { id:'l3', name:'Prensa' },
-      { id:'l4', name:'Zancadas' },
-      { id:'l5', name:'Curl femoral' },
-      { id:'l6', name:'Extensión de cuádriceps' },
-    ]},
-    { key:'hombros', label:'HOMBROS', icon:'muscle:hombros', exercises:[
-      { id:'s1', name:'Press militar' },
-      { id:'s2', name:'Elevaciones laterales' },
-      { id:'s3', name:'Face pull' },
-      { id:'s4', name:'Elevaciones frontales' },
-      { id:'s5', name:'Pájaros (posterior)' },
-      { id:'s6', name:'Press Arnold' },
-    ]},
-    { key:'biceps', label:'BÍCEPS', icon:'muscle:biceps', exercises:[
-      { id:'bi1', name:'Curl de bíceps' },
-      { id:'bi2', name:'Curl martillo' },
-      { id:'bi3', name:'Curl concentrado' },
-      { id:'bi4', name:'Curl en polea' },
-      { id:'bi5', name:'Curl scott' },
-      { id:'bi6', name:'Curl 21' },
-    ]},
-    { key:'triceps', label:'TRÍCEPS', icon:'muscle:triceps', exercises:[
-      { id:'t1', name:'Extensión de tríceps' },
-      { id:'t2', name:'Fondos en banco' },
-      { id:'t3', name:'Press francés' },
-      { id:'t4', name:'Extensión en polea' },
-      { id:'t5', name:'Patada de tríceps' },
-      { id:'t6', name:'Press cerrado' },
-    ]},
-  ];
-
-  const EXERCISE_NAME_BY_ID = {};
-  MUSCLE_GROUPS.forEach(group => group.exercises.forEach(ex => { EXERCISE_NAME_BY_ID[ex.id] = ex.name; }));
-
-  const LIBRARY_GROUP_META = {
+  // Metadatos de los grupos musculares (etiqueta e icono). Los ejercicios vienen SOLO de Supabase.
+  const CATALOG_GROUP_META = {
+    espalda: { label:'ESPALDA', icon:'muscle:espalda' },
+    pecho: { label:'PECHO', icon:'muscle:pecho' },
+    piernas: { label:'PIERNAS', icon:'muscle:piernas' },
+    hombros: { label:'HOMBROS', icon:'muscle:hombros' },
+    biceps: { label:'BÍCEPS', icon:'muscle:biceps' },
+    triceps: { label:'TRÍCEPS', icon:'muscle:triceps' },
     core: { label:'CORE', icon:'muscle:core' },
-    antebrazos: { label:'ANTEBRAZOS', icon:'muscle:antebrazos' },
     cuerpo_completo: { label:'CUERPO COMPLETO', icon:'muscle:cuerpo_completo' },
+    antebrazos: { label:'ANTEBRAZOS', icon:'muscle:antebrazos' },
   };
 
-  function buildCatalogGroups(libraryItems){
-    const groups = MUSCLE_GROUPS.map(g => ({
-      key: g.key, label: g.label, icon: g.icon,
-      exercises: g.exercises.map(ex => ({
-        id: ex.id, name: ex.name,
-        imageStart: null, imageEnd: null, equipment: null, muscles: null,
-        groupLabel: g.label.charAt(0) + g.label.slice(1).toLowerCase(),
-        groupIcon: g.icon, source: 'manual',
-      })),
-    }));
-    const byKey = {};
-    groups.forEach(g => { byKey[g.key] = g; });
+  // Estos tres índices se rellenan EN EL MISMO SITIO al cargar el catálogo (nunca se reemplazan los objetos).
+  const CATALOG_GROUPS = [];
+  const EXERCISE_DETAILS_BY_ID = {};
+  const EXERCISE_NAME_BY_ID = {};
 
-    const library = libraryItems || window.STRIVE_EXERCISE_LIBRARY || [];
-    library.forEach(item => {
+  function buildCatalogGroups(items){
+    const byKey = {}, groups = [];
+    Object.keys(CATALOG_GROUP_META).forEach(k => {
+      const m = CATALOG_GROUP_META[k], g = { key:k, label:m.label, icon:m.icon, exercises:[] };
+      byKey[k] = g; groups.push(g);
+    });
+    (items || []).forEach(item => {
       let group = byKey[item.muscleGroup];
-      if(!group){
-        const meta = LIBRARY_GROUP_META[item.muscleGroup] || { label: item.muscleGroup.toUpperCase(), icon:'muscle:default' };
-        group = { key:item.muscleGroup, label:meta.label, icon:meta.icon, exercises:[] };
-        byKey[item.muscleGroup] = group;
-        groups.push(group);
-      }
+      if(!group){ group = { key:item.muscleGroup, label:String(item.muscleGroup).toUpperCase(), icon:'muscle:default', exercises:[] }; byKey[item.muscleGroup] = group; groups.push(group); }
       group.exercises.push({
-        id: item.id, name: item.name,
-        imageStart: item.imageStart, imageEnd: item.imageEnd,
+        id: item.id, name: item.name, imageStart: item.imageStart, imageEnd: item.imageEnd,
         equipment: item.equipment, muscles: item.muscles,
         groupLabel: group.label.charAt(0) + group.label.slice(1).toLowerCase(),
         groupIcon: group.icon, source: item.source || 'repdb',
       });
     });
-    return groups;
+    return groups.filter(g => g.exercises.length > 0);
   }
 
-  const CATALOG_GROUPS = buildCatalogGroups();
-
-  const EXERCISE_DETAILS_BY_ID = {};
-  CATALOG_GROUPS.forEach(group => group.exercises.forEach(ex => {
-    EXERCISE_DETAILS_BY_ID[ex.id] = ex;
-    EXERCISE_NAME_BY_ID[ex.id] = ex.name;
-  }));
-
   // ================================================================
-  // CATÁLOGO DESDE SUPABASE (fase 1). Supabase es la fuente principal de los ejercicios de RepDB; el catálogo
-  // LOCAL (manuales + exercise-library.js) se construye primero y se conserva como respaldo y complemento.
-  // Para revertir: enabled:false (la app vuelve a usar solo el catálogo local, sin ninguna petición).
+  // CATÁLOGO DESDE SUPABASE — única fuente de ejercicios (public.repdb_exercises, solo is_active = true).
   // ================================================================
   const SUPABASE_CATALOG = {
-    enabled: true,
     url: 'https://lgysqyhflqogiqiuhezv.supabase.co',
     publishableKey: 'sb_publishable_wOTIyyRPR8AuX-jmv8U-QA_c2lEndg8', // clave PÚBLICA (publishable). Nunca poner aquí claves secretas ni de servicio.
     table: 'repdb_exercises',
@@ -4178,43 +4107,106 @@
     timeoutMs: 8000,
   };
   const CATALOG_BODY_PART_GROUP = { core:'core', full_body:'cuerpo_completo', back:'espalda', chest:'pecho', shoulders:'hombros', upper_legs:'piernas', lower_legs:'piernas', lower_arms:'antebrazos' };
-  // state: loading | ready | fallback (Supabase falló, se usa el local) | empty (Supabase sin filas utilizables) | error (sin catálogo)
-  const catalogStatus = { state:'loading', source:'local', count:0, skipped:0, localOnly:0, newFromSupabase:0, groupRuleMismatches:0, error:null };
-  let catalogInitPromise = null;
-  let catalogRemoteIds = null;
+  // Traducciones de las claves de equipamiento de RepDB. Clave sin traducción -> texto legible (humanizeKey).
+  const CATALOG_EQUIPMENT_ES = {
+    ab_crunch_machine: 'Máquina de abdominales',
+    ab_wheel: 'Rueda abdominal',
+    air_bike: 'Bicicleta de aire',
+    assisted_pullup_machine: 'Máquina de dominadas asistidas',
+    back_extension_machine: 'Máquina de extensión lumbar',
+    barbell: 'Barra',
+    battle_rope: 'Cuerdas de batalla',
+    bicep_curl_machine: 'Máquina de curl de bíceps',
+    cable: 'Polea',
+    chest_fly_machine: 'Máquina de aperturas',
+    chest_press_machine: 'Máquina de press pecho',
+    climbing_rope: 'Cuerda de escalada',
+    dip_machine: 'Máquina de fondos asistidos',
+    dip_station: 'Estación de fondos',
+    donkey_calf_raise_machine: 'Máquina de gemelos burro',
+    dumbbell: 'Mancuerna',
+    elliptical: 'Elíptica',
+    ez_bar: 'Barra Z',
+    flat_bench: 'Banco plano',
+    glute_ham_developer: 'Banco GHD',
+    hack_squat: 'Máquina hack squat',
+    hip_abduction_machine: 'Máquina de abducción de cadera',
+    hip_adduction_machine: 'Máquina de aducción de cadera',
+    hip_thrust_machine: 'Máquina de hip thrust',
+    jump_rope: 'Cuerda de saltar',
+    kettlebell: 'Kettlebell',
+    lat_pulldown_machine: 'Máquina de jalón',
+    leg_curl: 'Máquina de curl femoral',
+    leg_extension: 'Máquina de extensión de cuádriceps',
+    leg_press: 'Máquina de prensa',
+    loop_band: 'Banda elástica',
+    pec_deck: 'Máquina contractora (pec deck)',
+    plate_loaded_dip_machine: 'Máquina de fondos con discos',
+    plate_loaded_lateral_raise_machine: 'Máquina de elevaciones laterales',
+    plates: 'Discos',
+    plyo_box: 'Cajón pliométrico',
+    preacher_curl_machine: 'Máquina de curl predicador',
+    pull_up_bar: 'Barra de dominadas',
+    resistance_band: 'Banda de resistencia',
+    reverse_fly_machine: 'Máquina de aperturas inversas',
+    rings: 'Anillas',
+    rower: 'Máquina de remo',
+    seated_calf_raise_machine: 'Máquina de gemelos sentado',
+    seated_row_machine: 'Máquina de remo sentado',
+    shoulder_press_machine: 'Máquina de press hombro',
+    shrug_machine: 'Máquina de encogimientos',
+    ski_erg: 'Ski erg',
+    slam_ball: 'Balón medicinal',
+    sled: 'Trineo',
+    smith_machine: 'Máquina Smith',
+    stability_ball: 'Fitball',
+    stair_climber: 'Escaladora',
+    standing_calf_raise_machine: 'Máquina de gemelos de pie',
+    stationary_bike: 'Bicicleta estática',
+    suspension_trainer: 'TRX',
+    trap_bar: 'Barra hexagonal',
+    treadmill: 'Cinta de correr',
+    tricep_extension_machine: 'Máquina de extensión de tríceps',
+    wrist_roller: 'Rodillo de muñeca',
+  };
+  // Ejercicios con imágenes locales REALES (assets/exercises/<id>-start.webp y -end.webp, comprobados uno a uno).
+  // El resto no tiene imagen y muestra el icono de respaldo. Las imágenes de RepDB serán una fase aparte.
+  const CATALOG_LOCAL_IMAGE_IDS = new Set(['rdb-barbell-curl', 'rdb-barbell-row', 'rdb-bench-press', 'rdb-face-pull', 'rdb-incline-db-press', 'rdb-lat-pulldown', 'rdb-lateral-raise', 'rdb-leg-curl', 'rdb-leg-press', 'rdb-pull-up', 'rdb-romanian-deadlift', 'rdb-squat', 'rdb-standing-calf-raise', 'rdb-tricep-pushdown']);
 
-  // Grupo de un ejercicio NUEVO (los que ya están en el catálogo local conservan su grupo). Regla validada contra
-  // los 601 locales: upper_arms se reparte entre bíceps y tríceps según el músculo principal.
+  // state: loading | ready | error (sin conexión o respuesta inválida) | empty (la tabla no devolvió ejercicios utilizables)
+  const catalogStatus = { state:'loading', count:0, skipped:0, error:null, truncated:false, unknownEquipment:[] };
+  let catalogInitPromise = null;
+
   function catalogGroupForRow(row){
     if(row.body_part === 'upper_arms') return (row.primary_muscles || []).some(m => /triceps/i.test(m)) ? 'triceps' : 'biceps';
     return CATALOG_BODY_PART_GROUP[row.body_part] || null;
   }
   function humanizeKey(k){ const t = String(k).replace(/_/g, ' ').trim(); return t.charAt(0).toUpperCase() + t.slice(1); }
 
-  // Fila de Supabase -> formato de exercise-library.js. Para IDs que ya existen en el catálogo local se conservan su
-  // grupo, su equipamiento traducido y sus imágenes (no se inventan rutas). Devuelve null si la fila no es utilizable.
-  function adaptCatalogRow(row, localById){
+  // Fila de Supabase -> ejercicio de Fiten. Devuelve null si la fila no es utilizable.
+  function adaptCatalogRow(row){
     if(!row || typeof row.id !== 'string' || !row.id) return null;
     const name = String(row.name || row.source_name_es || '').trim();
     if(!name) return null;
-    const local = localById[row.id];
-    const group = local ? local.muscleGroup : catalogGroupForRow(row);
+    const group = catalogGroupForRow(row);
     if(!group) return null;
+    const hasImg = CATALOG_LOCAL_IMAGE_IDS.has(row.id);
     return {
       id: row.id, name, muscleGroup: group,
       muscles: [].concat(row.primary_muscles || [], row.secondary_muscles || []),
-      equipment: local ? local.equipment : (row.equipment ? humanizeKey(row.equipment) : null),
-      imageStart: local ? local.imageStart : null, imageEnd: local ? local.imageEnd : null,
+      equipment: row.equipment ? (CATALOG_EQUIPMENT_ES[row.equipment] || humanizeKey(row.equipment)) : null,
+      imageStart: hasImg ? 'assets/exercises/' + row.id + '-start.webp' : null,
+      imageEnd: hasImg ? 'assets/exercises/' + row.id + '-end.webp' : null,
       source: 'repdb', sourceId: row.id.replace(/^rdb-/, ''),
     };
   }
 
-  // Reconstruye el catálogo EN EL MISMO SITIO: CATALOG_GROUPS, EXERCISE_DETAILS_BY_ID y EXERCISE_NAME_BY_ID
-  // siguen siendo los mismos objetos (nadie queda con una referencia obsoleta). Solo añade o actualiza entradas.
+  // Reconstruye el catálogo EN EL MISMO SITIO (los tres índices conservan su identidad).
   function applyCatalogItems(items){
     const groups = buildCatalogGroups(items);
-    CATALOG_GROUPS.length = 0;
-    groups.forEach(g => CATALOG_GROUPS.push(g));
+    CATALOG_GROUPS.length = 0; groups.forEach(g => CATALOG_GROUPS.push(g));
+    Object.keys(EXERCISE_DETAILS_BY_ID).forEach(k => { delete EXERCISE_DETAILS_BY_ID[k]; });
+    Object.keys(EXERCISE_NAME_BY_ID).forEach(k => { delete EXERCISE_NAME_BY_ID[k]; });
     CATALOG_GROUPS.forEach(group => group.exercises.forEach(ex => { EXERCISE_DETAILS_BY_ID[ex.id] = ex; EXERCISE_NAME_BY_ID[ex.id] = ex.name; }));
   }
 
@@ -4224,14 +4216,13 @@
     if(isOpen('exercisePickerScreen')){ renderExerciseFilterPills(); renderExercisePicker(); }
     if(isOpen('editRoutineScreen') && editCatalogOpen) renderEditRoutineCatalog();
     if(isOpen('routineDetailScreen') && editingWeightIndex === null){
-      if(currentPreviewSource === 'library'){ const t = LIBRARY_ROUTINES.find(r => r.id === currentPreviewRoutineId); if(t) renderLibraryPreviewBody(t); }
+      if(currentPreviewSource === 'library'){ const t = LIBRARY_ROUTINES.find(r => r.id === currentPreviewRoutineId); if(t){ renderRoutineDetailHeader(t); renderLibraryPreviewBody(t); } }
       else if(routines.some(r => r.id === currentPreviewRoutineId)) renderRoutineDetailBody();
     }
   }
 
   async function loadCatalog(){
     const cfg = SUPABASE_CATALOG;
-    if(!cfg.enabled){ catalogStatus.state = 'fallback'; catalogStatus.error = 'desactivado'; return catalogStatus; }
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), cfg.timeoutMs);
     try {
@@ -4240,51 +4231,54 @@
       if(!res.ok) throw new Error('HTTP ' + res.status);
       const rows = await res.json();
       if(!Array.isArray(rows)) throw new Error('respuesta inesperada');
-      const local = window.STRIVE_EXERCISE_LIBRARY || [];
-      const localById = {}; local.forEach(e => { localById[e.id] = e; });
-      const items = []; let skipped = 0, mismatches = 0;
+      const items = []; let skipped = 0; const unknownEq = new Set();
       rows.forEach(r => {
-        const it = adaptCatalogRow(r, localById);
+        const it = adaptCatalogRow(r);
         if(!it){ skipped++; return; }
-        if(localById[r.id] && catalogGroupForRow(r) !== localById[r.id].muscleGroup) mismatches++;
+        if(r.equipment && !CATALOG_EQUIPMENT_ES[r.equipment]) unknownEq.add(r.equipment);
         items.push(it);
       });
-      catalogStatus.skipped = skipped; catalogStatus.groupRuleMismatches = mismatches;
+      catalogStatus.skipped = skipped; catalogStatus.unknownEquipment = Array.from(unknownEq);
       if(items.length === 0){ catalogStatus.state = 'empty'; catalogStatus.error = rows.length ? 'filas no utilizables' : 'sin ejercicios'; }
-      else {
-        const remote = new Set(items.map(i => i.id));
-        const localOnly = local.filter(e => !remote.has(e.id)); // los que Supabase no tiene siguen disponibles en local
-        applyCatalogItems(items.concat(localOnly));
-        catalogRemoteIds = remote;
-        Object.assign(catalogStatus, { state:'ready', source:'supabase', count: items.length, localOnly: localOnly.length, newFromSupabase: items.filter(i => !localById[i.id]).length, truncated: rows.length >= 1000, error: null });
-      }
+      else { applyCatalogItems(items); Object.assign(catalogStatus, { state:'ready', count: items.length, truncated: rows.length >= 1000, error: null }); }
     } catch(e){
-      catalogStatus.state = CATALOG_GROUPS.length ? 'fallback' : 'error';
+      catalogStatus.state = 'error';
       catalogStatus.error = e && e.name === 'AbortError' ? 'tiempo agotado' : String((e && e.message) || e);
     } finally { clearTimeout(timer); }
     refreshCatalogViews();
     return catalogStatus;
   }
   function initCatalog(){ if(!catalogInitPromise) catalogInitPromise = loadCatalog(); return catalogInitPromise; } // una sola petición
+  function retryCatalog(){ catalogInitPromise = null; catalogStatus.state = 'loading'; catalogStatus.error = null; refreshCatalogViews(); initCatalog(); }
 
-  // Diagnóstico para comprobar la conexión real desde la consola del navegador: FitenCatalog.diagnose()
+  // Diagnóstico desde la consola del navegador: FitenCatalog.diagnose()
   function diagnoseCatalog(){
-    const local = window.STRIVE_EXERCISE_LIBRARY || [];
+    const refs = [];
+    Object.values(GOAL_ROUTINE_TEMPLATES).forEach(t => t.exercises.forEach(e => refs.push(e.ref)));
+    LIBRARY_ROUTINES.forEach(r => r.exercises.forEach(e => refs.push(e.exerciseId)));
+    const uniq = Array.from(new Set(refs)), groups = {};
+    CATALOG_GROUPS.forEach(g => { groups[g.key] = g.exercises.length; });
+    const ready = catalogStatus.state === 'ready';
     return {
-      state: catalogStatus.state, source: catalogStatus.source, error: catalogStatus.error,
-      supabaseRows: catalogStatus.count, skippedRows: catalogStatus.skipped, newInSupabase: catalogStatus.newFromSupabase,
-      localLibraryIds: local.length, localIdsMissingInSupabase: catalogRemoteIds ? local.filter(e => !catalogRemoteIds.has(e.id)).map(e => e.id) : null,
-      groupRuleMismatches: catalogStatus.groupRuleMismatches,
-      manualPreserved: MUSCLE_GROUPS.every(g => g.exercises.every(e => !!EXERCISE_DETAILS_BY_ID[e.id])),
-      totalInCatalog: Object.keys(EXERCISE_DETAILS_BY_ID).length,
+      state: catalogStatus.state, source: 'supabase', error: catalogStatus.error,
+      supabaseRows: catalogStatus.count, skippedRows: catalogStatus.skipped, truncated: catalogStatus.truncated,
+      totalInCatalog: Object.keys(EXERCISE_DETAILS_BY_ID).length, groups,
+      templateIdsChecked: uniq.length, templateIdsMissing: ready ? uniq.filter(id => !EXERCISE_DETAILS_BY_ID[id]) : null,
+      equipmentKeysWithoutTranslation: catalogStatus.unknownEquipment,
+      exercisesWithLocalImages: Object.values(EXERCISE_DETAILS_BY_ID).filter(e => e.imageStart).length,
     };
   }
-  window.FitenCatalog = { init: initCatalog, status: catalogStatus, diagnose: diagnoseCatalog };
+  window.FitenCatalog = { init: initCatalog, retry: retryCatalog, status: catalogStatus, diagnose: diagnoseCatalog };
 
-  function catalogNoticeHtml(){
-    if(catalogStatus.state !== 'fallback' && catalogStatus.state !== 'empty' && catalogStatus.state !== 'error') return '';
-    return '<div class="routine-reorder-hint">Catálogo en línea no disponible: se usa el catálogo local.</div>';
+  // Estado visible cuando el catálogo no está listo (reutiliza el componente de estado vacío existente).
+  function catalogStateHtml(){
+    if(catalogStatus.state === 'loading') return '<div class="ex-empty-state"><div class="ex-empty-title">Cargando ejercicios…</div><div class="ex-empty-sub">Un momento, estamos preparando el catálogo.</div></div>';
+    const empty = catalogStatus.state === 'empty';
+    return '<div class="ex-empty-state"><div class="ex-empty-title">' + (empty ? 'No hay ejercicios disponibles' : 'No se pudo cargar el catálogo') + '</div>' +
+      '<div class="ex-empty-sub">' + (empty ? 'El catálogo no devolvió ejercicios. Inténtalo de nuevo en un momento.' : 'Revisa tu conexión e inténtalo de nuevo.') + '</div>' +
+      '<button class="flow-secondary-btn" style="margin-top:18px;" onclick="retryCatalog()"><i data-feather="refresh-cw"></i> Reintentar</button></div>';
   }
+  function catalogNameFor(ex){ const d = EXERCISE_DETAILS_BY_ID[ex.exerciseId]; return d ? d.name : ex.name; }
 
   function findCatalogExerciseFor(routineExercise){
     if(routineExercise.exerciseId && EXERCISE_DETAILS_BY_ID[routineExercise.exerciseId]){
@@ -4299,32 +4293,11 @@
     return group.label.charAt(0) + group.label.slice(1).toLowerCase();
   }
 
-  const LEGACY_EXERCISE_IMAGE_MAP = {
-    'Press banca': 'bench-press',
-    'Press inclinado mancuerna': 'incline-db-press',
-    'Elevaciones laterales': 'lateral-raise',
-    'Extensión de tríceps': 'tricep-pushdown',
-    'Dominadas': 'pull-up',
-    'Remo con barra': 'barbell-row',
-    'Jalón al pecho': 'lat-pulldown',
-    'Face pull': 'face-pull',
-    'Curl de bíceps': 'barbell-curl',
-    'Sentadilla': 'squat',
-    'Peso muerto rumano': 'romanian-deadlift',
-    'Prensa': 'leg-press',
-    'Curl femoral': 'leg-curl',
-    'Elevación de talones': 'standing-calf-raise',
-  };
-
-  function getDemoImagesForExerciseName(exerciseName){
-    const rdbSourceId = LEGACY_EXERCISE_IMAGE_MAP[exerciseName];
-    if(!rdbSourceId) return null;
-    const details = EXERCISE_DETAILS_BY_ID['rdb-' + rdbSourceId];
-    if(!details || !details.imageStart || !details.imageEnd) return null;
-    return details;
+  // Demostración del entrenamiento: por ID de ejercicio. Sin imagen A y B reales, devuelve null (no se muestra nada).
+  function getDemoImagesForExercise(ex){
+    const d = ex && EXERCISE_DETAILS_BY_ID[ex.exerciseId];
+    return (d && d.imageStart && d.imageEnd) ? d : null;
   }
-
-  console.log('[Fiten] workout demo-images build loaded — mapped exercises:', Object.keys(LEGACY_EXERCISE_IMAGE_MAP).length);
 
   let currentPreviewRoutineId = null;
   let currentPreviewSource = 'mine'; // 'mine' | 'library' — qué footer/cuerpo renderizar
@@ -4354,7 +4327,8 @@
 
     const groups = [];
     (routine.exercises || []).forEach(ex => {
-      const group = findMuscleGroupLabelForExercise(ex.name);
+      const cat = findCatalogExerciseFor(ex);
+      const group = cat ? cat.groupLabel : findMuscleGroupLabelForExercise(ex.name);
       if(group && groups.indexOf(group) === -1) groups.push(group);
     });
     document.getElementById('routineDetailSubtitle').textContent =
@@ -4541,7 +4515,7 @@
         '<div class="routine-ex-row">' +
           '<div class="routine-ex-index">' + (i + 1) + '</div>' +
           '<div class="routine-ex-info">' +
-            '<div class="routine-ex-name">' + escapeHtml(ex.name) + '</div>' +
+            '<div class="routine-ex-name">' + escapeHtml(catalogNameFor(ex)) + '</div>' +
             '<div class="routine-ex-meta">' + ex.sets + ' series' + (ex.repsRange ? ' · ' + escapeHtml(ex.repsRange) + ' reps' : '') + '</div>' +
             '<div class="routine-ex-meta-rest">' + formatRestTime(restSecondsValue) + ' descanso</div>' +
           '</div>' +
@@ -4571,7 +4545,7 @@
       libraryId: template.id, // referencia informativa; nada más depende de esto hoy
       // El peso que ya usaste en ese ejercicio manda sobre el sugerido por la plantilla.
       exercises: template.exercises.map(ex => {
-        const copy = { ...ex, exerciseId: resolveExerciseId(ex.name, ex.exerciseId) }; delete copy.weight; // pesos de plantilla: orientativos, no crean objetivos
+        const copy = { ...ex, exerciseId: resolveExerciseId(ex.name, ex.exerciseId), name: catalogNameFor(ex) }; delete copy.weight; // pesos de plantilla: orientativos, no crean objetivos
         return copy;
       }),
     };
@@ -4937,6 +4911,7 @@
 
   function renderEditRoutineCatalog(){
     const container = document.getElementById('editRoutineCatalog');
+    if(catalogStatus.state !== 'ready'){ container.innerHTML = catalogStateHtml(); feather.replace(); return; }
     const currentNames = editingRoutineExercises.map(ex => ex.name);
     container.innerHTML = CATALOG_GROUPS.map(group => {
       const cards = group.exercises.map(ex => {
@@ -5225,6 +5200,7 @@
 
   function renderExerciseFilterPills(){
     const pillsEl = document.getElementById('exerciseFilterPills');
+    if(catalogStatus.state !== 'ready'){ pillsEl.innerHTML = ''; return; }
     const allPill = '<button class="ex-filter-pill' + (exerciseFilterGroup === 'all' ? ' selected' : '') + '" onclick="setExerciseFilterGroup(\'all\')">Todos</button>';
     const groupPills = CATALOG_GROUPS.map(g => (
       '<button class="ex-filter-pill' + (exerciseFilterGroup === g.key ? ' selected' : '') + '" onclick="setExerciseFilterGroup(\'' + g.key + '\')">' +
@@ -5247,6 +5223,7 @@
 
   function renderExercisePicker(){
     const body = document.getElementById('exercisePickerBody');
+    if(catalogStatus.state !== 'ready'){ body.innerHTML = catalogStateHtml(); updateAddExercisesFooter(); feather.replace(); return; }
     const groups = getFilteredCatalogGroups();
     if(groups.length === 0){
       body.innerHTML =
@@ -5274,8 +5251,6 @@
         );
       }).join('');
     }
-    const notice = catalogNoticeHtml();
-    if(notice) body.insertAdjacentHTML('afterbegin', notice);
     updateAddExercisesFooter();
     feather.replace();
   }
@@ -5415,62 +5390,62 @@
     muscle: {
       name:'Hipertrofia Fiten', estimatedMinutes:55, icon:'dumbbell',
       exercises:[
-        { ref:'c1',  sets:4, repsRange:'8-12' },
-        { ref:'b2',  sets:4, repsRange:'8-12' },
-        { ref:'l1',  sets:4, repsRange:'8-12' },
-        { ref:'s2',  sets:3, repsRange:'10-12' },
-        { ref:'bi1', sets:3, repsRange:'10-12' },
+        { ref:'rdb-bench-press',  sets:4, repsRange:'8-12' },
+        { ref:'rdb-barbell-row',  sets:4, repsRange:'8-12' },
+        { ref:'rdb-squat',  sets:4, repsRange:'8-12' },
+        { ref:'rdb-lateral-raise',  sets:3, repsRange:'10-12' },
+        { ref:'rdb-barbell-curl', sets:3, repsRange:'10-12' },
       ],
     },
     strength: {
       name:'Fuerza Fiten', estimatedMinutes:60, icon:'strength',
       exercises:[
-        { ref:'l1', sets:5, repsRange:'3-5' },
-        { ref:'c1', sets:5, repsRange:'3-5' },
-        { ref:'b2', sets:4, repsRange:'5-6' },
-        { ref:'l2', sets:4, repsRange:'5-6' },
+        { ref:'rdb-squat', sets:5, repsRange:'3-5' },
+        { ref:'rdb-bench-press', sets:5, repsRange:'3-5' },
+        { ref:'rdb-barbell-row', sets:4, repsRange:'5-6' },
+        { ref:'rdb-romanian-deadlift', sets:4, repsRange:'5-6' },
       ],
     },
     endurance: {
       name:'Resistencia Fiten', estimatedMinutes:45, icon:'cardio',
       exercises:[
-        { ref:'l3',  sets:3, repsRange:'15-20' },
-        { ref:'b3',  sets:3, repsRange:'15-20' },
-        { ref:'s2',  sets:3, repsRange:'15-20' },
-        { ref:'t2',  sets:3, repsRange:'15-20' },
-        { ref:'bi2', sets:3, repsRange:'15-20' },
-        { ref:'c3',  sets:3, repsRange:'15-20' },
+        { ref:'rdb-leg-press',  sets:3, repsRange:'15-20' },
+        { ref:'rdb-lat-pulldown',  sets:3, repsRange:'15-20' },
+        { ref:'rdb-lateral-raise',  sets:3, repsRange:'15-20' },
+        { ref:'rdb-bench-dips',  sets:3, repsRange:'15-20' },
+        { ref:'rdb-hammer-curl', sets:3, repsRange:'15-20' },
+        { ref:'rdb-db-fly',  sets:3, repsRange:'15-20' },
       ],
     },
     fatloss: {
       name:'Quema Fiten', estimatedMinutes:40, icon:'lightning',
       exercises:[
-        { ref:'l1', sets:3, repsRange:'12-15' },
-        { ref:'b2', sets:3, repsRange:'12-15' },
-        { ref:'c1', sets:3, repsRange:'12-15' },
-        { ref:'s2', sets:3, repsRange:'12-15' },
-        { ref:'l3', sets:3, repsRange:'12-15' },
-        { ref:'t1', sets:3, repsRange:'12-15' },
+        { ref:'rdb-squat', sets:3, repsRange:'12-15' },
+        { ref:'rdb-barbell-row', sets:3, repsRange:'12-15' },
+        { ref:'rdb-bench-press', sets:3, repsRange:'12-15' },
+        { ref:'rdb-lateral-raise', sets:3, repsRange:'12-15' },
+        { ref:'rdb-leg-press', sets:3, repsRange:'12-15' },
+        { ref:'rdb-tricep-pushdown', sets:3, repsRange:'12-15' },
       ],
     },
     fitness: {
       name:'Full Body Fiten', estimatedMinutes:45, icon:'heart',
       exercises:[
-        { ref:'l1',  sets:3, repsRange:'10-12' },
-        { ref:'c1',  sets:3, repsRange:'10-12' },
-        { ref:'b2',  sets:3, repsRange:'10-12' },
-        { ref:'s1',  sets:3, repsRange:'10-12' },
-        { ref:'bi1', sets:2, repsRange:'10-12' },
+        { ref:'rdb-squat',  sets:3, repsRange:'10-12' },
+        { ref:'rdb-bench-press',  sets:3, repsRange:'10-12' },
+        { ref:'rdb-barbell-row',  sets:3, repsRange:'10-12' },
+        { ref:'rdb-ohp',  sets:3, repsRange:'10-12' },
+        { ref:'rdb-barbell-curl', sets:2, repsRange:'10-12' },
       ],
     },
   };
 
   function generateRoutineForGoal(goalKey, preferences){
     const template = GOAL_ROUTINE_TEMPLATES[goalKey] || GOAL_ROUTINE_TEMPLATES.fitness;
-    const exercises = template.exercises.map(t => {
-      const name = EXERCISE_NAME_BY_ID[t.ref];
-      const ex = { name, exerciseId: t.ref, sets: t.sets, repsRange: t.repsRange };
-      return ex;
+    const exercises = [];
+    template.exercises.forEach(t => {
+      const d = EXERCISE_DETAILS_BY_ID[t.ref];
+      if(d) exercises.push({ name: d.name, exerciseId: t.ref, sets: t.sets, repsRange: t.repsRange }); // solo ejercicios que existen en el catálogo
     });
     return {
       id: newId(),
@@ -5487,6 +5462,7 @@
     if(!selectedGoal) return;
     userPreferences.goal = selectedGoal;
     const routine = generateRoutineForGoal(selectedGoal, userPreferences);
+    if(routine.exercises.length === 0){ showSuccessToast('Catálogo no disponible. Inténtalo de nuevo.'); return; }
     routines.push(routine);
 
     closeGoalPicker();
