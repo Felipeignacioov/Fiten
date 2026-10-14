@@ -1400,6 +1400,25 @@
   .tab-pane.active>*:nth-child(n+4){animation-delay:0.1s;}
   .tab-pane.active>*:nth-child(n+6){animation-delay:0.15s;}
   @media (prefers-reduced-motion:reduce){.tab-pane.active>*{animation:none;}}
+
+  /* ---------- Filas de ejercicios de la rutina (detalle y biblioteca): compactas en móvil ----------
+     Rejilla: número | hueco | nombre+detalle | miniatura | asa. El peso va en una segunda línea bajo el nombre. */
+  .routine-ex-row{
+    display:grid;grid-template-columns:24px 10px minmax(0,1fr) auto auto;align-items:start;column-gap:0;
+    padding:12px 14px;
+  }
+  .routine-ex-row .routine-ex-tap-area{display:contents;} /* la zona táctil sigue siendo número + nombre */
+  .routine-ex-row .routine-ex-tap-area > *{cursor:pointer;}
+  .routine-ex-row .routine-ex-index{grid-column:1;grid-row:1;width:24px;height:24px;border-radius:8px;font-size:12px;}
+  .routine-ex-row .routine-ex-info{grid-column:3;grid-row:1;min-width:0;padding-top:2px;}
+  .routine-ex-row .routine-ex-name{
+    display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;
+    line-height:1.25;overflow-wrap:break-word;margin-bottom:3px;
+  }
+  .routine-ex-row .routine-ex-meta{line-height:1.35;}
+  .routine-ex-row .routine-ex-demo-btn{grid-column:4;grid-row:1;width:48px;height:48px;margin-left:10px;border-radius:12px;}
+  .routine-ex-row .routine-ex-handle{grid-column:5;grid-row:1;margin-left:10px;align-self:center;}
+  .routine-ex-row .routine-ex-weight-btn,.routine-ex-row .routine-ex-weight-edit{grid-column:3 / 6;grid-row:2;justify-self:start;margin-top:8px;}
 </style>
 </head>
 <body>
@@ -4391,8 +4410,7 @@
       const metaHtml =
         '<div class="routine-ex-info">' +
           '<div class="routine-ex-name">' + escapeHtml(ex.name) + '</div>' +
-          '<div class="routine-ex-meta">' + ex.sets + ' series' + (ex.repsRange ? ' · ' + escapeHtml(ex.repsRange) + ' reps' : '') + '</div>' +
-          '<div class="routine-ex-meta-rest">' + formatRestTime(restSecondsValue) + ' descanso</div>' +
+          '<div class="routine-ex-meta">' + ex.sets + ' series' + (ex.repsRange ? ' · ' + escapeHtml(ex.repsRange) + ' reps' : '') + ' · ' + formatRestTime(restSecondsValue) + ' descanso</div>' +
         '</div>';
 
       let weightHtml;
@@ -4536,8 +4554,7 @@
           '<div class="routine-ex-index">' + (i + 1) + '</div>' +
           '<div class="routine-ex-info">' +
             '<div class="routine-ex-name">' + escapeHtml(catalogNameFor(ex)) + '</div>' +
-            '<div class="routine-ex-meta">' + ex.sets + ' series' + (ex.repsRange ? ' · ' + escapeHtml(ex.repsRange) + ' reps' : '') + '</div>' +
-            '<div class="routine-ex-meta-rest">' + formatRestTime(restSecondsValue) + ' descanso</div>' +
+            '<div class="routine-ex-meta">' + ex.sets + ' series' + (ex.repsRange ? ' · ' + escapeHtml(ex.repsRange) + ' reps' : '') + ' · ' + formatRestTime(restSecondsValue) + ' descanso</div>' +
           '</div>' +
           demoHtml + weightHtml +
         '</div>'
