@@ -1590,7 +1590,7 @@
       <div class="logout-row"><i data-feather="log-out"></i><span>Cerrar sesión</span></div>
 
       <div style="height:20px"></div>
-      <div style="text-align:center;font-family:var(--font-body);font-size:11px;color:var(--text-tertiary);">Ejercicios e imágenes por RepDB (repdb.co)</div>
+      <div style="text-align:center;font-family:var(--font-body);font-size:11px;color:var(--text-tertiary);"><a href="https://repdb.co" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;">Exercise data by RepDB (repdb.co)</a></div>
 
       <div style="height:24px"></div>
     </div>
@@ -3384,8 +3384,11 @@
       if(document.getElementById('wkDemoImgA').getAttribute('src') !== demo.imageStart) demoEl.dataset.broken = '';
       document.getElementById('wkDemoImgA').src = demo.imageStart;
       document.getElementById('wkDemoImgA').alt = ex.name + ' — posición A';
-      document.getElementById('wkDemoImgB').src = demo.imageEnd;
-      document.getElementById('wkDemoImgB').alt = ex.name + ' — posición B';
+      // Con una sola imagen: se muestra solo la A (centrada, mismo tamaño) y no se toca el src de la B (evita un error de carga).
+      const wrapA = document.getElementById('wkDemoImgA').parentElement, wrapB = document.getElementById('wkDemoImgB').parentElement, imgB = document.getElementById('wkDemoImgB');
+      wrapA.style.flex = demo.imageEnd ? '' : '0 0 calc(50% - 5px)'; wrapA.style.margin = demo.imageEnd ? '' : '0 auto';
+      wrapB.style.display = demo.imageEnd ? '' : 'none';
+      if(demo.imageEnd){ imgB.src = demo.imageEnd; imgB.alt = ex.name + ' — posición B'; } else { imgB.removeAttribute('src'); imgB.alt = ''; }
       demoEl.classList.toggle('wk-demo-hidden', restRemaining !== null || demoEl.dataset.broken === '1');
     } else {
       demoEl.classList.add('wk-demo-hidden');
@@ -4103,7 +4106,7 @@
     url: 'https://lgysqyhflqogiqiuhezv.supabase.co',
     publishableKey: 'sb_publishable_wOTIyyRPR8AuX-jmv8U-QA_c2lEndg8', // clave PÚBLICA (publishable). Nunca poner aquí claves secretas ni de servicio.
     table: 'repdb_exercises',
-    fields: 'id,name,source_name_es,body_part,equipment,primary_muscles,secondary_muscles',
+    fields: 'id,name,source_name_es,body_part,equipment,primary_muscles,secondary_muscles,images',
     timeoutMs: 8000,
   };
   const CATALOG_BODY_PART_GROUP = { core:'core', full_body:'cuerpo_completo', back:'espalda', chest:'pecho', shoulders:'hombros', upper_legs:'piernas', lower_legs:'piernas', lower_arms:'antebrazos' };
@@ -4169,7 +4172,6 @@
     tricep_extension_machine: 'Máquina de extensión de tríceps',
     wrist_roller: 'Rodillo de muñeca',
   };
-  // Imágenes: por ahora ningún ejercicio tiene imagen (se muestra el icono del grupo). Las imágenes de RepDB serán una fase aparte.
 
   // state: loading | ready | error (sin conexión o respuesta inválida) | empty (la tabla no devolvió ejercicios utilizables)
   const catalogStatus = { state:'loading', count:0, skipped:0, error:null, truncated:false, unknownEquipment:[] };
@@ -4178,6 +4180,25 @@
   function catalogGroupForRow(row){
     if(row.body_part === 'upper_arms') return (row.primary_muscles || []).some(m => /triceps/i.test(m)) ? 'triceps' : 'biceps';
     return CATALOG_BODY_PART_GROUP[row.body_part] || null;
+  }
+  // ---- Imágenes de RepDB: referencias relativas de la columna `images` -> URL absolutas (sin tocar Supabase Storage) ----
+  const CATALOG_IMAGE_BASE = 'https://exercise-dataset.com/';
+  function catalogImageUrl(rel){
+    if(typeof rel !== 'string') return null;
+    let p = rel.trim();
+    if(!p) return null;
+    if(/^https?:\/\//i.test(p)) return p.indexOf(CATALOG_IMAGE_BASE) === 0 ? p : null; // solo el alojamiento oficial
+    p = p.replace(/^(\.?\/)+/, '').replace(/\/{2,}/g, '/'); // sin barras iniciales ni dobles
+    if(!p || p.indexOf('\\') !== -1 || /(^|\/)\.\.(\/|$)/.test(p) || !/\.(webp|png|jpe?g|gif)$/i.test(p)) return null;
+    return CATALOG_IMAGE_BASE + encodeURI(p);
+  }
+  // images.flat: start+peak -> A y B; main (o start sin peak) -> una sola imagen A; sin referencias -> [null, null].
+  function catalogImagesFromRow(images){
+    if(typeof images === 'string'){ try { images = JSON.parse(images); } catch(e){ return [null, null]; } }
+    const flat = (images && typeof images === 'object') ? images.flat : null;
+    if(!flat || typeof flat !== 'object') return [null, null];
+    const start = catalogImageUrl(flat.start), peak = catalogImageUrl(flat.peak), main = catalogImageUrl(flat.main);
+    return [start || main || peak, (start && peak) ? peak : null]; // 'main' nunca genera una segunda posición
   }
   function humanizeKey(k){ const t = String(k).replace(/_/g, ' ').trim(); return t.charAt(0).toUpperCase() + t.slice(1); }
 
@@ -4188,11 +4209,12 @@
     if(!name) return null;
     const group = catalogGroupForRow(row);
     if(!group) return null;
+    const img = catalogImagesFromRow(row.images);
     return {
       id: row.id, name, muscleGroup: group,
       muscles: [].concat(row.primary_muscles || [], row.secondary_muscles || []),
       equipment: row.equipment ? (CATALOG_EQUIPMENT_ES[row.equipment] || humanizeKey(row.equipment)) : null,
-      imageStart: null, imageEnd: null,
+      imageStart: img[0], imageEnd: img[1],
       source: 'repdb', sourceId: row.id.replace(/^rdb-/, ''),
     };
   }
@@ -4261,7 +4283,8 @@
       totalInCatalog: Object.keys(EXERCISE_DETAILS_BY_ID).length, groups,
       templateIdsChecked: uniq.length, templateIdsMissing: ready ? uniq.filter(id => !EXERCISE_DETAILS_BY_ID[id]) : null,
       equipmentKeysWithoutTranslation: catalogStatus.unknownEquipment,
-      exercisesWithImageReferences: Object.values(EXERCISE_DETAILS_BY_ID).filter(e => e.imageStart).length, // declaradas, NO verificadas
+      exercisesWithImageReferences: Object.values(EXERCISE_DETAILS_BY_ID).filter(e => e.imageStart).length, // referencias declaradas, NO verificadas
+      imageShapes: { two: Object.values(EXERCISE_DETAILS_BY_ID).filter(e => e.imageStart && e.imageEnd).length, single: Object.values(EXERCISE_DETAILS_BY_ID).filter(e => e.imageStart && !e.imageEnd).length, none: Object.values(EXERCISE_DETAILS_BY_ID).filter(e => !e.imageStart).length },
       imagesVerified: false,
     };
   }
@@ -4290,10 +4313,10 @@
     return group.label.charAt(0) + group.label.slice(1).toLowerCase();
   }
 
-  // Demostración del entrenamiento: por ID de ejercicio. Sin imagen A y B reales, devuelve null (no se muestra nada).
+  // Demostración del entrenamiento: por ID de ejercicio. Basta con una imagen (A); la B es opcional. Sin imágenes, devuelve null.
   function getDemoImagesForExercise(ex){
     const d = ex && EXERCISE_DETAILS_BY_ID[ex.exerciseId];
-    return (d && d.imageStart && d.imageEnd) ? d : null;
+    return (d && d.imageStart) ? d : null;
   }
 
   let currentPreviewRoutineId = null;
