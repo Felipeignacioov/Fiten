@@ -233,16 +233,6 @@
     margin-top:24px;
     box-shadow:var(--shadow-elevated);
   }
-  .hero-watermark{
-    position:absolute;
-    right:-6px;top:-40px;
-    font-family:var(--font-display);
-    font-weight:700;
-    font-size:170px;
-    color:rgba(255,255,255,0.03);
-    line-height:1;
-    pointer-events:none;
-  }
   .hero-eyebrow-row{
     display:flex;align-items:center;gap:8px;margin-bottom:8px;position:relative;
   }
@@ -1349,7 +1339,6 @@
     border-color:var(--border-light);
   }
   .hero::before{content:'';position:absolute;top:0;left:24px;right:24px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.22),transparent);}
-  .hero-watermark{color:transparent;-webkit-text-stroke:1px rgba(255,255,255,0.07);}
 
   /* Botones principales: degradado profundo, filo de luz y sombra con color */
   .hero-cta,.hero-empty-primary,.add-btn,.confirm-save-btn,.cal-summary-cta,.rest-btn-primary,
@@ -1420,6 +1409,16 @@
   .routine-ex-row .routine-ex-demo-btn{grid-column:4;grid-row:1;width:48px;height:48px;margin-left:10px;border-radius:12px;}
   .routine-ex-row .routine-ex-handle{grid-column:5;grid-row:1;margin-left:10px;align-self:center;}
   .routine-ex-row .routine-ex-weight-btn,.routine-ex-row .routine-ex-weight-edit{grid-column:3 / 6;grid-row:2;justify-self:start;margin-top:8px;}
+
+  /* Tarjetas «Tu progreso»: el bloque del valor queda anclado abajo y los números se alinean aunque los títulos ocupen 1 o 2 líneas */
+  .progress-card{display:flex;flex-direction:column;}
+  .progress-card .progress-name{flex:1 1 auto;}
+  /* Botón principal del hero (Inicio): resplandor más discreto; los demás botones principales no cambian */
+  .hero-cta,.hero-empty-primary{box-shadow:inset 0 1px 0 rgba(255,255,255,0.22),0 8px 18px -10px rgba(22,99,89,0.45);}
+
+  /* Récord sin mejora previa (primer registro): icono neutro; la estrella dorada queda para las mejoras reales */
+  .pr-icon.pr-icon-first{background:var(--surface-high);box-shadow:none;}
+  .pr-icon.pr-icon-first svg{color:var(--text-tertiary);}
 </style>
 </head>
 <body>
@@ -1443,7 +1442,6 @@
       </div>
 
       <div class="hero" id="heroWithRoutine">
-        <div class="hero-watermark" id="heroWatermark">4</div>
         <div class="hero-eyebrow-row">
           <div class="hero-eyebrow-dot"></div>
           <div class="hero-eyebrow">Tu entrenamiento de hoy</div>
@@ -4029,8 +4027,7 @@
       const routine = routines[0];
       document.getElementById('heroTodayTitle').textContent = routine.name;
       const exerciseCount = routine.exercises ? routine.exercises.length : routine.exerciseCount;
-      document.getElementById('heroTodayExercises').textContent = exerciseCount + ' ejercicios';
-      document.getElementById('heroWatermark').textContent = exerciseCount;
+      document.getElementById('heroTodayExercises').textContent = exerciseCount + (exerciseCount === 1 ? ' ejercicio' : ' ejercicios');
       document.getElementById('heroTodayDuration').textContent = '~' + routine.estimatedMinutes + ' min';
     }
   }
@@ -5658,7 +5655,7 @@
     workoutLogs.forEach(log => {
       if(log.source === 'legacy-seed') return;
       log.entries.forEach(e => {
-        if(e.exerciseName === exerciseName && (best === null || e.weightKg > best)){
+        if(e.exerciseName === exerciseName && e.weightKg > 0 && (best === null || e.weightKg > best)){
           best = e.weightKg;
         }
       });
@@ -5696,7 +5693,7 @@
     let previousRecord = null;
     chronologicalLogs.forEach(log => {
       const weightsThisSession = log.entries
-        .filter(e => e.exerciseName === exerciseName)
+        .filter(e => e.exerciseName === exerciseName && e.weightKg > 0) // un récord de peso exige peso: las series sin carga no cuentan
         .map(e => e.weightKg);
       if(weightsThisSession.length === 0) return;
       const sessionMax = Math.max(...weightsThisSession);
@@ -5726,21 +5723,31 @@
     return records;
   }
 
-  function buildPersonalRecordRowHtml(r){
-    const delta = r.previousRecord ? Math.round((r.currentRecord.weight - r.previousRecord.weight) * 100) / 100 : null;
+  // Qué representa un récord frente a su marca anterior. Lógica COMPARTIDA por Home, Progreso y «Ver todos»:
+  //   'improved' = superó una marca anterior (la única situación que merece la estrella de logro),
+  //   'first'    = primer registro con carga: no hay nada que superar,
+  //   'same'     = no supera a la anterior (no ocurre con la lógica actual: el récord solo cambia si se supera con >).
+  function recordChange(r){
+    if(!r.previousRecord) return { kind: 'first', delta: null };
+    const delta = Math.round((r.currentRecord.weight - r.previousRecord.weight) * 100) / 100;
+    return delta > 0 ? { kind: 'improved', delta } : { kind: 'same', delta: 0 };
+  }
 
-    let deltaHtml;
-    if(delta === null){
-      deltaHtml = '';
-    } else if(delta > 0){
-      deltaHtml = '<div class="pr-delta pr-delta-up"><i data-feather="trending-up"></i> +' + formatWeightEs(delta) + ' kg</div>';
-    } else {
-      deltaHtml = '<div class="pr-delta pr-delta-flat">Sin cambios</div>';
-    }
+  function buildPersonalRecordRowHtml(r){
+    const ch = recordChange(r);
+
+    let deltaHtml = '';
+    if(ch.kind === 'improved') deltaHtml = '<div class="pr-delta pr-delta-up"><i data-feather="trending-up"></i> +' + formatWeightEs(ch.delta) + ' kg</div>';
+    else if(ch.kind === 'same') deltaHtml = '<div class="pr-delta pr-delta-flat">Sin cambios</div>';
+
+    // Estrella dorada solo para una mejora real; el primer registro lleva un icono neutro.
+    const iconHtml = ch.kind === 'improved'
+      ? '<div class="pr-icon">' + prMedalSvg() + '</div>'
+      : '<div class="pr-icon pr-icon-first">' + routineIconSvg('dumbbell') + '</div>';
 
     return (
       '<div class="pr-row">' +
-        '<div class="pr-icon">' + prMedalSvg() + '</div>' +
+        iconHtml +
         '<div>' +
           '<div class="pr-name">' + escapeHtml(r.exerciseName) + '</div>' +
           '<div class="pr-date">' + formatDateEs(r.currentRecord.date) + ' · ' + formatWeightEs(r.currentRecord.weight) + ' kg</div>' +
@@ -5796,17 +5803,17 @@
     }
 
     container.innerHTML = records.map(r => {
-      const delta = r.previousRecord ? Math.round((r.currentRecord.weight - r.previousRecord.weight) * 100) / 100 : null;
-      const deltaHtml = delta
-        ? '<div class="progress-delta delta-up"><i data-feather="trending-up"></i> +' + formatWeightEs(delta) + ' kg</div>'
-        : '<div class="progress-delta delta-flat">Nuevo registro</div>';
+      const ch = recordChange(r);
+      const deltaHtml = ch.kind === 'improved'
+        ? '<div class="progress-delta delta-up"><i data-feather="trending-up"></i> +' + formatWeightEs(ch.delta) + ' kg</div>'
+        : '<div class="progress-delta delta-flat">' + (ch.kind === 'same' ? 'Sin cambios' : 'Nuevo registro') + '</div>';
 
-      const trendHtml = r.previousRecord
+      const trendHtml = ch.kind === 'improved'
         ? '<svg viewBox="0 0 40 26" class="progress-trend"><polyline points="3,20 37,6"/>' +
             '<circle class="trend-dot-from" cx="3" cy="20" r="2.5"/>' +
             '<circle cx="37" cy="6" r="2.5"/>' +
           '</svg>'
-        : '<div class="progress-trend-new">' + prMedalSvg() + '</div>';
+        : ''; // sin mejora (primer registro): sin insignia
 
       return (
         '<div class="card progress-card">' +
