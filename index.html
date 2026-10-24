@@ -915,7 +915,13 @@
   .exercise-card.selected .exercise-check{background:var(--accent-bright);border-color:var(--accent-bright);}
   .exercise-check svg{width:11px;height:11px;color:#fff;}
 
-  .ex-filter-scroll{display:flex;gap:8px;overflow-x:auto;margin-bottom:18px;scrollbar-width:none;}
+  .ex-filter-scroll{
+    display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;
+    /* Ocupa todo el ancho de la pantalla (sale del padding del cuerpo) y se difumina en los bordes cuando hay más chips */
+    position:relative;margin:0 -20px 18px;padding:2px 20px;scroll-padding:0 20px;--fade-l:0px;--fade-r:0px;
+    -webkit-mask-image:linear-gradient(to right,transparent 0,#000 var(--fade-l),#000 calc(100% - var(--fade-r)),transparent 100%);
+    mask-image:linear-gradient(to right,transparent 0,#000 var(--fade-l),#000 calc(100% - var(--fade-r)),transparent 100%);
+  }
   .ex-filter-scroll::-webkit-scrollbar{display:none;}
   .ex-filter-pill{
     flex-shrink:0;padding:8px 14px;border-radius:999px;cursor:pointer;
@@ -4048,6 +4054,7 @@
     piernas: ROUTINE_ICON_SHAPES.legs,
     cuerpo_completo: ROUTINE_ICON_SHAPES.bodyweight,
     default: ROUTINE_ICON_SHAPES.dumbbell,
+    cardio: ROUTINE_ICON_SHAPES.cardio,
     // Abdominales: torso con rejilla de 6 celdas
     core:
       '<rect x="6" y="3" width="12" height="18" rx="4.5"/><path d="M12 3v18"/><path d="M6 9h12"/><path d="M6 15h12"/>',
@@ -4090,12 +4097,18 @@
     core: { label:'CORE', icon:'muscle:core' },
     cuerpo_completo: { label:'CUERPO COMPLETO', icon:'muscle:cuerpo_completo' },
     antebrazos: { label:'ANTEBRAZOS', icon:'muscle:antebrazos' },
+    cardio: { label:'CARDIO', icon:'muscle:cardio' },
   };
 
   // Estos tres índices se rellenan EN EL MISMO SITIO al cargar el catálogo (nunca se reemplazan los objetos).
   const CATALOG_GROUPS = [];
   const EXERCISE_DETAILS_BY_ID = {};
   const EXERCISE_NAME_BY_ID = {};
+
+  // Orden del grupo Cardio: 1) caminar y correr, 2) máquinas, 3) acondicionamiento. Lo que no figure aquí va después, por nombre.
+  const CATALOG_CARDIO_ORDER = ['rdb-walking', 'rdb-incline-treadmill-walk', 'rdb-running', 'rdb-treadmill-running',
+    'rdb-stationary-bike', 'rdb-air-bike', 'rdb-elliptical-trainer', 'rdb-stair-climber', 'rdb-rowing-machine', 'rdb-ski-erg',
+    'rdb-jump-rope', 'rdb-battle-ropes', 'rdb-battle-rope-double-slam', 'rdb-burpees', 'rdb-jumping-jacks', 'rdb-high-knees', 'rdb-heel-flicks', 'rdb-mountain-climbers'];
 
   function buildCatalogGroups(items){
     const byKey = {}, groups = [];
@@ -4113,6 +4126,11 @@
         groupIcon: group.icon, source: item.source || 'repdb',
       });
     });
+    const cardio = byKey.cardio;
+    if(cardio){
+      const rank = id => { const i = CATALOG_CARDIO_ORDER.indexOf(id); return i === -1 ? 999 : i; };
+      cardio.exercises.sort((a, b) => rank(a.id) - rank(b.id) || a.name.localeCompare(b.name, 'es'));
+    }
     return groups.filter(g => g.exercises.length > 0);
   }
 
@@ -4123,7 +4141,8 @@
     url: 'https://lgysqyhflqogiqiuhezv.supabase.co',
     publishableKey: 'sb_publishable_wOTIyyRPR8AuX-jmv8U-QA_c2lEndg8', // clave PÚBLICA (publishable). Nunca poner aquí claves secretas ni de servicio.
     table: 'repdb_exercises',
-    fields: 'id,name,source_name_es,body_part,equipment,primary_muscles,secondary_muscles,images',
+    fields: 'id,name,source_name_es,body_part,category,equipment,primary_muscles,secondary_muscles,images',
+    fieldsBasic: 'id,name,source_name_es,body_part,equipment,primary_muscles,secondary_muscles,images', // respaldo si la tabla no tiene la columna category
     timeoutMs: 8000,
   };
   const CATALOG_BODY_PART_GROUP = { core:'core', full_body:'cuerpo_completo', back:'espalda', chest:'pecho', shoulders:'hombros', upper_legs:'piernas', lower_legs:'piernas', lower_arms:'antebrazos' };
@@ -4195,6 +4214,7 @@
   let catalogInitPromise = null;
 
   function catalogGroupForRow(row){
+    if(row.category === 'cardio' || CATALOG_CARDIO_ORDER.indexOf(row.id) !== -1) return 'cardio'; // el cardio es un tipo de ejercicio propio, con su filtro
     if(row.body_part === 'upper_arms') return (row.primary_muscles || []).some(m => /triceps/i.test(m)) ? 'triceps' : 'biceps';
     return CATALOG_BODY_PART_GROUP[row.body_part] || null;
   }
@@ -4261,8 +4281,10 @@
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), cfg.timeoutMs);
     try {
-      const url = cfg.url + '/rest/v1/' + cfg.table + '?select=' + cfg.fields + '&is_active=eq.true&order=name.asc&limit=1000';
-      const res = await fetch(url, { headers: { apikey: cfg.publishableKey, Accept: 'application/json' }, signal: ctrl.signal });
+      const buildUrl = f => cfg.url + '/rest/v1/' + cfg.table + '?select=' + f + '&is_active=eq.true&order=name.asc&limit=1000';
+      const reqOpts = { headers: { apikey: cfg.publishableKey, Accept: 'application/json' }, signal: ctrl.signal };
+      let res = await fetch(buildUrl(cfg.fields), reqOpts);
+      if(res.status === 400) res = await fetch(buildUrl(cfg.fieldsBasic), reqOpts); // sin columna category: el cardio se reconoce por su id
       if(!res.ok) throw new Error('HTTP ' + res.status);
       const rows = await res.json();
       if(!Array.isArray(rows)) throw new Error('respuesta inesperada');
@@ -5246,15 +5268,40 @@
 
   function renderExerciseFilterPills(){
     const pillsEl = document.getElementById('exerciseFilterPills');
-    if(catalogStatus.state !== 'ready'){ pillsEl.innerHTML = ''; return; }
+    const prevLeft = pillsEl.scrollLeft; // al repintar se conserva el desplazamiento
+    if(catalogStatus.state !== 'ready'){ pillsEl.innerHTML = ''; updateExerciseFilterFades(); return; }
     const allPill = '<button class="ex-filter-pill' + (exerciseFilterGroup === 'all' ? ' selected' : '') + '" onclick="setExerciseFilterGroup(\'all\')">Todos</button>';
-    const groupPills = CATALOG_GROUPS.map(g => (
+    // Cardio no es un músculo: va justo después de «Todos» para que se vea sin desplazar.
+    const chipGroups = CATALOG_GROUPS.filter(g => g.key === 'cardio').concat(CATALOG_GROUPS.filter(g => g.key !== 'cardio'));
+    const groupPills = chipGroups.map(g => (
       '<button class="ex-filter-pill' + (exerciseFilterGroup === g.key ? ' selected' : '') + '" onclick="setExerciseFilterGroup(\'' + g.key + '\')">' +
         g.label.charAt(0) + g.label.slice(1).toLowerCase() +
       '</button>'
     )).join('');
     pillsEl.innerHTML = allPill + groupPills;
+    pillsEl.scrollLeft = prevLeft;
+    // si el chip activo queda cortado o fuera de vista, se centra
+    const sel = pillsEl.querySelector('.ex-filter-pill.selected');
+    if(sel && (sel.offsetLeft < pillsEl.scrollLeft + 20 || sel.offsetLeft + sel.offsetWidth > pillsEl.scrollLeft + pillsEl.clientWidth - 20)){
+      const left = Math.max(0, sel.offsetLeft - (pillsEl.clientWidth - sel.offsetWidth) / 2);
+      if(pillsEl.scrollTo) pillsEl.scrollTo({ left, behavior: 'smooth' }); else pillsEl.scrollLeft = left;
+    }
+    updateExerciseFilterFades();
   }
+
+  // Difuminado de los bordes de la fila de chips: a la derecha si hay más chips, y a la izquierda si ya se desplazó.
+  function updateExerciseFilterFades(){
+    const el = document.getElementById('exerciseFilterPills');
+    if(!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    el.style.setProperty('--fade-l', el.scrollLeft > 4 ? '28px' : '0px');
+    el.style.setProperty('--fade-r', el.scrollLeft < max - 4 ? '36px' : '0px');
+  }
+  (function bindExerciseFilterFades(){
+    const el = document.getElementById('exerciseFilterPills');
+    if(el) el.addEventListener('scroll', updateExerciseFilterFades, { passive: true });
+    window.addEventListener('resize', updateExerciseFilterFades);
+  })();
 
   function setExerciseFilterGroup(key){
     exerciseFilterGroup = key;
@@ -6163,7 +6210,7 @@
   }
 
   function getAllCatalogExercises(){
-    return CATALOG_GROUPS.flatMap(group => group.exercises.map(ex => ({ name: ex.name, group: group.label })));
+    return CATALOG_GROUPS.filter(group => group.key !== 'cardio').flatMap(group => group.exercises.map(ex => ({ name: ex.name, group: group.label }))); // el cardio no tiene récord de peso
   }
 
   function openAddRecordScreen(){
