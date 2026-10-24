@@ -626,6 +626,28 @@
   .wk-set-dot:active{transform:scale(1.25);}
   .wk-set-dot.done{background:var(--accent-text);}
   .wk-set-dot.active{width:10px;height:10px;border-color:var(--accent-text);}
+  /* Globito «Serie N» que sale del punto pulsado (los puntos pendientes no saltan de serie) */
+  .wk-set-tip{
+    position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);transform-origin:50% 100%;
+    padding:5px 10px;border-radius:10px;white-space:nowrap;pointer-events:none;z-index:5;
+    background:var(--surface-high);border:1px solid var(--border-light);
+    font-family:var(--font-body);font-weight:600;font-size:12px;line-height:1;color:var(--text-primary);
+    box-shadow:0 8px 18px -8px rgba(0,0,0,0.7);
+    animation:wkTipPop 0.18s cubic-bezier(.2,.9,.3,1.2) both;
+  }
+  .wk-set-tip::after{
+    content:'';position:absolute;top:100%;left:50%;width:8px;height:8px;margin:-4px 0 0 -4px;
+    background:var(--surface-high);border-right:1px solid var(--border-light);border-bottom:1px solid var(--border-light);
+    transform:rotate(45deg);
+  }
+  /* Último punto: el globito se alinea a la derecha para no salirse de la pantalla */
+  .wk-set-tip.tip-end{left:auto;right:-6px;transform:none;transform-origin:calc(100% - 9px) 100%;animation-name:wkTipPopEnd;}
+  .wk-set-tip.tip-end::after{left:auto;right:5px;margin-left:0;}
+  .wk-set-tip.tip-out{animation:wkTipOut 0.16s ease-in forwards;}
+  @keyframes wkTipPop{from{opacity:0;transform:translateX(-50%) translateY(6px) scale(0.5);}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1);}}
+  @keyframes wkTipPopEnd{from{opacity:0;transform:translateY(6px) scale(0.5);}to{opacity:1;transform:translateY(0) scale(1);}}
+  @keyframes wkTipOut{to{opacity:0;}}
+  @media (prefers-reduced-motion: reduce){ .wk-set-tip{animation-duration:0.01s;} }
   .wk-current-set-card{
     display:flex;align-items:stretch;gap:10px;
     background:var(--surface);border:1px solid var(--border);border-radius:24px;
@@ -3385,7 +3407,7 @@
     ex.sets.forEach((s, i) => {
       const d = document.createElement('div');
       d.className = 'wk-set-dot' + (s.completed ? ' done' : '') + (i === aIdx ? ' active' : '');
-      d.addEventListener('click', () => toggleSet(i));
+      d.addEventListener('click', () => onSetDotTap(i, d, i === ex.sets.length - 1));
       setDots.appendChild(d);
     });
 
@@ -3458,6 +3480,28 @@
     const demoEl = document.getElementById('wkDemoImages');
     demoEl.dataset.broken = '1';
     demoEl.classList.add('wk-demo-hidden');
+  }
+
+  // Puntos de serie: solo informan. Un punto pendiente (la serie actual o una futura) nunca cambia de serie:
+  // enseña un globito «Serie N». Un punto ya completado conserva su comportamiento de siempre (deshacer).
+  let setTipTimer = null;
+  function onSetDotTap(i, dotEl, isLastDot){
+    const ex = workout[exIndex];
+    if(ex.sets[i].completed){ toggleSet(i); return; }
+    showSetDotTip(dotEl, i, isLastDot);
+  }
+
+  function showSetDotTip(dotEl, i, isLastDot){
+    clearTimeout(setTipTimer);
+    document.querySelectorAll('#wkSetDots .wk-set-tip').forEach(t => t.remove());
+    const tip = document.createElement('span');
+    tip.className = 'wk-set-tip' + (isLastDot ? ' tip-end' : '');
+    tip.textContent = 'Serie ' + (i + 1);
+    dotEl.appendChild(tip);
+    setTipTimer = setTimeout(() => {
+      tip.classList.add('tip-out');
+      setTimeout(() => tip.remove(), 180);
+    }, 1300);
   }
 
   function toggleSet(i){
@@ -5271,9 +5315,7 @@
     const prevLeft = pillsEl.scrollLeft; // al repintar se conserva el desplazamiento
     if(catalogStatus.state !== 'ready'){ pillsEl.innerHTML = ''; updateExerciseFilterFades(); return; }
     const allPill = '<button class="ex-filter-pill' + (exerciseFilterGroup === 'all' ? ' selected' : '') + '" onclick="setExerciseFilterGroup(\'all\')">Todos</button>';
-    // Cardio no es un músculo: va justo después de «Todos» para que se vea sin desplazar.
-    const chipGroups = CATALOG_GROUPS.filter(g => g.key === 'cardio').concat(CATALOG_GROUPS.filter(g => g.key !== 'cardio'));
-    const groupPills = chipGroups.map(g => (
+    const groupPills = CATALOG_GROUPS.map(g => (
       '<button class="ex-filter-pill' + (exerciseFilterGroup === g.key ? ' selected' : '') + '" onclick="setExerciseFilterGroup(\'' + g.key + '\')">' +
         g.label.charAt(0) + g.label.slice(1).toLowerCase() +
       '</button>'
