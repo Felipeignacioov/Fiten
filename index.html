@@ -4064,10 +4064,16 @@
   // Los ids (push, pull, legs...) no cambian: las rutinas guardadas siguen
   // apuntando al mismo icono.
   const ROUTINE_ICON_SHAPES = {
-    // Press: barra con placas empujando hacia arriba
+    // Pecho / empuje: pectorales (dibujo original en 48x48; se escala a 24x24 y se compensa el grosor para que mida 2 como el resto)
     push:
-      '<path d="M5 6h14"/><path d="M3 4v4"/><path d="M21 4v4"/>' +
-      '<path d="M12 20v-9"/><path d="M8.5 14.5 12 11l3.5 3.5"/>',
+      '<g transform="translate(12 12) scale(0.6) translate(-24 -24)" stroke-width="3.33">' +
+        '<path d="M8 15.5 15.2 11l8.8 4.1L24 23l-7.8 5.1-8.2-4.6z"/>' +
+        '<path d="M40 15.5 32.8 11 24 15.1 24 23l7.8 5.1 8.2-4.6z"/>' +
+        '<path d="M8 15.5 13.1 18.3 16.2 23.8"/>' +
+        '<path d="M40 15.5 34.9 18.3 31.8 23.8"/>' +
+        '<path d="M16.2 23.8 19.1 32.4 24 36.5 28.9 32.4 31.8 23.8"/>' +
+        '<path d="M19.1 32.4 24 29.8 28.9 32.4"/>' +
+      '</g>',
     // Tirón: figura colgada de una barra (dominada)
     pull:
       '<path d="M3 3h18"/><path d="M6.5 3 8 11"/><path d="M17.5 3 16 11"/>' +
