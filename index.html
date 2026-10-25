@@ -687,6 +687,11 @@
   }
   .wk-field-input::-webkit-outer-spin-button,.wk-field-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
   .wk-field-input:disabled{color:var(--text-secondary);}
+  /* Serie en curso: los números siguen a pleno contraste, pero la caja ya no parece editable */
+  .wk-current-set-card.locked .wk-field-value:has(.wk-field-input:disabled){
+    background:var(--surface-high);border-color:var(--border);box-shadow:none;cursor:default;opacity:1;
+  }
+  .wk-current-set-card.locked .wk-field-input:disabled{color:var(--text-primary);-webkit-text-fill-color:var(--text-primary);opacity:1;}
   .wk-field-unit{flex-shrink:0;font-family:var(--font-body);font-weight:600;font-size:13px;color:var(--text-secondary);}
   .wk-field-divider{display:none;}
   /* Ajuste rápido: − / + a los lados de la etiqueta (±2,5 kg y ±1 rep).
@@ -1447,6 +1452,63 @@
   /* Récord sin mejora previa (primer registro): icono neutro; la estrella dorada queda para las mejoras reales */
   .pr-icon.pr-icon-first{background:var(--surface-high);box-shadow:none;}
   .pr-icon.pr-icon-first svg{color:var(--text-tertiary);}
+
+  /* ================= BIENVENIDA PRE-LOGIN ================= */
+  #welcomeScreen{position:relative;overflow:hidden;background:var(--bg);}
+  .wl-atmo,.wl-scrim,.wl-photo{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+  /* Atmósfera de marca (sin foto): luz verde en la esquina, barra de luz en diagonal y marca de agua del símbolo */
+  .wl-atmo{
+    background:
+      radial-gradient(70% 42% at 88% 24%,rgba(42,155,136,0.24),transparent 70%),
+      radial-gradient(90% 55% at 6% 100%,rgba(22,99,89,0.20),transparent 70%),
+      linear-gradient(180deg,#0A1512 0%,#0B0B0F 62%);
+  }
+  .wl-atmo::before{
+    content:'';position:absolute;right:-30%;top:36%;width:92%;height:5px;border-radius:5px;
+    background:linear-gradient(90deg,rgba(116,181,161,0),rgba(116,181,161,0.65));
+    box-shadow:0 0 26px 4px rgba(42,155,136,0.35);transform:rotate(-17deg);transform-origin:right center;
+  }
+  .wl-mark{position:absolute;right:-16%;top:9%;width:92%;color:var(--logo-mint);opacity:0.06;}
+  .wl-mark svg{display:block;width:100%;height:auto;}
+  .wl-photo{object-fit:cover;object-position:62% 12%;opacity:0;transition:opacity 0.6s ease;}
+  .wl-photo.loaded{opacity:1;}
+  .wl-scrim{
+    background:linear-gradient(180deg,rgba(11,11,15,0.6) 0%,rgba(11,11,15,0) 24%,rgba(11,11,15,0) 36%,rgba(11,11,15,0.84) 66%,#0B0B0F 100%);
+  }
+  .wl-main{
+    position:relative;flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;
+    display:flex;flex-direction:column;
+    padding:calc(env(safe-area-inset-top,14px) + 22px) 24px 8px 24px;
+  }
+  .wl-main::-webkit-scrollbar{display:none;}
+  .wl-logo{color:var(--logo-mint);flex-shrink:0;}
+  .wl-logo svg{display:block;width:124px;height:auto;filter:drop-shadow(0 0 22px rgba(116,181,161,0.25));}
+  .wl-copy{margin-top:auto;padding-top:32px;}
+  .wl-title{
+    font-family:var(--font-display);font-weight:700;color:var(--text-primary);
+    font-size:clamp(32px,9.6vw,42px);line-height:1.05;letter-spacing:-0.04em;
+  }
+  .wl-title em{font-style:normal;color:var(--logo-mint);}
+  .wl-sub{margin-top:16px;font-family:var(--font-body);font-weight:400;font-size:15.5px;line-height:1.55;color:var(--text-secondary);}
+  .wl-footer{position:relative;flex-shrink:0;padding:20px 24px calc(env(safe-area-inset-bottom,14px) + 22px) 24px;}
+  .wl-cta{position:relative;}
+  .wl-cta .wl-cta-arrow{position:absolute;right:22px;top:50%;margin-top:-8px;}
+  #welcomeScreen .flow-secondary-btn{margin-top:12px;background:rgba(11,11,15,0.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);}
+  #welcomeScreen .flow-secondary-btn:active{background:var(--surface-high);}
+  #welcomeScreen button:focus-visible{outline:2px solid var(--logo-mint);outline-offset:3px;}
+  #welcomeScreen.active .wl-logo,#welcomeScreen.active .wl-copy,#welcomeScreen.active .wl-footer{animation:fitenRise 0.6s cubic-bezier(.2,.7,.2,1) both;}
+  #welcomeScreen.active .wl-copy{animation-delay:0.08s;}
+  #welcomeScreen.active .wl-footer{animation-delay:0.16s;}
+  @media (max-height:640px){
+    .wl-copy{padding-top:20px;}
+    .wl-title{font-size:clamp(28px,8.4vw,34px);}
+    .wl-sub{margin-top:12px;font-size:14.5px;}
+    .wl-footer{padding-top:14px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    #welcomeScreen.active .wl-logo,#welcomeScreen.active .wl-copy,#welcomeScreen.active .wl-footer{animation:none;}
+    .wl-photo{transition:none;}
+  }
 </style>
 </head>
 <body>
@@ -2247,8 +2309,27 @@
       </div>
     </div>
 
+    <div class="auth-screen" id="welcomeScreen">
+      <div class="wl-atmo" aria-hidden="true"><div class="wl-mark" id="wlMark"></div></div>
+      <img class="wl-photo" id="wlHeroImg" alt="" decoding="async" fetchpriority="high" />
+      <div class="wl-scrim" aria-hidden="true"></div>
+      <div class="wl-main">
+        <div class="wl-logo" data-fiten-logo="horizontal"></div>
+        <div class="wl-copy">
+          <h1 class="wl-title">Cada<br><em>entrenamiento</em><br>cuenta.</h1>
+          <p class="wl-sub">Registra tu esfuerzo.<br>Comprende tu progreso.<br>Sigue avanzando.</p>
+        </div>
+      </div>
+      <div class="wl-footer">
+        <button class="flow-primary-btn wl-cta" onclick="showAuthScreen('signup')">Crear cuenta <i data-feather="arrow-right" class="wl-cta-arrow"></i></button>
+        <button class="flow-secondary-btn" onclick="showAuthScreen('login')">Ya tengo una cuenta</button>
+      </div>
+    </div>
+
     <div class="auth-screen" id="loginScreen">
-      <div class="auth-topbar"></div>
+      <div class="auth-topbar">
+        <button class="close-btn" onclick="showAuthScreen('welcome')" aria-label="Volver a la bienvenida"><i data-feather="x"></i></button>
+      </div>
       <div class="auth-scroll">
         <div class="brand-lockup" data-fiten-logo="horizontal"></div>
         <div class="flow-title">Inicia sesión</div>
@@ -2273,7 +2354,7 @@
 
     <div class="auth-screen" id="signupScreen">
       <div class="auth-topbar">
-        <button class="close-btn" onclick="showAuthScreen('login')"><i data-feather="x"></i></button>
+        <button class="close-btn" onclick="showAuthScreen('welcome')" aria-label="Volver a la bienvenida"><i data-feather="x"></i></button>
       </div>
       <div class="auth-scroll">
         <div class="brand-lockup" data-fiten-logo="horizontal"></div>
@@ -2419,6 +2500,20 @@
     });
   }
 
+  // Foto protagonista de la bienvenida. Vacío = se muestra la atmósfera de marca (CSS).
+  // Para usar una foto: sube el archivo a tu repositorio y pon aquí su ruta, p. ej. 'assets/welcome-hero.jpg'.
+  const WELCOME_HERO_SRC = '';
+  function renderWelcomeHero(){
+    const mark = document.getElementById('wlMark');
+    if(mark) mark.innerHTML = '<svg viewBox="0 0 ' + FITEN_SYMBOL.w + ' ' + FITEN_SYMBOL.h + '" fill="currentColor" aria-hidden="true"><path d="' + FITEN_SYMBOL.d + '"/></svg>';
+    const img = document.getElementById('wlHeroImg');
+    if(img && WELCOME_HERO_SRC){
+      img.onload = () => img.classList.add('loaded');
+      img.onerror = () => img.remove(); // si la foto no carga, queda la atmósfera de marca
+      img.src = WELCOME_HERO_SRC;
+    }
+  }
+
   function renderProfileIdentity(){
     const name = (userProfile.name || '').trim() || 'Usuario';
     const initial = name.charAt(0).toUpperCase();
@@ -2443,13 +2538,19 @@
     feather.replace();
   }
 
+  // Pista local (no es una sesión): recuerda que este dispositivo ya inició sesión o creó cuenta,
+  // para que quien ya tiene cuenta vaya directo al login y la bienvenida quede para usuarios nuevos.
+  const ACCOUNT_HINT_KEY = 'fiten_account_hint';
+  function hasAccountHint(){ try { return localStorage.getItem(ACCOUNT_HINT_KEY) === '1'; } catch(e){ return false; } }
+  function rememberAccountHint(){ try { localStorage.setItem(ACCOUNT_HINT_KEY, '1'); } catch(e){} }
+
   function checkAuthAndRoute(){
     document.getElementById('splashScreen').classList.add('splash-exit');
     setTimeout(() => {
       if(authState.isAuthenticated){
         enterApp();
       } else {
-        showAuthScreen('login');
+        showAuthScreen(hasAccountHint() ? 'login' : 'welcome');
       }
     }, 250);
   }
@@ -2651,6 +2752,7 @@
 
     authState.isAuthenticated = true;
     authState.user = { email };
+    rememberAccountHint();
     enterApp();
   }
 
@@ -2679,6 +2781,7 @@
     userProfile.name = name;
     renderProfileIdentity();
 
+    rememberAccountHint();
     enterApp();
   }
 
@@ -3417,9 +3520,15 @@
     const repsInput = document.getElementById('wkRepsInput');
     weightInput.value = focusSet.weight;
     repsInput.value = focusSet.reps;
-    weightInput.disabled = allDone;
-    repsInput.disabled = allDone;
-    document.querySelectorAll('.wk-step-btn').forEach(b => { b.disabled = allDone; });
+    // Con la serie EN CURSO el peso y las reps quedan bloqueados (se siguen viendo, pero no se editan).
+    // Se vuelven a poder cambiar al terminar la serie, para la siguiente.
+    const setInProgress = activeStatus === 'in_progress';
+    const lockFields = allDone || setInProgress;
+    weightInput.disabled = lockFields;
+    repsInput.disabled = lockFields;
+    document.querySelectorAll('.wk-step-btn').forEach(b => { b.disabled = lockFields; });
+    document.querySelector('.wk-current-set-card').classList.toggle('locked', setInProgress);
+    if(lockFields && (document.activeElement === weightInput || document.activeElement === repsInput)) document.activeElement.blur();
     weightInput.dataset.setIndex = focusIdx;
     repsInput.dataset.setIndex = focusIdx;
 
@@ -6424,6 +6533,7 @@
   renderProgresoSummary();
   renderWeeklyActivityChart();
   renderFitenLogos();
+  renderWelcomeHero();
   feather.replace();
   runSplash();
   initCatalog(); // no bloquea el arranque: el catálogo local ya está disponible
