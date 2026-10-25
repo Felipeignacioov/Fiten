@@ -3743,12 +3743,10 @@
     demoEl.classList.add('wk-demo-hidden');
   }
 
-  // Puntos de serie: solo informan. Un punto pendiente (la serie actual o una futura) nunca cambia de serie:
-  // enseña un globito «Serie N». Un punto ya completado conserva su comportamiento de siempre (deshacer).
+  // Puntos de serie: solo informan. Ningún punto cambia de serie (ni adelanta ni retrocede):
+  // al tocarlo se muestra el globito «Serie N» y nada más.
   let setTipTimer = null;
   function onSetDotTap(i, dotEl, isLastDot){
-    const ex = workout[exIndex];
-    if(ex.sets[i].completed){ toggleSet(i); return; }
     showSetDotTip(dotEl, i, isLastDot);
   }
 
