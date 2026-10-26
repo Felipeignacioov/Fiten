@@ -1618,6 +1618,11 @@
     #welcomeScreen.active .wl-spark-area,#welcomeScreen.active .wl-spark-dot{animation:none;opacity:1;transform:none;}
     .wl-cta .wl-cta-arrow{transition:none;}
   }
+
+  /* Símbolo de Fiten usado como icono (relleno, hereda el color del texto/icono que lo contiene) */
+  .fiten-mark{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .fiten-mark svg{display:block;width:17px;height:17px;}
+  .sheet-option-icon .fiten-mark svg{width:21px;height:21px;color:var(--accent-text);}
 </style>
 </head>
 <body>
@@ -1666,7 +1671,7 @@
             <i data-feather="arrow-right"></i> Explorar rutinas
           </button>
           <button class="hero-empty-primary" onclick="showTab('rutinas'); openGoalPicker();">
-            Crear con Fiten <i data-feather="cpu"></i>
+            Crear con Fiten <span class="fiten-mark" data-fiten-mark aria-hidden="true"></span>
           </button>
         </div>
       </div>
@@ -1935,7 +1940,7 @@
     </div>
 
     <div class="sheet-option" onclick="openGoalPicker()">
-      <div class="sheet-option-icon"><i data-feather="cpu"></i></div>
+      <div class="sheet-option-icon"><span class="fiten-mark" data-fiten-mark aria-hidden="true"></span></div>
       <div>
         <div class="sheet-option-title">Crear rutina con Fiten</div>
         <div class="sheet-option-desc">Te generamos una rutina según tu objetivo</div>
@@ -2025,7 +2030,7 @@
 
     <div class="flow-footer">
       <button class="flow-primary-btn" id="generateRoutineBtn" onclick="generateStriveRoutine()" disabled>
-        Generar rutina <i data-feather="cpu"></i>
+        Generar rutina <span class="fiten-mark" data-fiten-mark aria-hidden="true"></span>
       </button>
     </div>
   </div>
@@ -2627,6 +2632,10 @@
     if(splash) splash.innerHTML = fitenLogoSvg('vertical');
     document.querySelectorAll('[data-fiten-logo]').forEach(el => {
       el.innerHTML = fitenLogoSvg(el.getAttribute('data-fiten-logo'));
+    });
+    // Símbolo oficial de Fiten como icono de «Crear con Fiten» (en lugar del chip genérico de IA)
+    document.querySelectorAll('[data-fiten-mark]').forEach(el => {
+      el.innerHTML = '<svg viewBox="0 0 ' + FITEN_SYMBOL.w + ' ' + FITEN_SYMBOL.h + '" fill="currentColor" stroke="none" aria-hidden="true"><path d="' + FITEN_SYMBOL.d + '"/></svg>';
     });
   }
 
