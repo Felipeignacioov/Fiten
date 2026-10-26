@@ -1623,6 +1623,24 @@
   .fiten-mark{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
   .fiten-mark svg{display:block;width:17px;height:17px;}
   .sheet-option-icon .fiten-mark svg{width:21px;height:21px;color:var(--accent-text);}
+
+  /* «Tu progreso» sin datos: una fila compacta en vez de una tarjeta alta, para que «Actividad» quede a la vista */
+  .progress-empty-row{display:flex;flex-direction:row;align-items:center;gap:14px;padding:14px 16px;border-radius:20px;}
+  .progress-empty-icon{width:40px;height:40px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    background:var(--accent-soft);border:1px solid var(--accent-soft-border);color:var(--accent-text);}
+  .progress-empty-icon svg{width:19px;height:19px;}
+  .progress-empty-text{min-width:0;}
+  .progress-empty-title{font-family:var(--font-display);font-weight:600;font-size:14.5px;color:var(--text-primary);}
+  .progress-empty-sub{margin-top:2px;font-family:var(--font-body);font-size:12.5px;line-height:1.4;color:var(--text-secondary);}
+
+  /* Inicio sin rutinas: más compacto para que «Actividad» (la meta semanal) quede a la vista sin desplazar */
+  .home-gap{height:32px;}
+  .home-empty .home-gap{height:24px;}
+  .hero-empty{padding:22px 24px;margin-top:16px;}
+  .hero-empty-eyebrow-row{margin-bottom:10px;}
+  .hero-empty-subtitle{margin-bottom:16px;}
+  .hero-empty-actions{gap:8px;}
+  .hero-empty-primary,.hero-empty-secondary{height:48px;}
 </style>
 </head>
 <body>
@@ -1667,16 +1685,16 @@
         <div class="hero-empty-title">Empieza con Fiten</div>
         <div class="hero-empty-subtitle">Crea una rutina adaptada a tu objetivo y a tu forma de entrenar.</div>
         <div class="hero-empty-actions">
-          <button class="hero-empty-secondary" onclick="openExploreRoutinesScreen()">
-            <i data-feather="arrow-right"></i> Explorar rutinas
-          </button>
           <button class="hero-empty-primary" onclick="showTab('rutinas'); openGoalPicker();">
             Crear con Fiten <span class="fiten-mark" data-fiten-mark aria-hidden="true"></span>
+          </button>
+          <button class="hero-empty-secondary" onclick="openExploreRoutinesScreen()">
+            <i data-feather="arrow-right"></i> Explorar rutinas
           </button>
         </div>
       </div>
 
-      <div style="height:32px"></div>
+      <div class="home-gap"></div>
 
       <div class="section-header">
         <span class="section-title">Tu progreso</span>
@@ -1684,7 +1702,7 @@
       </div>
       <div class="progress-grid" id="homeProgressGrid"></div>
 
-      <div style="height:32px"></div>
+      <div class="home-gap"></div>
 
       <div class="section-header"><span class="section-title">Actividad</span></div>
       <div class="activity-row activity-row-goal" onclick="openWeeklyGoalSheet()">
@@ -4346,6 +4364,7 @@
     const hasRoutines = routines.length > 0;
     document.getElementById('heroWithRoutine').style.display = hasRoutines ? 'block' : 'none';
     document.getElementById('heroEmptyState').style.display = hasRoutines ? 'none' : 'flex';
+    document.getElementById('pane-home').classList.toggle('home-empty', !hasRoutines);
 
     if(hasRoutines){
       const routine = routines[0];
@@ -6158,10 +6177,13 @@
 
     if(records.length === 0){
       container.innerHTML =
-        '<div class="card progress-card"><div class="empty-block">' +
-          '<div class="empty-block-title">Tu progreso aparecerá aquí</div>' +
-          '<div class="empty-block-sub">Completa un entrenamiento y verás tus mejores marcas.</div>' +
-        '</div></div>';
+        '<div class="card progress-card progress-empty-row">' +
+          '<div class="progress-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>' +
+          '<div class="progress-empty-text">' +
+            '<div class="progress-empty-title">Tu progreso aparecerá aquí</div>' +
+            '<div class="progress-empty-sub">Verás tus marcas tras entrenar.</div>' +
+          '</div>' +
+        '</div>';
       return;
     }
 
