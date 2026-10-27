@@ -1653,6 +1653,23 @@
   }
   .chart.chart-is-empty{height:88px;}
   .chart-is-empty .chart-empty-msg{top:2px;padding:0 6px;line-height:1.4;}
+
+  /* Perfil: chips de entrenamiento, iconos de ajustes más legibles y pie discreto */
+  .profile-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:10px;}
+  .profile-chip{
+    display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:999px;cursor:pointer;
+    background:var(--surface);border:1px solid var(--border-light);
+    font-family:var(--font-body);font-weight:600;font-size:12.5px;color:var(--text-secondary);
+    transition:transform 0.15s ease;
+  }
+  .profile-chip:active{transform:scale(0.96);}
+  .profile-chip svg{width:14px;height:14px;flex-shrink:0;}
+  .profile-chip-main{background:var(--accent-soft);border-color:var(--accent-soft-border);color:var(--accent-text);}
+  .settings-icon{width:36px;height:36px;border-radius:11px;background:var(--surface-high);border:1px solid var(--border-light);}
+  .settings-icon svg{width:18px;height:18px;color:rgba(255,255,255,0.88);}
+  .profile-credit{text-align:center;font-family:var(--font-body);font-size:11.5px;letter-spacing:0.01em;}
+  .profile-credit a{display:inline-block;padding:8px 10px;color:var(--text-tertiary);text-decoration:none;}
+  .profile-credit a:hover,.profile-credit a:focus-visible{color:var(--text-secondary);text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -1827,7 +1844,7 @@
       <div class="profile-header">
         <div class="avatar-lg" id="profileAvatarInitial">F</div>
         <div class="profile-name" id="profileNameDisplay">Felipe</div>
-        <div class="goal-pill" id="profileGoalPill"><i data-feather="target"></i><span>Ganar fuerza</span></div>
+        <div class="profile-chips" id="profileGoalPill"></div>
       </div>
 
       <div style="height:28px"></div>
@@ -1842,7 +1859,7 @@
       <div class="logout-row"><i data-feather="log-out"></i><span>Cerrar sesión</span></div>
 
       <div style="height:20px"></div>
-      <div style="text-align:center;font-family:var(--font-body);font-size:11px;color:var(--text-tertiary);"><a href="https://repdb.co" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:underline;">Exercise data by RepDB (repdb.co)</a></div>
+      <div class="profile-credit"><a href="https://repdb.co" target="_blank" rel="noopener noreferrer">Exercise data by RepDB (repdb.co)</a></div>
 
       <div style="height:24px"></div>
     </div>
@@ -6282,6 +6299,7 @@
     userPreferences.daysAvailable = n;
     closeWeeklyGoalSheet();
     renderHomeActivity();
+    renderProfileGoalLevel();
     showSuccessToast('Meta semanal: ' + n + (n === 1 ? ' día' : ' días'));
   }
 
@@ -6722,8 +6740,13 @@
   function renderProfileGoalLevel(){
     const goal = GOALS.find(g => g.key === userPreferences.goal);
     const level = LEVELS.find(l => l.key === userPreferences.level);
+    const days = getWeeklyGoal();
+    const calendarIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+    // Perfil de entrenamiento de un vistazo: objetivo (destacado), nivel y días por semana. Cada chip abre «Objetivo y nivel».
     document.getElementById('profileGoalPill').innerHTML =
-      uiIconMarkup(goal ? goal.icon : 'target') + '<span>' + (goal ? goal.label : 'Sin definir') + '</span>';
+      '<button type="button" class="profile-chip profile-chip-main" onclick="openGoalLevelScreen()">' + uiIconMarkup(goal ? goal.icon : 'ui:goal_fitness') + '<span>' + (goal ? goal.label : 'Sin definir') + '</span></button>' +
+      '<button type="button" class="profile-chip" onclick="openGoalLevelScreen()">' + uiIconMarkup(level ? level.icon : 'ui:level_1') + '<span>' + (level ? level.label : 'Sin definir') + '</span></button>' +
+      '<button type="button" class="profile-chip" onclick="openGoalLevelScreen()">' + calendarIcon + '<span>' + days + (days === 1 ? ' día/sem' : ' días/sem') + '</span></button>';
     feather.replace();
   }
 
