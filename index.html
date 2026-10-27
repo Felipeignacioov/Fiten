@@ -1641,6 +1641,18 @@
   .hero-empty-subtitle{margin-bottom:16px;}
   .hero-empty-actions{gap:8px;}
   .hero-empty-primary,.hero-empty-secondary{height:48px;}
+
+  /* Progreso: resumen sin ceros, etiquetas con aire y gráfica semanal vacía más baja */
+  .stat .v.is-empty{color:var(--text-tertiary);}
+  .summary-row{gap:4px;}
+  .summary-row .v-divider{flex-shrink:0;}
+  .stat .l{font-size:10px;letter-spacing:0.3px;white-space:nowrap;}
+  @media (max-width:350px){
+    .stat .l{font-size:9px;letter-spacing:0.1px;} .stat .v{font-size:19px;}
+    .summary-row{gap:2px;} .card:has(> .summary-row){padding:20px 14px;}
+  }
+  .chart.chart-is-empty{height:88px;}
+  .chart-is-empty .chart-empty-msg{top:2px;padding:0 6px;line-height:1.4;}
 </style>
 </head>
 <body>
@@ -1759,11 +1771,11 @@
 
       <div class="card">
         <div class="summary-row">
-          <div class="stat"><span class="v" id="progresoTotalWorkouts">0</span><span class="l">entrenamientos</span></div>
+          <div class="stat"><span class="v is-empty" id="progresoTotalWorkouts">—</span><span class="l">entrenamientos</span></div>
           <div class="v-divider"></div>
-          <div class="stat"><span class="v" id="progresoWeekDays">0 días</span><span class="l">esta semana</span></div>
+          <div class="stat"><span class="v is-empty" id="progresoWeekDays">—</span><span class="l">esta semana</span></div>
           <div class="v-divider"></div>
-          <div class="stat"><span class="v" id="progresoStreak">0 días</span><span class="l">racha actual</span></div>
+          <div class="stat"><span class="v is-empty" id="progresoStreak">—</span><span class="l">racha actual</span></div>
         </div>
       </div>
 
@@ -1772,7 +1784,7 @@
       <div class="card">
         <div class="chart" id="weeklyActivityChart"></div>
         <div class="chart-footer">
-          <span class="week-total" id="weeklyActivityTotal">0 series esta semana</span>
+          <span class="week-total" id="weeklyActivityTotal">Sin series esta semana</span>
           <span class="day-detail" id="chartDayDetail"></span>
         </div>
       </div>
@@ -6335,9 +6347,13 @@
     const trainedThisWeek = getTrainedDatesThisWeek(getCurrentWeekDates()).size;
     const streak = computeCurrentStreak();
 
-    document.getElementById('progresoTotalWorkouts').textContent = totalWorkouts;
-    document.getElementById('progresoWeekDays').textContent = trainedThisWeek + (trainedThisWeek === 1 ? ' día' : ' días');
-    document.getElementById('progresoStreak').textContent = streak + (streak === 1 ? ' día' : ' días');
+    // Sin ningún entrenamiento aún, «—» en vez de ceros (un 0 se lee como fracaso; un guion, como punto de partida).
+    // Con historial, un 0 sí es un dato real (p. ej. 0 días esta semana) y se muestra tal cual.
+    const hasHistory = totalWorkouts > 0;
+    const setStat = (id, text) => { const el = document.getElementById(id); el.textContent = hasHistory ? text : '—'; el.classList.toggle('is-empty', !hasHistory); };
+    setStat('progresoTotalWorkouts', String(totalWorkouts));
+    setStat('progresoWeekDays', trainedThisWeek + (trainedThisWeek === 1 ? ' día' : ' días'));
+    setStat('progresoStreak', streak + (streak === 1 ? ' día' : ' días'));
   }
 
   const WEEKLY_CHART_DAY_LABELS = ['L','M','X','J','V','S','D'];
@@ -6362,7 +6378,7 @@
 
     const weekIsEmpty = counts.every(c => c === 0);
     document.getElementById('weeklyActivityChart').innerHTML =
-      (weekIsEmpty ? '<div class="chart-empty-msg">Tu semana aparecerá aquí cuando entrenes</div>' : '') +
+      (weekIsEmpty ? '<div class="chart-empty-msg">Tras tu primer entrenamiento verás aquí tus series por día.</div>' : '') +
       weekDates.map((dateStr, i) => {
       const count = counts[i];
       const isToday = dateStr === todayStr;
@@ -6376,7 +6392,8 @@
     }).join('');
 
     const totalSeries = counts.reduce((a, b) => a + b, 0);
-    document.getElementById('weeklyActivityTotal').textContent = totalSeries + ' series esta semana';
+    document.getElementById('weeklyActivityChart').classList.toggle('chart-is-empty', weekIsEmpty);
+    document.getElementById('weeklyActivityTotal').textContent = totalSeries === 0 ? 'Sin series esta semana' : totalSeries + ' series esta semana';
   }
 
   function renderAllPersonalRecords(){
