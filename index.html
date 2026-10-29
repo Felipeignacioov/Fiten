@@ -4167,8 +4167,12 @@
       '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
     lightning:
       '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 12 2"/>',
+    // Objetivo / progreso: diana con relleno sutil, anillo de progreso punteado y flecha ascendente (trazos al grosor 2 del resto de iconos)
     target:
-      '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+      '<circle cx="12" cy="12" r="9" stroke-width="1.8" fill="currentColor" fill-opacity="0.12"/>' +
+      '<circle cx="12" cy="12" r="5.5" stroke-width="1.5" stroke-dasharray="3 2"/>' +
+      '<circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>' +
+      '<path d="M14.5 9.5L19.5 4.5M19.5 4.5H16.5M19.5 4.5V7.5" stroke-width="1.8"/>',
   };
 
   function routineIconSvg(iconId){
@@ -4790,6 +4794,7 @@
     if(!routine) return;
 
     const body = document.getElementById('routineDetailBody');
+    weightBlurSuppressed = true; // al repintar se elimina el campo y salta su blur: no es un «tocar fuera»
     body.innerHTML = (routine.exercises || []).map((ex, i) => {
       const tw = targetOf(ex); const hasWeight = tw !== undefined;
       const restSecondsValue = (ex.restSeconds !== undefined && ex.restSeconds !== null) ? ex.restSeconds : 120;
@@ -4803,7 +4808,7 @@
       if(i === editingWeightIndex){
         weightHtml =
           '<div class="routine-ex-weight-edit">' +
-            '<input type="number" inputmode="decimal" step="0.5" min="0" id="weightEditInput" value="' + (hasWeight ? tw : '') + '" />' +
+            '<input type="number" inputmode="decimal" step="0.5" min="0" id="weightEditInput" value="' + (hasWeight ? tw : '') + '" onblur="onWeightEditBlur(' + i + ')" onkeydown="if(event.key===\'Enter\'){this.blur();}" />' +
             '<button class="routine-ex-weight-confirm" onclick="confirmWeightEdit(' + i + ')"><i data-feather="check"></i></button>' +
           '</div>';
       } else {
@@ -4827,6 +4832,7 @@
 
       return '<div class="routine-ex-row" data-index="' + i + '">' + tapAreaHtml + demoHtml + weightHtml + handleHtml + '</div>';
     }).join('');
+    weightBlurSuppressed = false;
 
     feather.replace();
     if(editingWeightIndex !== null){
@@ -4840,26 +4846,66 @@
     renderRoutineDetailBody();
   }
 
-  function confirmWeightEdit(index){
+  // Guarda el peso objetivo de un ejercicio de la rutina abierta.
+  //  - Con el tick (fromBlur = false): comportamiento de siempre; un campo vacío elimina el objetivo.
+  //  - Al tocar fuera del campo (fromBlur = true): solo se guarda si hay un número válido y distinto del actual;
+  //    si el campo está vacío o igual, se sale de la edición sin tocar nada.
+  function applyWeightEdit(index, raw, fromBlur){
     const routine = routines.find(r => r.id === currentPreviewRoutineId);
-    if(!routine) return;
-    const input = document.getElementById('weightEditInput');
-    const raw = input ? input.value.trim() : '';
-    const parsed = parseFloat(raw);
+    if(!routine || !routine.exercises[index]) return;
     const ex = routine.exercises[index];
     const exId = resolveExerciseId(ex.name, ex.exerciseId);
     ex.exerciseId = exId;
+    const parsed = parseFloat(raw);
+    const valid = raw !== '' && !isNaN(parsed) && parsed > 0;
+
+    if(fromBlur && (!valid || parsed === FitenData.targets.get(exId))){
+      if(editingWeightIndex === index) editingWeightIndex = null;
+      renderRoutineDetailBody();
+      return;
+    }
+
     let affected = 0, msg = 'Marca actualizada';
-    if(raw !== '' && !isNaN(parsed) && parsed > 0){
+    if(valid){
       if(parsed !== FitenData.targets.get(exId)) affected = applyExerciseWeightEverywhere(ex.name, parsed, exId);
       if(affected > 1) msg = 'Peso actualizado en ' + affected + ' rutinas';
     } else {
       FitenData.targets.clear(exId); // vacío (o 0) = eliminar el objetivo compartido, no guardar 0 kg
       msg = 'Objetivo eliminado';
     }
-    editingWeightIndex = null;
+    if(editingWeightIndex === index) editingWeightIndex = null;
     renderRoutineDetailBody();
     showSuccessToast(msg);
+  }
+
+  function confirmWeightEdit(index){
+    const input = document.getElementById('weightEditInput');
+    applyWeightEdit(index, input ? input.value.trim() : '', false);
+  }
+
+  // Dónde se tocó por última vez: al perder el foco el campo, sirve para saber si fue la X (descartar),
+  // el tick (que guarda por su cuenta) o cualquier otro sitio (guardar).
+  let weightBlurSuppressed = false;
+  let lastPointerDown = { target: null, at: 0 };
+  document.addEventListener('pointerdown', e => { lastPointerDown = { target: e.target, at: Date.now() }; }, true);
+
+  function onWeightEditBlur(index){
+    if(weightBlurSuppressed || editingWeightIndex !== index) return; // repintado de la lista, o ya resuelto (tick, cambio de fila, cierre)
+    if(!document.hasFocus()) return;                    // la app pasó a segundo plano: no es un «tocar fuera»
+    const input = document.getElementById('weightEditInput');
+    const raw = input ? input.value.trim() : '';
+    const recent = Date.now() - lastPointerDown.at < 600;
+    const t = recent && lastPointerDown.target && lastPointerDown.target.closest ? lastPointerDown.target : null;
+
+    if(t && t.closest('#routineDetailScreen .close-btn')){ editingWeightIndex = null; return; } // X: descartar
+    if(t && t.closest('.routine-ex-weight-confirm')) return;                                     // tick: guarda él
+
+    // Cualquier otro toque: se guarda. Con un pequeño margen para no perder el toque que acaba de empezar
+    // (p. ej. sobre otro botón) por repintar la lista en mitad del gesto.
+    setTimeout(() => {
+      if(!document.getElementById('routineDetailScreen').classList.contains('open')) return;
+      applyWeightEdit(index, raw, true);
+    }, 200);
   }
 
   function closeRoutineDetail(){
