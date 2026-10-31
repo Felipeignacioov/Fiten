@@ -1670,11 +1670,6 @@
   .profile-credit{text-align:center;font-family:var(--font-body);font-size:11.5px;letter-spacing:0.01em;}
   .profile-credit a{display:inline-block;padding:8px 10px;color:var(--text-tertiary);text-decoration:none;}
   .profile-credit a:hover,.profile-credit a:focus-visible{color:var(--text-secondary);text-decoration:underline;}
-
-  /* Buscador de ejercicios: aviso de variantes y etiqueta en cada tarjeta */
-  .search-note{margin-bottom:18px;padding:12px 14px;border-radius:14px;background:var(--accent-soft);border:1px solid var(--accent-soft-border);
-    font-family:var(--font-body);font-weight:500;font-size:13px;line-height:1.45;color:var(--text-secondary);}
-  .exercise-card-tag{margin-top:5px;font-family:var(--font-body);font-weight:600;font-size:11px;line-height:1.3;color:var(--accent-text);}
 </style>
 </head>
 <body>
@@ -4497,7 +4492,6 @@
       group.exercises.push({
         id: item.id, name: item.name, imageStart: item.imageStart, imageEnd: item.imageEnd,
         equipment: item.equipment, muscles: item.muscles,
-        primaryMuscles: item.primaryMuscles || [], aliases: item.aliases || [], // solo para el buscador
         groupLabel: group.label.charAt(0) + group.label.slice(1).toLowerCase(),
         groupIcon: group.icon, source: item.source || 'repdb',
       });
@@ -4626,8 +4620,6 @@
     return {
       id: row.id, name, muscleGroup: group,
       muscles: [].concat(row.primary_muscles || [], row.secondary_muscles || []),
-      primaryMuscles: row.primary_muscles || [],
-      aliases: (row.source_name_es && String(row.source_name_es).trim() !== name) ? [String(row.source_name_es).trim()] : [],
       equipment: row.equipment ? (CATALOG_EQUIPMENT_ES[row.equipment] || humanizeKey(row.equipment)) : null,
       imageStart: img[0], imageEnd: img[1],
       source: 'repdb', sourceId: row.id.replace(/^rdb-/, ''),
@@ -4641,7 +4633,6 @@
     Object.keys(EXERCISE_DETAILS_BY_ID).forEach(k => { delete EXERCISE_DETAILS_BY_ID[k]; });
     Object.keys(EXERCISE_NAME_BY_ID).forEach(k => { delete EXERCISE_NAME_BY_ID[k]; });
     CATALOG_GROUPS.forEach(group => group.exercises.forEach(ex => { EXERCISE_DETAILS_BY_ID[ex.id] = ex; EXERCISE_NAME_BY_ID[ex.id] = ex.name; }));
-    FitenSearch.invalidate();
   }
 
   // Vuelve a dibujar solo lo que está abierto y depende del catálogo.
@@ -4706,8 +4697,7 @@
       imagesVerified: false,
     };
   }
-  window.FitenCatalog = { init: initCatalog, retry: retryCatalog, status: catalogStatus, diagnose: diagnoseCatalog,
-    search: (q, group) => { const r = FitenSearch.search(q, { group }); return { conceptos: r.tokens, exactos: r.exact.map(e => e.name), variantes: r.variants.map(e => e.name) }; } };
+  window.FitenCatalog = { init: initCatalog, retry: retryCatalog, status: catalogStatus, diagnose: diagnoseCatalog };
 
   // Estado visible cuando el catálogo no está listo (reutiliza el componente de estado vacío existente).
   function catalogStateHtml(){
@@ -5680,331 +5670,6 @@
     return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
   }
 
-  // === FITENSEARCH START ===
-  // Buscador de ejercicios: no depende de coincidencias literales. Cada texto (consulta y catálogo) pasa por la
-  // MISMA canalización —normalizar, quitar palabras vacías, reducir plurales/género, unificar sinónimos— y luego se
-  // comparan conjuntos de conceptos sin importar el orden. Todo el vocabulario vive en SEARCH_CONCEPTS (abajo):
-  // para enseñarle una palabra nueva basta con añadir una línea.
-  const FitenSearch = (function(){
-    const STOP = new Set(['de','del','la','las','el','los','lo','en','con','al','a','y','e','para','por','un','una','unos','unas','ejercicio','ejercicios','rutina']);
-
-    function norm(s){ return String(s == null ? '' : s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
-
-    // Raíz ligera: plural, género y vocales finales (inclinado/inclinada/inclinados -> inclinad). "press" se respeta
-    // para no confundirlo con "prensa". Se aplica igual a todo, así que lo importante es que sea consistente.
-    function stem(w){
-      if(w.length <= 3 || /^\d+$/.test(w) || w.endsWith('ss')) return w;
-      let r = w;
-      if(/[lnrdz]es$/.test(r) && r.length > 4) r = r.slice(0, -2);
-      else if(r.endsWith('s')) r = r.slice(0, -1);
-      while(r.length > 3 && /[aeiou]$/.test(r)) r = r.slice(0, -1);
-      return r;
-    }
-    function baseTokens(text){ return norm(text).split(' ').filter(w => w && !STOP.has(w)).map(stem); }
-
-    // ---------- Vocabulario: [concepto, [formas habituales de decirlo]] ----------
-    // Cada forma se sustituye por el concepto (puede ser varias palabras). Se aplica también a los nombres del catálogo.
-    const SEARCH_CONCEPTS = [
-      // Ejercicios y patrones de movimiento
-      ['press banca', ['press plano', 'flat press', 'flat bench press']],
-      ['banca', ['bench']],
-      ['press inclinado', ['press banca inclinado', 'incline bench press', 'incline press']],
-      ['press declinado', ['press banca declinado', 'decline bench press', 'decline press']],
-      ['press militar', ['overhead press', 'ohp', 'military press', 'shoulder press', 'press de hombro', 'press hombro', 'press sobre la cabeza', 'press por encima de la cabeza']],
-      ['sentadilla', ['squat', 'cuclilla', 'back squat', 'sentadilla libre']],
-      ['sentadilla frontal', ['front squat']],
-      ['sentadilla hack', ['hack squat']],
-      ['sentadilla goblet', ['goblet squat', 'goblet']],
-      ['sentadilla bulgara', ['bulgarian split squat', 'split squat bulgara']],
-      ['peso muerto', ['deadlift', 'dead lift', 'pm']],
-      ['peso muerto rumano', ['romanian deadlift', 'rdl', 'rumano', 'pmr']],
-      ['peso muerto sumo', ['sumo deadlift']],
-      ['dominada', ['pull up', 'pullup', 'barra fija']],
-      ['dominada supina', ['chin up', 'chinup']],
-      ['fondo', ['dip', 'dips', 'fondos en paralelas']],
-      ['remo', ['row', 'rowing']],
-      ['jalon', ['lat pulldown', 'pulldown', 'pull down', 'jalon al pecho', 'polea al pecho', 'jalon dorsal', 'tiron al pecho']],
-      ['curl bicep', ['biceps curl', 'flexion de biceps']],
-      ['curl femoral', ['leg curl', 'curl de piernas', 'flexion de piernas', 'curl isquios', 'curl isquiotibial']],
-      ['curl martillo', ['hammer curl']],
-      ['curl predicador', ['preacher curl', 'curl scott', 'scott', 'predicador']],
-      ['extension cuadricep', ['leg extension', 'extension de piernas', 'extension de pierna']],
-      ['rompecraneos', ['skull crusher', 'skullcrusher', 'press frances', 'french press']],
-      ['extension tricep polea', ['pushdown', 'push down', 'jalon de triceps', 'triceps en polea', 'tricep pushdown']],
-      ['patada', ['kickback', 'kick back']],
-      ['elevacion lateral', ['lateral raise', 'vuelos laterales', 'vuelo lateral', 'abduccion de hombro']],
-      ['elevacion frontal', ['front raise', 'vuelo frontal', 'vuelos frontales']],
-      ['apertura posterior', ['reverse fly', 'rear delt fly', 'pajaro', 'pajaros', 'bent over fly', 'aperturas inversas', 'vuelos posteriores', 'elevacion posterior', 'rear delt']],
-      ['apertura', ['fly', 'flyes', 'flye', 'flies']],
-      ['cruce polea', ['cable crossover', 'crossover', 'cruces en polea']],
-      ['pec deck', ['contractora', 'maquina contractora', 'mariposa', 'butterfly', 'pec fly', 'peck deck']],
-      ['zancada', ['estocada', 'lunge', 'desplante', 'afondo', 'paso adelante']],
-      ['hip thrust', ['empuje de cadera', 'empuje cadera']],
-      ['puente gluteo', ['glute bridge', 'puente de cadera']],
-      ['prensa', ['leg press', 'prensa de piernas', 'prensa 45']],
-      ['elevacion talon', ['calf raise', 'elevacion de gemelos', 'elevacion gemelos', 'elevacion de pantorrillas', 'elevacion de pantorrilla']],
-      ['encogimiento', ['shrug', 'shrugs', 'encogimientos de hombros']],
-      ['plancha', ['plank']],
-      ['abdominal', ['abs', 'abdomen', 'core', 'abdominals', 'rectus abdominis', 'oblicuo', 'oblicuos', 'obliques']],
-      ['crunch', ['crunches']],
-      ['hiperextension', ['back extension', 'hyperextension', 'extension lumbar', 'extension de espalda', 'banco romano']],
-      ['face pull', ['facepull', 'tiron a la cara', 'jalon a la cara']],
-      ['pullover', ['pull over']],
-      ['flexion', ['push up', 'pushup', 'lagartija', 'lagartijas']],
-      ['cuerda saltar', ['jump rope', 'comba', 'saltar a la cuerda', 'saltos de cuerda', 'saltar la cuerda']],
-      ['caminar', ['walking', 'caminata', 'caminando', 'marcha']],
-      ['correr', ['running', 'run', 'trotar', 'trote']],
-      ['cinta', ['treadmill', 'cinta de correr', 'cinta caminadora', 'caminadora', 'trotadora']],
-      ['bicicleta', ['bike', 'cycling', 'spinning', 'cicloergometro']],
-      ['eliptica', ['elliptical', 'eliptico', 'elliptical trainer']],
-      ['escaladora', ['stair climber', 'stairmaster']],
-      // Músculos
-      ['pecho', ['chest', 'pectoral', 'pectoralis', 'pecs']],
-      ['espalda', ['back', 'lats', 'lat', 'latissimus', 'dorsal', 'upper back']],
-      ['hombro', ['shoulder', 'shoulders', 'deltoides', 'deltoide', 'delts', 'deltoid']],
-      ['cuadricep', ['quadriceps', 'quads', 'quad', 'muslo', 'muslos']],
-      ['femoral', ['hamstring', 'hamstrings', 'isquio', 'isquios', 'isquiotibial', 'isquiotibiales', 'biceps femoral']],
-      ['gluteo', ['gluteus', 'culo', 'trasero']],
-      ['gemelo', ['pantorrilla', 'calf', 'calves', 'soleo', 'soleus', 'gastrocnemius', 'gastrocnemio']],
-      ['trapecio', ['trap', 'traps', 'trapezius']],
-      ['antebrazo', ['forearm', 'forearms', 'muneca', 'wrist']],
-      ['lumbar', ['lower back', 'erector', 'erectores', 'erector spinae', 'zona lumbar']],
-      ['pierna', ['leg', 'legs']],
-      ['brazo', ['arm', 'arms']],
-      // Equipamiento
-      ['barra', ['barbell', 'bar', 'barra olimpica', 'olympic bar', 'barra recta']],
-      ['barraz', ['barra z', 'ez bar', 'ez', 'barra ez', 'barra zeta', 'curl bar', 'z bar']],
-      ['mancuerna', ['dumbbell', 'dumbbells', 'db', 'manc', 'mancs', 'halter', 'halteres']],
-      ['polea', ['cable', 'cables', 'pulley']],
-      ['maquina', ['machine', 'maquina guiada']],
-      ['smith', ['maquina smith', 'smith machine', 'multipower', 'multi power']],
-      ['kettlebell', ['pesa rusa', 'kb', 'kettle bell']],
-      ['banda', ['banda elastica', 'bandas elasticas', 'goma', 'gomas', 'liga', 'ligas', 'elastico', 'resistance band', 'mini band', 'loop band']],
-      ['trx', ['suspension', 'entrenador de suspension', 'suspension trainer']],
-      ['fitball', ['pelota suiza', 'balon suizo', 'swiss ball', 'stability ball', 'pelota de estabilidad']],
-      ['corporal', ['peso corporal', 'bodyweight', 'body weight', 'sin peso', 'sin equipo', 'sin equipamiento', 'calistenia', 'autocarga', 'peso del cuerpo']],
-      ['anilla', ['rings', 'argolla', 'argollas']],
-      ['disco', ['plate', 'plates', 'placa']],
-      ['cuerda', ['rope', 'soga']],
-      ['trineo', ['sled', 'prowler']],
-      // Posición y ejecución
-      ['inclinado', ['incline', 'inclined', 'inclinacion']],
-      ['declinado', ['decline', 'declined', 'declinacion']],
-      ['sentado', ['seated', 'sitting']],
-      ['pie', ['standing', 'parado', 'parada', 'en pie', 'erguido']],
-      ['tumbado', ['lying', 'acostado', 'acostada', 'boca arriba']],
-      ['unilateral', ['single arm', 'single leg', 'one arm', 'one leg', 'un solo brazo', 'una sola pierna']],
-      ['frontal', ['front']],
-      ['supino', ['supinado', 'underhand', 'palmas arriba', 'agarre supino']],
-      ['prono', ['pronado', 'overhand', 'agarre prono']],
-      ['neutro', ['neutral', 'agarre neutro']],
-      ['agarre cerrado', ['close grip', 'narrow grip', 'agarre estrecho']],
-      ['agarre abierto', ['wide grip', 'agarre ancho', 'agarre amplio']],
-      ['cerrado', ['estrecho', 'estrecha']],
-      ['abierto', ['ancho', 'amplio', 'wide']],
-      ['alterno', ['alternado', 'alternating', 'alternas', 'alterna']],
-    ];
-
-    // Qué clase de palabra es cada concepto (en forma natural). Sirve para no confundir equipamiento, ejecución y movimiento.
-    const TYPE_WORDS = {
-      pattern: ['press', 'prensa', 'sentadilla', 'muerto', 'dominada', 'fondo', 'remo', 'jalon', 'curl', 'extension', 'elevacion', 'apertura',
-        'zancada', 'thrust', 'encogimiento', 'plancha', 'crunch', 'hiperextension', 'pullover', 'pull', 'patada', 'rompecraneos', 'deck', 'cruce',
-        'puente', 'caminar', 'correr', 'bicicleta', 'eliptica', 'escaladora', 'flexion', 'saltar'],
-      equipment: ['barra', 'barraz', 'mancuerna', 'polea', 'maquina', 'smith', 'kettlebell', 'banda', 'trx', 'fitball', 'corporal', 'anilla', 'disco', 'cuerda', 'cinta', 'trineo'],
-      modifier: ['inclinado', 'declinado', 'sentado', 'pie', 'tumbado', 'unilateral', 'frontal', 'lateral', 'posterior', 'supino', 'prono', 'neutro', 'agarre',
-        'cerrado', 'abierto', 'alterno', 'sumo', 'bulgara', 'rumano', 'militar', 'martillo', 'predicador', 'plano', 'invertido', 'inverso', 'goblet', 'hack'],
-      muscle: ['pecho', 'espalda', 'hombro', 'bicep', 'tricep', 'cuadricep', 'femoral', 'gluteo', 'gemelo', 'abdominal', 'trapecio', 'antebrazo', 'lumbar', 'pierna', 'brazo', 'cardio'],
-    };
-    // Grupo del catálogo al que apunta cada músculo (para inferir qué músculos trabaja una búsqueda).
-    const MUSCLE_GROUP_WORDS = { pecho:'pecho', espalda:'espalda', trapecio:'espalda', lumbar:'espalda', hombro:'hombros', bicep:'biceps', tricep:'triceps',
-      cuadricep:'piernas', femoral:'piernas', gluteo:'piernas', gemelo:'piernas', pierna:'piernas', abdominal:'core', antebrazo:'antebrazos', cardio:'cardio' };
-    // Parecido entre equipamientos (para ordenar variantes: máquina ≈ Smith > barra > mancuerna...).
-    const EQUIP_CLASS = { barra:'libre', barraz:'libre', mancuerna:'libre', kettlebell:'libre', disco:'libre', maquina:'guiado', smith:'guiado', polea:'guiado',
-      banda:'ligero', trx:'ligero', fitball:'ligero', corporal:'ligero', anilla:'ligero' };
-    const EQUIP_PAIRS = [['maquina','smith',0.8],['smith','barra',0.7],['maquina','polea',0.6],['smith','polea',0.5],['barra','mancuerna',0.6],
-      ['barra','barraz',0.9],['mancuerna','kettlebell',0.6],['maquina','mancuerna',0.45],['maquina','barra',0.4],['corporal','anilla',0.6],['banda','polea',0.55],['smith','mancuerna',0.5]];
-
-    const PHRASES = new Map(); let MAXP = 1;
-    const KNOWN = new Set();
-    const TYPES = { pattern: new Set(), equipment: new Set(), modifier: new Set(), muscle: new Set() };
-    const GROUP_OF = {};
-    SEARCH_CONCEPTS.forEach(([canon, variants]) => {
-      const ct = baseTokens(canon); ct.forEach(t => KNOWN.add(t));
-      variants.forEach(v => { const vt = baseTokens(v); if(!vt.length) return; vt.forEach(t => KNOWN.add(t)); PHRASES.set(vt.join(' '), ct); MAXP = Math.max(MAXP, vt.length); });
-    });
-    Object.keys(TYPE_WORDS).forEach(type => TYPE_WORDS[type].forEach(w => baseTokens(w).forEach(t => { TYPES[type].add(t); KNOWN.add(t); })));
-    Object.keys(MUSCLE_GROUP_WORDS).forEach(w => { baseTokens(w).forEach(t => { GROUP_OF[t] = MUSCLE_GROUP_WORDS[w]; }); });
-    const EQUIP_CLS = {}; Object.keys(EQUIP_CLASS).forEach(w => { baseTokens(w).forEach(t => { EQUIP_CLS[t] = EQUIP_CLASS[w]; }); });
-    const EQUIP_SIM = {}; EQUIP_PAIRS.forEach(([a, b, s]) => { const ta = baseTokens(a)[0], tb = baseTokens(b)[0]; EQUIP_SIM[ta + '|' + tb] = s; EQUIP_SIM[tb + '|' + ta] = s; });
-
-    // Texto -> lista de conceptos (sin repetidos), con sinónimos ya unificados.
-    function tokenize(text){
-      const w = baseTokens(text), out = [];
-      for(let i = 0; i < w.length;){
-        let hit = false;
-        for(let L = Math.min(MAXP, w.length - i); L >= 1; L--){
-          const c = PHRASES.get(w.slice(i, i + L).join(' '));
-          if(c){ out.push.apply(out, c); i += L; hit = true; break; }
-        }
-        if(!hit){ out.push(w[i]); i++; }
-      }
-      return out.filter((t, i) => out.indexOf(t) === i);
-    }
-
-    // Distancia de edición con transposiciones (para erratas: sentadila, pres, curll...). Sale pronto si se pasa de max.
-    function osa(a, b, max){
-      const la = a.length, lb = b.length;
-      if(Math.abs(la - lb) > max) return max + 1;
-      let prev2 = null, prev = [], cur = [];
-      for(let j = 0; j <= lb; j++) prev[j] = j;
-      for(let i = 1; i <= la; i++){
-        cur = [i]; let rowMin = i;
-        for(let j = 1; j <= lb; j++){
-          let v = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-          if(prev2 && i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) v = Math.min(v, prev2[j - 2] + 1);
-          cur[j] = v; if(v < rowMin) rowMin = v;
-        }
-        if(rowMin > max) return max + 1;
-        prev2 = prev; prev = cur;
-      }
-      return prev[lb];
-    }
-
-    // ---------- Índice del catálogo (se reconstruye solo cuando el catálogo cambia) ----------
-    let DOCS = null;
-    function filterType(tokens, type){ return tokens.filter(t => TYPES[type].has(t)); }
-    function buildDocs(){
-      DOCS = [];
-      (typeof CATALOG_GROUPS !== 'undefined' ? CATALOG_GROUPS : []).forEach(g => {
-        g.exercises.forEach(ex => {
-          const nameArr = tokenize(ex.name);
-          const aliasArr = tokenize((ex.aliases || []).join(' '));
-          const equipMeta = filterType(tokenize(ex.equipment || ''), 'equipment');
-          const equip = new Set(filterType(nameArr.concat(aliasArr), 'equipment').concat(equipMeta));
-          if(!ex.equipment && !equip.size) equip.add(baseTokens('corporal')[0]); // sin equipamiento = peso corporal
-          const muscle = new Set(filterType(tokenize(g.label).concat(tokenize((ex.primaryMuscles || []).join(' '))), 'muscle'));
-          const nameSet = new Set(nameArr), aliasSet = new Set(aliasArr);
-          DOCS.push({ ex, group: g.key, name: nameSet, nameOrder: nameArr, alias: aliasSet, nameAlias: new Set(nameArr.concat(aliasArr)), equip, equipArr: Array.from(equip), muscle });
-        });
-      });
-    }
-    function invalidate(){ DOCS = null; }
-
-    // ---------- Coincidencia de un concepto de la búsqueda con un ejercicio ----------
-    function matchToken(t, d, isLast){
-      if(d.name.has(t)) return 1;
-      if(d.alias.has(t)) return 0.95;
-      if(TYPES.equipment.has(t) && d.equip.has(t)) return 0.85;
-      if(TYPES.muscle.has(t) && d.muscle.has(t)) return 0.7;
-      if(t.length >= 3 || (isLast && t.length >= 2)){
-        for(const x of d.nameAlias) if(x.length > t.length && x.startsWith(t) && !(KNOWN.has(t) && KNOWN.has(x))) return 0.8; // escribiendo: «pres» -> press
-      }
-      if(t.length >= 4 && !KNOWN.has(t)){ // erratas, solo para palabras que no son del vocabulario (evita press/prensa)
-        const max = t.length >= 8 ? 2 : 1;
-        for(const x of d.nameAlias) if(osa(t, x, max) <= max) return 0.65;
-      }
-      return 0;
-    }
-    function matchAll(tokens, d){
-      let sum = 0;
-      for(let i = 0; i < tokens.length; i++){ const w = matchToken(tokens[i], d, i === tokens.length - 1); if(!w) return null; sum += w; }
-      return sum / tokens.length;
-    }
-    function modifierPenalty(qSet, d){ let p = 0; d.name.forEach(x => { if(TYPES.modifier.has(x) && !qSet.has(x)) p += 45; }); return p; }
-    function orderBonus(qt, d){
-      let last = -1;
-      for(const t of qt){ const i = d.nameOrder.indexOf(t); if(i === -1) continue; if(i < last) return 0; last = i; }
-      return 12;
-    }
-    function scoreExact(qt, d, avg){
-      const qSet = new Set(qt);
-      let s = avg * 100;
-      const eq = set => set.size && qSet.size === set.size && qt.every(t => set.has(t));
-      if(eq(d.name) || eq(d.alias)) s += 300; // equivalente exacto (aunque cambie el orden o los sinónimos)
-      s += 60 * (qSet.size / Math.max(d.name.size, qSet.size)) + orderBonus(qt, d) - modifierPenalty(qSet, d);
-      return s;
-    }
-    function equipSim(qEquip, dEquip){
-      if(!qEquip.length) return 0.5;
-      if(!dEquip.length) return 0.2;
-      let best = 0.2;
-      qEquip.forEach(a => dEquip.forEach(b => {
-        const s = a === b ? 1 : (EQUIP_SIM[a + '|' + b] !== undefined ? EQUIP_SIM[a + '|' + b] : (EQUIP_CLS[a] && EQUIP_CLS[a] === EQUIP_CLS[b] ? 0.5 : 0.25));
-        if(s > best) best = s;
-      }));
-      return best;
-    }
-
-    // ---------- Variantes: mismo movimiento y músculos, otro equipamiento o ejecución ----------
-    // Qué grupo muscular trabaja lo que se busca: el músculo si se nombra; si no, el de los ejercicios que más se le parecen.
-    function inferGroup(qt, core, patterns, docs){
-      for(const t of core){ if(TYPES.muscle.has(t) && GROUP_OF[t]) return GROUP_OF[t]; }
-      const pressLike = patterns.some(t => t === baseTokens('press')[0] || t === baseTokens('apertura')[0]);
-      if(pressLike && core.some(t => ['inclinad', 'declinad', 'plan'].includes(t))) return 'pecho';
-      const tally = {};
-      docs.forEach(d => {
-        const hits = qt.filter(t => matchToken(t, d, false)).length;
-        if(hits && patterns.some(t => matchToken(t, d, false))) tally[d.group] = (tally[d.group] || 0) + hits * hits;
-      });
-      const total = Object.keys(tally).reduce((a, k) => a + tally[k], 0);
-      const top = Object.keys(tally).sort((a, b) => tally[b] - tally[a])[0];
-      return top && tally[top] / total >= 0.5 ? top : null;
-    }
-    function findVariants(qt, docs){
-      const qEquip = filterType(qt, 'equipment');
-      const core = qt.filter(t => !TYPES.equipment.has(t));
-      const patterns = filterType(core, 'pattern');
-      const qMods = filterType(core, 'modifier');
-      const qSet = new Set(qt);
-      const out = new Map();
-      const push = (d, score) => { const p = out.get(d.ex.id); if(!p || score > p.score) out.set(d.ex.id, { ex: d.ex, score }); };
-
-      // Si algún término no existe en el catálogo ni en el vocabulario, no es una variante de nada conocido.
-      const unresolved = qt.filter(t => !KNOWN.has(t) && !docs.some(d => matchToken(t, d, false)));
-      if(unresolved.length) return [];
-
-      const group = patterns.length || core.some(t => TYPES.muscle.has(t)) ? inferGroup(qt, core, patterns, docs) : null;
-      const sameGroup = d => !group || d.group === group;
-      const modHits = d => qMods.filter(t => matchToken(t, d, false)).length;
-
-      // Nivel 2: misma búsqueda sin el equipamiento (p. ej. «press inclinado con máquina» -> el mismo press con Smith, barra...)
-      if(qEquip.length && core.some(t => TYPES.pattern.has(t) || TYPES.muscle.has(t))){
-        docs.forEach(d => {
-          if(!sameGroup(d)) return;
-          const avg = matchAll(core, d);
-          if(avg !== null) push(d, 200 + avg * 50 + 100 * equipSim(qEquip, d.equipArr) - modifierPenalty(qSet, d));
-        });
-      }
-      // Nivel 3: mismo movimiento y mismo grupo muscular, sin exigir posición ni equipamiento (los que la cumplen, primero).
-      if(!out.size && patterns.length && group){
-        docs.forEach(d => {
-          if(d.group !== group || !patterns.every(t => matchToken(t, d, false))) return;
-          const hits = core.filter(t => matchToken(t, d, false)).length / Math.max(1, core.length);
-          push(d, 100 + 60 * hits + 60 * modHits(d) + 100 * equipSim(qEquip, d.equipArr) - modifierPenalty(qSet, d));
-        });
-      }
-      return Array.from(out.values()).sort((a, b) => b.score - a.score || a.ex.name.length - b.ex.name.length).slice(0, 8);
-    }
-
-    // search(texto, {group}) -> { tokens, exact: [ejercicios], variants: [ejercicios] }
-    // exact = coincidencias exactas o equivalentes; variants = solo si no hay exactas (parecidos, nunca presentados como el original).
-    function search(query, opts){
-      const qt = tokenize(query);
-      if(!qt.length) return { tokens: [], exact: [], variants: [] };
-      if(!DOCS) buildDocs();
-      const group = opts && opts.group && opts.group !== 'all' ? opts.group : null;
-      const docs = group ? DOCS.filter(d => d.group === group) : DOCS;
-      const exact = [];
-      docs.forEach(d => { const avg = matchAll(qt, d); if(avg !== null) exact.push({ ex: d.ex, score: scoreExact(qt, d, avg) }); });
-      exact.sort((a, b) => b.score - a.score || a.ex.name.length - b.ex.name.length || a.ex.name.localeCompare(b.ex.name, 'es'));
-      const variants = exact.length ? [] : findVariants(qt, docs);
-      return { tokens: qt, exact: exact.slice(0, 60).map(r => r.ex), variants: variants.map(v => v.ex) };
-    }
-
-    return { search, invalidate, tokenize };
-  })();
-  // === FITENSEARCH END ===
-
   function getFilteredCatalogGroups(){
     const q = normalizeSearchText(exerciseSearchQuery);
     return CATALOG_GROUPS
@@ -6062,36 +5727,6 @@
   function renderExercisePicker(){
     const body = document.getElementById('exercisePickerBody');
     if(catalogStatus.state !== 'ready'){ body.innerHTML = catalogStateHtml(); updateAddExercisesFooter(); feather.replace(); return; }
-    const query = exerciseSearchQuery.trim();
-    const sr = query ? FitenSearch.search(query, { group: exerciseFilterGroup }) : null;
-    if(sr && sr.tokens.length){
-      const card = (ex, tag) => {
-        const isSelected = selectedExerciseIds.includes(ex.id);
-        return (
-          '<div class="exercise-card' + (isSelected ? ' selected' : '') + '" onclick="toggleExercise(\'' + ex.id + '\')">' +
-            exerciseCardIconHtml(ex, ex.groupIcon) +
-            '<div class="exercise-card-name">' + escapeHtml(ex.name) + '</div>' +
-            (tag ? '<div class="exercise-card-tag">' + escapeHtml(tag) + '</div>' : '') +
-            '<div class="exercise-check">' + (isSelected ? '<i data-feather="check"></i>' : '') + '</div>' +
-          '</div>'
-        );
-      };
-      if(sr.exact.length){
-        body.innerHTML = '<div class="muscle-section"><div class="muscle-section-title">RESULTADOS</div><div class="exercise-grid">' + sr.exact.map(ex => card(ex, '')).join('') + '</div></div>';
-      } else if(sr.variants.length){
-        body.innerHTML =
-          '<div class="search-note">No hay «' + escapeHtml(query) + '» en el catálogo. Estas variantes trabajan el mismo movimiento y los mismos músculos, con otro equipamiento o ejecución.</div>' +
-          '<div class="muscle-section"><div class="muscle-section-title">VARIANTES PARECIDAS</div><div class="exercise-grid">' +
-            sr.variants.map(ex => card(ex, 'Variante' + (ex.equipment ? ' · ' + ex.equipment : ''))).join('') + '</div></div>';
-      } else {
-        body.innerHTML =
-          '<div class="ex-empty-state"><div class="ex-empty-title">No encontramos ejercicios</div>' +
-          '<div class="ex-empty-sub">Prueba con otro nombre, un sinónimo o el grupo muscular.</div></div>';
-      }
-      updateAddExercisesFooter();
-      feather.replace();
-      return;
-    }
     const groups = getFilteredCatalogGroups();
     if(groups.length === 0){
       body.innerHTML =
